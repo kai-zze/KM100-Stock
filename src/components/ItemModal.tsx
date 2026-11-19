@@ -31,8 +31,10 @@ export const ItemModal: React.FC<Props> = ({
       roomId: defaultRoom,
       name: '',
       quantity: 1,
-      condition: 'Good',
-      category: 'Computer Equipment',
+      units: 'pcs',
+      status: 'Working',
+      condition: 'Working',
+      category: 'Tools',
       remarks: ''
     };
     columns.forEach(col => {
@@ -84,11 +86,11 @@ export const ItemModal: React.FC<Props> = ({
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="./logo.png"
               alt="KM100 Logo"
               className="w-9 h-9 object-contain rounded-full bg-white dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-sm"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "./logo.png";
+                (e.target as HTMLImageElement).src = "./favicon.png";
               }}
             />
             <div>
@@ -136,7 +138,11 @@ export const ItemModal: React.FC<Props> = ({
               const options =
                 col.options && col.options.length > 0
                   ? col.options
-                  : ['Good', 'Fair', 'Needs Repair', 'Condemned'];
+                  : (col.id === 'status' || col.id === 'condition'
+                      ? ['Working', 'Used', 'Deffective', 'Empty']
+                      : col.id === 'units'
+                        ? ['pcs', 'set', 'box', 'roll', 'pack']
+                        : ['Tools', 'PC Hardware', 'Peripheral', 'Cables and Wires', 'Consumables', 'Diagnostic', 'Networking']);
               return (
                 <div key={col.id}>
                   <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">

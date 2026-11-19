@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   ColumnDefinition,
   InventoryItem,
@@ -19,185 +19,7 @@ const STORAGE_KEY_ITEMS = 'km100_inventory_items_v1';
 const STORAGE_KEY_COLUMNS = 'km100_inventory_columns_v1';
 const STORAGE_KEY_THEME = 'km100_inventory_theme_v1';
 
-const DEFAULT_COLUMNS: ColumnDefinition[] = [
-  { id: 'name', label: 'ITEM NAME', type: 'text', required: true, isSystem: true, order: 1 },
-  {
-    id: 'category',
-    label: 'CATEGORY',
-    type: 'dropdown',
-    options: [
-      'Tools',
-      'Consumables and Maintenance',
-      'Peripherals and Storage',
-      'PC Hardware and Components',
-      'Diagnostic and Testing',
-      'Cables and Connectors',
-      'Networking Equipment',
-      'Operating System and Software'
-    ],
-    required: true,
-    order: 2
-  },
-  { id: 'quantity', label: 'QUANTITY', type: 'number', required: true, isSystem: true, order: 3 },
-  {
-    id: 'units',
-    label: 'UNITS',
-    type: 'dropdown',
-    options: ['pcs', 'case', 'box', 'bag'],
-    required: true,
-    order: 4
-  },
-  {
-    id: 'status',
-    label: 'Status',
-    type: 'dropdown',
-    options: ['Working', 'Empty', 'Deffective', 'Used', 'Incomplete'],
-    required: true,
-    order: 5
-  }
-];
-
-const DEFAULT_ROOMS: Room[] = [
-  { id: 'room-ccs', name: 'Contact Center Services', description: 'Contact Center Services Training Lab' },
-  { id: 'room-admin', name: 'Admin Office', description: 'KM100 Administration & Operations Office' },
-  { id: 'room-css', name: 'Computer System Servicing', description: 'Computer Systems Servicing NC II Lab' },
-  { id: 'room-bp', name: 'Bread & Pastry', description: 'Bread and Pastry Production Training Facility' }
-];
-
-const DEFAULT_ITEMS: InventoryItem[] = [
-  {
-    id: 'item-101',
-    roomId: 'room-1',
-    name: 'Dell OptiPlex 7090 Desktop PC',
-    category: 'Computer Equipment',
-    quantity: 24,
-    condition: 'Good',
-    remarks: 'Intel i7, 16GB RAM, dual boot Windows/Ubuntu',
-    createdAt: '2026-10-15T08:30:00Z',
-    updatedAt: '2026-11-10T14:20:00Z'
-  },
-  {
-    id: 'item-102',
-    roomId: 'room-1',
-    name: 'Dell 24" IPS FHD Monitors',
-    category: 'Computer Equipment',
-    quantity: 24,
-    condition: 'Good',
-    remarks: 'Connected via DisplayPort; calibrated',
-    createdAt: '2026-10-15T08:30:00Z',
-    updatedAt: '2026-11-10T14:20:00Z'
-  },
-  {
-    id: 'item-103',
-    roomId: 'room-1',
-    name: 'Cisco Catalyst 2960-X 48-Port Switch',
-    category: 'Network Gear',
-    quantity: 2,
-    condition: 'Good',
-    remarks: 'Mounted in Server Rack 1',
-    createdAt: '2026-10-18T10:00:00Z',
-    updatedAt: '2026-10-18T10:00:00Z'
-  },
-  {
-    id: 'item-104',
-    roomId: 'room-1',
-    name: 'Epson EB-2250U 3LCD Projector',
-    category: 'Audio/Visual',
-    quantity: 1,
-    condition: 'Fair',
-    remarks: 'Lamp hours at 2,450; filter cleaned',
-    createdAt: '2026-10-20T11:15:00Z',
-    updatedAt: '2026-11-05T09:00:00Z'
-  },
-  {
-    id: 'item-105',
-    roomId: 'room-1',
-    name: 'Ergonomic Mesh Task Chairs',
-    category: 'Furniture',
-    quantity: 26,
-    condition: 'Good',
-    remarks: 'Lumbar support; 2 spares in back',
-    createdAt: '2026-10-12T09:00:00Z',
-    updatedAt: '2026-10-12T09:00:00Z'
-  },
-  {
-    id: 'item-201',
-    roomId: 'room-2',
-    name: 'Interactive Smart Board 75" 4K',
-    category: 'Audio/Visual',
-    quantity: 1,
-    condition: 'Good',
-    remarks: 'Touch stylus and wall-mount operational',
-    createdAt: '2026-10-14T13:00:00Z',
-    updatedAt: '2026-11-01T16:30:00Z'
-  },
-  {
-    id: 'item-202',
-    roomId: 'room-2',
-    name: 'Shure Wireless Lapel & Handheld Mic Kit',
-    category: 'Audio/Visual',
-    quantity: 2,
-    condition: 'Needs Repair',
-    remarks: 'Receiver channel B intermittent RF noise',
-    createdAt: '2026-10-16T14:00:00Z',
-    updatedAt: '2026-11-18T11:20:00Z'
-  },
-  {
-    id: 'item-203',
-    roomId: 'room-2',
-    name: 'Trainee Tablet Armchairs (Steel Frame)',
-    category: 'Furniture',
-    quantity: 40,
-    condition: 'Good',
-    remarks: 'Foldable tablet arm with cup holder',
-    createdAt: '2026-10-12T10:00:00Z',
-    updatedAt: '2026-10-12T10:00:00Z'
-  },
-  {
-    id: 'item-204',
-    roomId: 'room-2',
-    name: 'Institutional First Aid Emergency Kit',
-    category: 'Supplies',
-    quantity: 1,
-    condition: 'Good',
-    remarks: 'Red Cross certified; inspect expiry monthly',
-    createdAt: '2026-10-10T08:00:00Z',
-    updatedAt: '2026-11-01T08:00:00Z'
-  },
-  {
-    id: 'item-301',
-    roomId: 'room-3',
-    name: 'HP LaserJet Enterprise MFP M528',
-    category: 'Computer Equipment',
-    quantity: 1,
-    condition: 'Good',
-    remarks: 'Network scanner/printer; toner at 75%',
-    createdAt: '2026-10-08T09:30:00Z',
-    updatedAt: '2026-11-12T10:15:00Z'
-  },
-  {
-    id: 'item-401',
-    roomId: 'room-4',
-    name: 'Fluke 117 Electrician Multimeter',
-    category: 'Tools & Hardware',
-    quantity: 6,
-    condition: 'Good',
-    remarks: 'For electrical training module practicals',
-    createdAt: '2026-10-22T15:00:00Z',
-    updatedAt: '2026-10-22T15:00:00Z'
-  },
-  {
-    id: 'item-402',
-    roomId: 'room-4',
-    name: 'Legacy CRT Monitor 17"',
-    category: 'Computer Equipment',
-    quantity: 3,
-    condition: 'Condemned',
-    remarks: 'Scheduled for environmental e-waste disposal',
-    createdAt: '2026-09-01T08:00:00Z',
-    updatedAt: '2026-10-01T09:00:00Z'
-  }
-];
+import { DEFAULT_COLUMNS, DEFAULT_ROOMS, DEFAULT_ITEMS } from './data/defaultData';
 
 export function App() {
   const [rooms, setRooms] = useState<Room[]>(() => {
@@ -657,10 +479,11 @@ export function App() {
                       className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
                     >
                       <option value="ALL">All Conditions</option>
-                      <option value="Good">Good</option>
-                      <option value="Fair">Fair</option>
-                      <option value="Needs Repair">Needs Repair</option>
-                      <option value="Condemned">Condemned</option>
+                      <option value="Working">Working</option>
+                      <option value="Used">Used</option>
+                      <option value="Deffective">Deffective</option>
+                      <option value="Empty">Empty</option>
+                      <option value="Incomplete">Incomplete</option>
                     </select>
                   </div>
 

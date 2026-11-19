@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building, Package, Layers, ShieldCheck, Plus, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Building, Package, Layers, ShieldCheck, Plus, ChevronRight, AlertTriangle, FileSpreadsheet } from 'lucide-react';
 import { Room, InventoryItem } from '../types/inventory';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   roomItemCounts: Record<string, { unique: number; totalQty: number }>;
   onSelectRoom: (roomId: string) => void;
   onAddItem: () => void;
+  onUploadExcel?: () => void;
 }
 
 export const OverviewDashboard: React.FC<Props> = ({
@@ -15,23 +16,25 @@ export const OverviewDashboard: React.FC<Props> = ({
   items,
   roomItemCounts,
   onSelectRoom,
-  onAddItem
+  onAddItem,
+  onUploadExcel
 }) => {
   const totalRooms = rooms.length;
   const totalUniqueItems = items.length;
   const totalQuantity = items.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0);
 
-  let goodCount = 0;
-  let fairCount = 0;
+  let operationalCount = 0;
 
   items.forEach(it => {
     const qty = Number(it.quantity) || 0;
-    if (it.condition === 'Good') goodCount += qty;
-    else if (it.condition === 'Fair') fairCount += qty;
+    const cond = it.status || it.condition || 'Working';
+    if (cond === 'Working' || cond === 'Used' || cond === 'Good' || cond === 'Fair') {
+      operationalCount += qty;
+    }
   });
 
   const operationalPct =
-    totalQuantity > 0 ? Math.round(((goodCount + fairCount) / totalQuantity) * 100) : 100;
+    totalQuantity > 0 ? Math.round((operationalCount / totalQuantity) * 100) : 100;
 
   return (
     <div className="p-4 lg:p-6 bg-gradient-to-b from-blue-50/60 to-transparent dark:from-blue-950/20 border-b border-slate-200 dark:border-slate-800">
@@ -47,9 +50,18 @@ export const OverviewDashboard: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onUploadExcel && (
+              <button
+                onClick={onUploadExcel}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all shadow-sm active:scale-[0.98]"
+                title="Upload Excel or CSV file to convert & add directly to inventory"
+              >
+                <FileSpreadsheet size={15} /> Upload Excel
+              </button>
+            )}
             <button
               onClick={onAddItem}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white shadow-sm shadow-orange-500/20 transition-all active:scale-[0.98]"
             >
               <Plus size={16} /> Add Inventory Item
             </button>
