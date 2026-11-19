@@ -21,6 +21,7 @@ interface Props {
   onToggleTheme: () => void;
   onOpenColumnsModal: () => void;
   onExportExcel: (mode: 'multi' | 'current') => void;
+  onTriggerUploadExcel?: () => void;
   onExportBackup: () => void;
   onImportBackup: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onResetSampleData: () => void;
@@ -34,6 +35,7 @@ export const Header: React.FC<Props> = ({
   onToggleTheme,
   onOpenColumnsModal,
   onExportExcel,
+  onTriggerUploadExcel,
   onExportBackup,
   onImportBackup,
   onResetSampleData,
@@ -85,6 +87,18 @@ export const Header: React.FC<Props> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Upload & Convert Excel Button */}
+          {onTriggerUploadExcel && (
+            <button
+              onClick={onTriggerUploadExcel}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors"
+              title="Upload Excel (.xlsx, .xls) or CSV to convert & add directly to inventory"
+            >
+              <FileSpreadsheet size={15} />
+              <span className="hidden md:inline">Upload Excel</span>
+            </button>
+          )}
+
           {/* Excel Export Dropdown */}
           <div className="relative">
             <button
