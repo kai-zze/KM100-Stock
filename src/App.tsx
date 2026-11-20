@@ -48,45 +48,51 @@ const STORAGE_KEY_THEME = 'km100_inventory_theme_v2';
 
 const PAGE_SIZE = 25;
 
-import { DEFAULT_COLUMNS, DEFAULT_ROOMS, DEFAULT_ITEMS } from './data/defaultData';
-
 export function App() {
   // ── State Initialization ──────────────────────────────────────────
-  const [rooms, setRooms] = useState<Room[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_ROOMS);
-      return saved ? JSON.parse(saved) : DEFAULT_ROOMS;
-    } catch {
-      return DEFAULT_ROOMS;
-    }
-  });
+  // defaultData.ts (43KB) is lazy-loaded below — only fetched when localStorage is empty
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [columns, setColumns] = useState<ColumnDefinition[]>([]);
+  const [hiddenColumnIds, setHiddenColumnIds] = useState<string[]>([]);
+  const [defaultsLoaded, setDefaultsLoaded] = useState(false);
 
-  const [items, setItems] = useState<InventoryItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
-      return saved ? JSON.parse(saved) : DEFAULT_ITEMS;
-    } catch {
-      return DEFAULT_ITEMS;
-    }
-  });
+  // ── Load defaults from localStorage or seed data ──────────────────
+  useEffect(() => {
+    if (defaultsLoaded) return;
 
-  const [columns, setColumns] = useState<ColumnDefinition[]>(() => {
+    let hasSavedData = false;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_COLUMNS);
-      return saved ? JSON.parse(saved) : DEFAULT_COLUMNS;
-    } catch {
-      return DEFAULT_COLUMNS;
-    }
-  });
+      const savedRooms = localStorage.getItem(STORAGE_KEY_ROOMS);
+      const savedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
+      const savedColumns = localStorage.getItem(STORAGE_KEY_COLUMNS);
+      const savedHidden = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
+      hasSavedData = !!(savedRooms || savedItems || savedColumns || savedHidden);
+    } catch {}
 
-  const [hiddenColumnIds, setHiddenColumnIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
+    if (hasSavedData) {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_ROOMS);
+        if (saved) setRooms(JSON.parse(saved));
+        const saved2 = localStorage.getItem(STORAGE_KEY_ITEMS);
+        if (saved2) setItems(JSON.parse(saved2));
+        const saved3 = localStorage.getItem(STORAGE_KEY_COLUMNS);
+        if (saved3) setColumns(JSON.parse(saved3));
+        const saved4 = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
+        if (saved4) setHiddenColumnIds(JSON.parse(saved4));
+      } catch {}
+      setDefaultsLoaded(true);
+      return;
     }
-  });
+
+    // First visit: lazy-load seed data (43KB module, split into separate chunk)
+    import('./data/defaultData').then(({ DEFAULT_ROOMS, DEFAULT_ITEMS, DEFAULT_COLUMNS }) => {
+      setRooms(DEFAULT_ROOMS);
+      setItems(DEFAULT_ITEMS);
+      setColumns(DEFAULT_COLUMNS);
+      setDefaultsLoaded(true);
+    });
+  }, [defaultsLoaded]);
 
   // ── Filtering, Search & Sorting ──────────────────────────────────
   const [selectedRoomId, setSelectedRoomId] = useState<string>('ALL');
@@ -485,13 +491,14 @@ export function App() {
   };
 
   // ── Reset & Clear ───────────────────────────────────────────────
-  const handleResetSampleData = () => {
+  const handleResetSampleData = async () => {
     setConfirmDialog({
       title: 'Reset to Sample Data',
       message:
         'This will replace all current rooms and items with the official KM100 Skills and Training Center catalog. Proceed?',
       isDestructive: true,
-      onConfirm: () => {
+      onConfirm: async () => {
+        const { DEFAULT_ROOMS, DEFAULT_ITEMS, DEFAULT_COLUMNS } = await import('./data/defaultData');
         setRooms(DEFAULT_ROOMS);
         setItems(DEFAULT_ITEMS);
         setColumns(DEFAULT_COLUMNS);
