@@ -285,3 +285,11 @@ declare module 'xlsx' {
   const XLSX: any;
   export default XLSX;
 }
+
+declare module '@supabase/supabase-js' {
+  export function createClient(supabaseUrl: string, supabaseKey: string, options?: any): any;
+  export type SupabaseClient = any;
+  export type RealtimeChannel = any;
+  const defaultSupabase: any;
+  export default defaultSupabase;
+}
