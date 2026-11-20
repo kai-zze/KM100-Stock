@@ -78,7 +78,7 @@ export const Header: React.FC<Props> = ({
   }, [isExportDropdownOpen, isSettingsOpen]);
 
   return (
-    <header className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 no-print">
+    <header className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 no-print">
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button

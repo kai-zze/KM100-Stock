@@ -19,14 +19,14 @@ export const OverviewDashboard: React.FC<Props> = ({
   onAddItem
 }) => {
   return (
-    <div className="px-4 lg:px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+    <div className="px-4 lg:px-6 py-6 border-b border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Institutional Overview
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500 dark:text-slate-300">
               Consolidated training equipment and physical asset portfolio
             </p>
           </div>
@@ -44,7 +44,7 @@ export const OverviewDashboard: React.FC<Props> = ({
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Facility Breakdown by Room
             </h3>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Select a facility to inspect</span>
+            <span className="text-xs text-slate-500 dark:text-slate-300">Select a facility to inspect</span>
           </div>
 
           {rooms.length === 0 ? (
@@ -53,7 +53,7 @@ export const OverviewDashboard: React.FC<Props> = ({
                 <Building size={22} />
               </div>
               <p className="text-sm font-bold text-slate-800 dark:text-slate-200">No facilities yet</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
                 Add a facility room from the sidebar to start tracking its inventory.
               </p>
             </div>
@@ -80,12 +80,12 @@ export const OverviewDashboard: React.FC<Props> = ({
                       />
                     </div>
 
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mb-3">
+                    <p className="text-xs text-slate-500 dark:text-slate-300 line-clamp-1 mb-3">
                       {room.description || 'Facility room'}
                     </p>
 
                     <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200 dark:border-slate-800 font-mono">
-                      <span className="text-slate-500 dark:text-slate-400">
+                      <span className="text-slate-500 dark:text-slate-300">
                         <strong className="text-slate-800 dark:text-slate-200">{counts.unique}</strong> items
                       </span>
                       <span className="text-emerald-700 dark:text-emerald-400">

@@ -775,27 +775,27 @@ export function App() {
           <div className="flex-1 p-3 sm:p-4 lg:p-6 flex flex-col min-h-0">
             <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col">
               {/* Quick Status KPI Strip (Industry Standard Bar) */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3.5 no-print">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 no-print">
                 <button
                   onClick={() => {
                     setNeedsAttentionFilter(false);
                     setOutOfStockFilter(false);
                     setConditionFilter('ALL');
                   }}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
+                  className={`p-4 rounded-2xl border text-left transition-all ${
                     !needsAttentionFilter && !outOfStockFilter && conditionFilter === 'ALL'
                       ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/80 shadow-sm'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-slate-500 mb-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Catalog SKUs</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Catalog SKUs</span>
                     <Package size={14} className="text-amber-700" />
                   </div>
                   <div className="text-xl font-bold font-mono text-slate-900 dark:text-white tabular-nums">
                     {roomScopedItems.length}
                   </div>
-                  <span className="text-[10px] text-slate-400">Total tracked items</span>
+                  <span className="text-xs text-slate-400">Total tracked items</span>
                 </button>
 
                 <button
@@ -803,62 +803,62 @@ export function App() {
                     setNeedsAttentionFilter(false);
                     setOutOfStockFilter(false);
                   }}
-                  className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-left hover:border-slate-300 transition-all"
+                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-left hover:border-slate-300 transition-all"
                 >
                   <div className="flex items-center justify-between text-slate-500 mb-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">In-Stock Units</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">In-Stock Units</span>
                     <Layers size={14} className="text-emerald-600" />
                   </div>
                   <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {roomScopedItems.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0)}
                   </div>
-                  <span className="text-[10px] text-slate-400">Physical total</span>
+                  <span className="text-xs text-slate-400">Physical total</span>
                 </button>
 
                 <button
                   onClick={() => setNeedsAttentionFilter((prev) => !prev)}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
+                  className={`p-4 rounded-2xl border text-left transition-all ${
                     needsAttentionFilter
                       ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 dark:border-rose-800 shadow-sm'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-rose-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-slate-500 mb-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Needs Attention</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Needs Attention</span>
                     <AlertTriangle size={14} className="text-rose-500" />
                   </div>
                   <div className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 tabular-nums">
                     {attentionCount}
                   </div>
                   {attentionCount > 0 && (
-                    <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold inline-block mt-1">
+                    <span className="text-xs font-sans px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold inline-block mt-1">
                       Filter
                     </span>
                   )}
-                  <span className="text-[10px] text-slate-400">Defective, empty, incomplete</span>
+                  <span className="text-xs text-slate-400">Defective, empty, incomplete</span>
                 </button>
 
                 <button
                   onClick={() => setOutOfStockFilter((prev) => !prev)}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
+                  className={`p-4 rounded-2xl border text-left transition-all ${
                     outOfStockFilter
                       ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-800 shadow-sm'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-slate-500 mb-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Depleted / Out</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Depleted / Out</span>
                     <PackageX size={14} className="text-amber-600" />
                   </div>
                   <div className="text-xl font-bold font-mono text-amber-700 dark:text-amber-400 tabular-nums">
                     {outOfStockCount}
                   </div>
                   {outOfStockCount > 0 && (
-                    <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold inline-block mt-1">
+                    <span className="text-xs font-sans px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold inline-block mt-1">
                       Filter
                     </span>
                   )}
-                  <span className="text-[10px] text-slate-400">0 quantity recorded</span>
+                  <span className="text-xs text-slate-400">0 quantity recorded</span>
                 </button>
               </div>
 
@@ -1188,3 +1188,4 @@ export function App() {
 }
 
 export default App;
+

@@ -67,7 +67,7 @@ export const Sidebar: React.FC<Props> = ({
         </button>
 
         <div className="pt-2 pb-1 px-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-400">
             Individual Rooms ({rooms.length})
           </span>
         </div>
@@ -138,7 +138,7 @@ export const Sidebar: React.FC<Props> = ({
         })}
 
         {rooms.length === 0 && (
-          <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
+          <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-300">
             No rooms created yet.
           </div>
         )}

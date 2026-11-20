@@ -97,7 +97,7 @@ export const InventoryTable: React.FC<Props> = ({
         <table className="w-full text-left border-collapse text-xs">
           <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-10">
             <tr>
-              <th className="py-3 pl-4 pr-1 w-9">
+              <th className="py-4 pl-4 pr-1 w-9">
                 <input
                   ref={setHeaderCheckbox}
                   type="checkbox"
@@ -331,7 +331,7 @@ export const InventoryTable: React.FC<Props> = ({
                 >
                   <ChevronLeft size={13} />
                 </button>
-                <span className="font-mono text-[11px] px-1">
+                <span className="font-mono text-xs px-1">
                   {page} / {totalPages}
                 </span>
                 <button
