@@ -827,14 +827,14 @@ export function App() {
                     <span className="text-[11px] font-bold uppercase tracking-wider">Needs Attention</span>
                     <AlertTriangle size={14} className="text-rose-500" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 tabular-nums flex items-center gap-2">
+                  <div className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 tabular-nums">
                     {attentionCount}
-                    {attentionCount > 0 && (
-                      <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold">
-                        Filter
-                      </span>
-                    )}
                   </div>
+                  {attentionCount > 0 && (
+                    <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold inline-block mt-1">
+                      Filter
+                    </span>
+                  )}
                   <span className="text-[10px] text-slate-400">Defective, empty, incomplete</span>
                 </button>
 
@@ -850,14 +850,14 @@ export function App() {
                     <span className="text-[11px] font-bold uppercase tracking-wider">Depleted / Out</span>
                     <PackageX size={14} className="text-amber-600" />
                   </div>
-                  <div className="text-xl font-bold font-mono text-amber-700 dark:text-amber-400 tabular-nums flex items-center gap-2">
+                  <div className="text-xl font-bold font-mono text-amber-700 dark:text-amber-400 tabular-nums">
                     {outOfStockCount}
-                    {outOfStockCount > 0 && (
-                      <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
-                        Filter
-                      </span>
-                    )}
                   </div>
+                  {outOfStockCount > 0 && (
+                    <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold inline-block mt-1">
+                      Filter
+                    </span>
+                  )}
                   <span className="text-[10px] text-slate-400">0 quantity recorded</span>
                 </button>
               </div>
