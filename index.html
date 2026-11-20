@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
@@ -2554,7 +2554,7 @@
               workbook.created = new Date();
 
               var km100LogoB64 = window.KM100_LOGO_B64 || null;
-              var tesdaLogoB64 = window.TESDA_LOGO_B64 || null;
+              var tesdaLogoB64 = null; // Removed per institutional branding update
 
               var km100ImgId = null;
               if (km100LogoB64) {
@@ -2640,7 +2640,7 @@
                 // Row 3: TESDA Accreditation Subtitle
                 ws.mergeCells('B3:' + getColLetter(numCols - 1) + '3');
                 var subCell = ws.getCell('B3');
-                subCell.value = "Technical Education and Skills Development Authority (TESDA) Accredited TVI";
+                subCell.value = "KM100 Skills & Training Center \u2022 Inventory Management System";
                 subCell.font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF475569' } };
                 subCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -2655,7 +2655,7 @@
                 ws.mergeCells('B5:' + getColLetter(numCols - 1) + '5');
                 var metaCell = ws.getCell('B5');
                 var todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                metaCell.value = "Facility Location: " + sheetTitle + "  •  Active Catalog: " + sheetItems.length + " items  •  Exported: " + todayStr;
+                metaCell.value = "Facility Location: " + sheetTitle + "   |   Active Catalog: " + sheetItems.length + " items   |   Exported: " + todayStr;
                 metaCell.font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF64748B' } };
                 metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
