@@ -36,3 +36,25 @@
 1. **Heading/Body Distinction**: Headings must establish immediate visual hierarchy with weight `700` (`font-bold`) or `800` (`font-black`) in *Plus Jakarta Sans*, while adjacent explanatory text rests on `400` (`font-normal`) or `500` (`font-medium`) in *DM Sans*.
 2. **Numeric Data Scannability**: Inventory quantities, operational percentages, and item counts strictly use `font-mono tabular-nums font-bold` to prevent character shifting during count changes and enable swift vertical scanning.
 3. **No Slop Fallbacks**: Generic fallbacks (*Inter*, *Roboto*, *Arial*, *Space Grotesk*) have been eliminated from all Tailwind tokens and base layers.
+
+
+---
+
+## 4. Institutional Color System (Extracted from KM100 Identity)
+
+The system palette directly embodies the authentic institutional identity of **KM100 Skills and Training Center, Inc.**:
+
+| Token Name | Hex Code | Swatch & Role |
+|------------|----------|---------------|
+| **Institutional Charcoal** | #1c1917 / #211e19 | Deep header bar, floating action HUD, high-contrast badges |
+| **KM100 Primary Amber** | #b45309 / #d97706 | Brand hero color, primary action buttons, active navigation indicator |
+| **Warm Gold Accent** | #f59e0b / #edbf7d | Icons, notification indicators, KPI highlights |
+| **Warm Canvas Cream** | #fdfbf7 / #fdfcf9 | Primary page background, container surface |
+| **Warm Card Surface** | #ffffff / #fbf8f2 | Table card containers, dialog modals |
+| **Architectural Border** | #e7d8c5 / #e2e8f0 | Dividers, table row borders, card outlines |
+
+### Semantic Status Mappings
+- **Working / Good**: Emerald Green (#059669 / #10b981)
+- **Used / Caution**: Amber Gold (#d97706 / #b45309)
+- **Defective / Condemned**: Crimson Rose (#e11d48 / #be123c)
+- **Empty / Incomplete**: Warm Slate / Institutional Neutral (#64748b / #78716c)
