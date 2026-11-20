@@ -49,16 +49,6 @@ export function App() {
     }
   });
 
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_THEME);
-      if (saved !== null) return JSON.parse(saved);
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    } catch {
-      return false;
-    }
-  });
-
   const [selectedRoomId, setSelectedRoomId] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -81,13 +71,12 @@ export function App() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem(STORAGE_KEY_THEME, JSON.stringify(darkMode));
-  }, [darkMode]);
+    // Lock system strictly to Light Mode
+    document.documentElement.classList.remove('dark');
+    try {
+      localStorage.removeItem(STORAGE_KEY_THEME);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(rooms));
@@ -330,8 +319,6 @@ export function App() {
   return (
     <div className="flex h-screen flex-col bg-slate-50 dark:bg-slate-950">
       <Header
-        darkMode={darkMode}
-        onToggleTheme={() => setDarkMode(!darkMode)}
         onOpenColumnsModal={() => setIsColumnsModalOpen(true)}
         onExportExcel={mode => exportInventoryToExcel(mode, rooms, items, columns, currentRoom)}
         onExportBackup={handleBackupExport}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
@@ -1766,14 +1766,8 @@
         });
         var hiddenColumnIds = _hiddenCols[0], setHiddenColumnIds = _hiddenCols[1];
 
-        var _dark = useState(function() {
-          try {
-            var saved = localStorage.getItem(STORAGE_KEY_THEME);
-            if (saved !== null) return JSON.parse(saved);
-            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          } catch(e) { return false; }
-        });
-        var darkMode = _dark[0], setDarkMode = _dark[1];
+        // Strictly Light Mode
+        var darkMode = false;
 
         var _selRoom = useState('ALL');
         var selectedRoomId = _selRoom[0], setSelectedRoomId = _selRoom[1];
@@ -1844,15 +1838,11 @@
 
         var searchInputRef = useRef(null);
 
-        // Sync dark mode class
+        // Lock system strictly to Light Mode
         useEffect(function() {
-          if (darkMode) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-          localStorage.setItem(STORAGE_KEY_THEME, JSON.stringify(darkMode));
-        }, [darkMode]);
+          document.documentElement.classList.remove('dark');
+          try { localStorage.removeItem(STORAGE_KEY_THEME); } catch(e) {}
+        }, []);
 
         // Auto-save to localStorage
         useEffect(function() { localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(rooms)); }, [rooms]);
@@ -2130,10 +2120,19 @@
         }
 
         function confirmDeleteItem(item) {
+          var itemRoom = rooms.find(function(r) { return r.id === item.roomId; });
           setConfirmDialog({
             title: 'Delete Inventory Item',
-            message: 'Are you sure you want to delete "' + item.name + '"? This action cannot be undone.',
+            message: 'Are you sure you want to delete "' + item.name + '"? This item will be permanently removed from inventory.',
             isDestructive: true,
+            actionLabel: 'Delete Item',
+            itemPreview: {
+              name: item.name,
+              category: item.category || 'General',
+              quantity: (item.quantity || 0) + ' ' + (item.units || 'pcs'),
+              room: itemRoom ? itemRoom.name : 'Unassigned',
+              status: item.status || item.condition || 'Working'
+            },
             onConfirm: function() {
               setItems(function(prev) { return prev.filter(function(i) { return i.id !== item.id; }); });
               setSelectedItemIds(function(prev) { return prev.filter(function(i) { return i !== item.id; }); });
@@ -2149,6 +2148,7 @@
             title: 'Delete Facility Room',
             message: 'Are you sure you want to delete "' + room.name + '"? It currently holds ' + rCount + ' items. Deleting this room will permanently remove all associated items.',
             isDestructive: true,
+            actionLabel: 'Delete Room',
             onConfirm: function() {
               setRooms(function(prev) { return prev.filter(function(r) { return r.id !== room.id; }); });
               setItems(function(prev) { return prev.filter(function(i) { return i.roomId !== room.id; }); });
@@ -2201,10 +2201,23 @@
 
         function handleBulkDelete() {
           var count = selectedItemIds.length;
+          if (count === 0) return;
+          var selectedItemsList = items.filter(function(it) { return selectedItemIds.indexOf(it.id) !== -1; });
+          var totalUnits = selectedItemsList.reduce(function(acc, it) { return acc + (Number(it.quantity) || 0); }, 0);
+          var sampleNames = selectedItemsList.slice(0, 3).map(function(it) { return it.name; });
+          var remainingCount = count - sampleNames.length;
+
           setConfirmDialog({
-            title: 'Delete ' + count + ' Items',
-            message: 'Are you sure you want to permanently delete ' + count + ' selected items? This action cannot be undone.',
+            title: 'Delete ' + count + ' Selected Items',
+            message: 'You are about to permanently delete ' + count + ' items (' + totalUnits + ' total units) from the inventory system.',
             isDestructive: true,
+            actionLabel: 'Permanently Delete ' + count + ' Items',
+            bulkPreview: {
+              count: count,
+              totalUnits: totalUnits,
+              sampleNames: sampleNames,
+              remainingCount: remainingCount
+            },
             onConfirm: function() {
               setItems(function(prev) {
                 return prev.filter(function(it) { return selectedItemIds.indexOf(it.id) === -1; });
@@ -2642,7 +2655,7 @@
                 ws.mergeCells('B5:' + getColLetter(numCols - 1) + '5');
                 var metaCell = ws.getCell('B5');
                 var todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                metaCell.value = "Facility Location: " + sheetTitle + "  â€¢  Active Catalog: " + sheetItems.length + " items  â€¢  Exported: " + todayStr;
+                metaCell.value = "Facility Location: " + sheetTitle + "  •  Active Catalog: " + sheetItems.length + " items  •  Exported: " + todayStr;
                 metaCell.font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF64748B' } };
                 metaCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -3049,41 +3062,24 @@
                   className: 'md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 touch-target'
                 }, [h(Icon, { name: 'menu', size: 18 })]),
 
-                h('div', { className: 'flex items-center gap-1 sm:gap-1.5 shrink-0' }, [
+                h('div', { className: 'flex items-center shrink-0' }, [
                   // KM100 Official Seal
-                  h('div', {
+                  h('img', {
+                    src: './logo.png',
+                    alt: 'KM100 Logo',
                     title: 'KM100 Skills and Training Center Official Seal',
-                    className: 'relative w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-white dark:bg-white p-0.5 shadow-md border border-slate-200 dark:border-white/30 ring-2 ring-orange-500/25 flex items-center justify-center'
-                  }, [
-                    h('img', {
-                      src: './logo.png',
-                      alt: 'KM100 Logo',
-                      className: 'w-full h-full object-contain rounded-full',
-                      onError: function(e) { e.target.style.display = 'none'; }
-                    })
-                  ]),
-                  // TESDA Official Seal
-                  h('div', {
-                    title: 'Technical Education and Skills Development Authority (TESDA)',
-                    className: 'relative w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full bg-white dark:bg-white p-0.5 shadow-md border border-blue-200 dark:border-white/30 ring-2 ring-blue-600/25 flex items-center justify-center'
-                  }, [
-                    h('img', {
-                      src: './tesda_logo.png',
-                      alt: 'TESDA Logo',
-                      className: 'w-full h-full object-contain rounded-full',
-                      onError: function(e) { e.target.style.display = 'none'; }
-                    })
-                  ])
+                    className: 'w-10 h-10 sm:w-12 sm:h-12 shrink-0 object-contain rounded-full',
+                    onError: function(e) { e.target.style.display = 'none'; }
+                  })
                 ]),
                 h('div', { className: 'min-w-0' }, [
                   h('div', { className: 'flex items-center gap-1.5 sm:gap-2' }, [
-                    h('h1', { className: 'text-xs sm:text-base font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate' }, [
+                    h('h1', { className: 'text-xs sm:text-base font-bold text-slate-900 tracking-tight leading-tight truncate' }, [
                       h('span', { className: 'sm:hidden' }, 'KM100 Training Center'),
                       h('span', { className: 'hidden sm:inline' }, 'KM100 Skills and Training Center, Inc.')
-                    ]),
-                    h('span', { className: 'hidden lg:inline-flex px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-400 uppercase tracking-wider' }, 'TESDA Certified')
+                    ])
                   ]),
-                  h('p', { className: 'text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium truncate' }, 'Inventory Management System â€¢ Institutional OS')
+                  h('p', { className: 'text-[10px] sm:text-xs text-slate-500 font-medium truncate' }, 'Inventory Management System \u2022 Institutional OS')
                 ])
               ]),
 
@@ -3185,12 +3181,6 @@
                   title: 'Data & Backup Settings'
                 }, [h(Icon, { name: 'settings', size: 16 })]),
 
-                // Dark Mode Toggle
-                h('button', {
-                  onClick: function() { setDarkMode(!darkMode); },
-                  className: 'p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors',
-                  title: darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
-                }, [h(Icon, { name: darkMode ? 'sun' : 'moon', size: 16 })])
               ])
             ])
           ]),
@@ -3199,13 +3189,12 @@
           h('div', { id: 'printable-report', className: 'print-only p-8 text-black bg-white' }, [
             h('div', { className: 'flex items-center justify-between border-b-2 border-black pb-4 mb-4' }, [
               h('div', { className: 'flex items-center gap-4' }, [
-                h('div', { className: 'flex items-center gap-2' }, [
-                h('img', { src: './logo.png', alt: 'KM100 Logo', className: 'w-14 h-14 object-contain rounded-full' }),
-                h('img', { src: './tesda_logo.png', alt: 'TESDA Logo', className: 'w-14 h-14 object-contain rounded-full' })
-              ]),
+                h('div', { className: 'flex items-center' }, [
+                  h('img', { src: './logo.png', alt: 'KM100 Logo', className: 'w-14 h-14 object-contain rounded-full' })
+                ]),
                 h('div', null, [
                   h('h1', { className: 'text-xl font-bold tracking-tight text-black' }, 'KM100 SKILLS AND TRAINING CENTER, INC.'),
-                  h('p', { className: 'text-xs text-gray-700' }, 'TESDA Accredited Technical-Vocational Institute'),
+                  h('p', { className: 'text-xs text-gray-700' }, 'Official Physical Asset & Property Inventory System'),
                   h('h2', { className: 'text-sm font-bold uppercase tracking-wider text-black mt-1' }, 'OFFICIAL PHYSICAL INVENTORY REPORT')
                 ])
               ]),
@@ -3427,14 +3416,6 @@
                     ]),
                     h('div', { className: 'flex items-center gap-2 shrink-0' }, [
                       h('button', {
-                        onClick: triggerExcelImport,
-                        className: 'flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all shadow-sm active:scale-[0.98]',
-                        title: 'Upload Excel/CSV file to convert & add directly to inventory'
-                      }, [
-                        h(Icon, { name: 'fileSpreadsheet', size: 15 }),
-                        h('span', null, 'Upload Excel')
-                      ]),
-                      h('button', {
                         onClick: function() {
                           if (rooms.length === 0) { alert('Please create a room first.'); return; }
                           setEditingItem(null);
@@ -3529,13 +3510,13 @@
                       ])
                     ]),
                     h('div', { className: 'flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap' }, [
-                      h('span', null, currentRoom.description || 'TESDA Practical Training & Examination Room'),
-                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, 'â€¢'),
+                      h('span', null, currentRoom.description || 'KM100 Practical Training & Examination Lab'),
+                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, '\u2022'),
                       h('span', { className: 'inline-flex items-center gap-1 font-mono' }, [
                         h('strong', { className: 'text-slate-800 dark:text-slate-200 tabular-nums' }, roomItemCounts[currentRoom.id] ? roomItemCounts[currentRoom.id].unique : 0),
                         ' catalog items'
                       ]),
-                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, 'â€¢'),
+                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, '\u2022'),
                       h('span', { className: 'inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400' }, [
                         h('strong', { className: 'tabular-nums' }, roomItemCounts[currentRoom.id] ? roomItemCounts[currentRoom.id].totalQty : 0),
                         ' physical units'
@@ -3550,14 +3531,6 @@
                     }, [
                       h(Icon, { name: 'edit', size: 14 }),
                       h('span', { className: 'hidden sm:inline' }, 'Edit Facility')
-                    ]),
-                    h('button', {
-                      onClick: triggerExcelImport,
-                      className: 'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all shadow-sm active:scale-[0.98]',
-                      title: 'Upload Excel/CSV file to convert & add directly to this room'
-                    }, [
-                      h(Icon, { name: 'fileSpreadsheet', size: 15 }),
-                      h('span', { className: 'hidden sm:inline' }, 'Upload Excel')
                     ]),
                     h('button', {
                       onClick: function() { setEditingItem(null); setIsItemModalOpen(true); },
@@ -3711,8 +3684,11 @@
                   ]),
 
                   // Table Container
-                  h('div', { className: 'flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col' }, [
-                    h('div', { className: 'flex-1 overflow-x-auto overflow-y-auto overscroll-contain [webkit-overflow-scrolling:touch]' }, [
+                  h('div', { className: 'flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col relative' }, [
+                    h('div', {
+                      className: 'flex-1 overflow-x-auto overflow-y-auto overscroll-contain [webkit-overflow-scrolling:touch] transition-all',
+                      style: { paddingBottom: selectedItemIds.length > 0 ? '5.5rem' : '0px' }
+                    }, [
                       h('table', { className: 'w-full text-left border-collapse text-xs' }, [
                         // Sticky Header
                         h('thead', { className: 'sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 z-10' }, [
@@ -3855,8 +3831,8 @@
                                 h('button', {
                                   onClick: function() { confirmDeleteItem(item); },
                                   'aria-label': 'Delete ' + item.name,
-                                  title: 'Delete Item',
-                                  className: 'p-1.5 text-slate-400 hover:text-rose-600 rounded-lg'
+                                  title: 'Delete "' + item.name + '"',
+                                  className: 'p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors'
                                 }, [h(Icon, { name: 'trash', size: 14 })])
                               ])
                             ])
@@ -3873,7 +3849,7 @@
                           h('strong', { className: 'text-slate-900 dark:text-white font-mono' }, filteredItems.length),
                           ' items'
                         ]),
-                        h('span', { className: 'text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline' }, 'â€¢ Scroll up/down to view all items')
+                        h('span', { className: 'text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline' }, '• Scroll up/down to view all items')
                       ]),
 
                       h('div', { className: 'font-mono text-right' }, [
@@ -3903,19 +3879,25 @@
 
           // --- FLOATING ACTION BAR FOR MULTI-SELECT ---
           selectedItemIds.length > 0 && h('div', {
-            className: 'floating-bar fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100vw-24px)] sm:w-auto max-w-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl border border-slate-700 dark:border-slate-300 flex items-center justify-between gap-2 sm:gap-4 animate-modal text-xs'
+            className: 'floating-bar fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100vw-24px)] sm:w-auto max-w-xl bg-slate-900 text-white shadow-[0_20px_50px_rgba(0,0,0,0.35)] px-4 py-2.5 rounded-2xl border border-slate-700/80 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 animate-modal text-xs'
           }, [
-            h('div', { className: 'flex items-center gap-2 pr-3 border-r border-slate-700 dark:border-slate-300 font-bold' }, [
-              h('span', { className: 'w-5 h-5 rounded-full bg-orange-500 text-white text-center leading-5 font-mono text-[11px]' }, selectedItemIds.length),
-              h('span', null, 'Selected')
+            // Selection Badge & Clear
+            h('div', { className: 'flex items-center gap-2 pr-3 sm:border-r border-slate-700/80 shrink-0' }, [
+              h('span', { className: 'px-2 py-0.5 rounded-full bg-orange-500 text-white font-mono font-bold text-xs shadow-sm' }, selectedItemIds.length),
+              h('span', { className: 'font-semibold' }, 'Selected'),
+              h('button', {
+                onClick: function() { setSelectedItemIds([]); },
+                className: 'ml-1 px-1.5 py-0.5 text-[11px] text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors',
+                title: 'Clear selection (Esc)'
+              }, 'Clear')
             ]),
 
             // Batch Move Room
             h('div', { className: 'flex items-center gap-1.5' }, [
-              h('span', { className: 'text-[11px] text-slate-400 dark:text-slate-600' }, 'Move:'),
+              h('span', { className: 'text-[11px] text-slate-400 font-medium' }, 'Move:'),
               h('select', {
                 onChange: function(e) { handleBulkMove(e.target.value); e.target.value = ''; },
-                className: 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold px-2 py-1 rounded-lg border border-slate-700 dark:border-slate-300 focus:outline-none cursor-pointer'
+                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner'
               }, [h('option', { value: '' }, 'Choose Room...')].concat(rooms.map(function(r) {
                 return h('option', { key: r.id, value: r.id }, r.name);
               })))
@@ -3923,10 +3905,10 @@
 
             // Batch Status Change
             h('div', { className: 'flex items-center gap-1.5' }, [
-              h('span', { className: 'text-[11px] text-slate-400 dark:text-slate-600' }, 'Status:'),
+              h('span', { className: 'text-[11px] text-slate-400 font-medium' }, 'Status:'),
               h('select', {
                 onChange: function(e) { handleBulkStatus(e.target.value); e.target.value = ''; },
-                className: 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold px-2 py-1 rounded-lg border border-slate-700 dark:border-slate-300 focus:outline-none cursor-pointer'
+                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner'
               }, [
                 h('option', { value: '' }, 'Set Status...'),
                 h('option', { value: 'Working' }, 'Working'),
@@ -3937,17 +3919,22 @@
               ])
             ]),
 
-            // Batch Delete
-            h('button', {
-              onClick: handleBulkDelete,
-              className: 'flex items-center gap-1 px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-colors'
-            }, [h(Icon, { name: 'trash', size: 13 }), 'Delete']),
-
-            // Deselect
-            h('button', {
-              onClick: function() { setSelectedItemIds([]); },
-              className: 'p-1 hover:opacity-70 text-slate-400 dark:text-slate-600'
-            }, [h(Icon, { name: 'x', size: 14 })])
+            // Prominent Delete Button
+            h('div', { className: 'flex items-center gap-2 pl-0 sm:pl-2 sm:border-l border-slate-700/80 shrink-0 ml-auto sm:ml-0' }, [
+              h('button', {
+                onClick: handleBulkDelete,
+                className: 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-rose-900/40 transition-all cursor-pointer',
+                title: 'Delete ' + selectedItemIds.length + ' selected items'
+              }, [
+                h(Icon, { name: 'trash', size: 14 }),
+                h('span', null, 'Delete (' + selectedItemIds.length + ')')
+              ]),
+              h('button', {
+                onClick: function() { setSelectedItemIds([]); },
+                className: 'p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors',
+                title: 'Dismiss selection bar'
+              }, [h(Icon, { name: 'x', size: 14 })])
+            ])
           ]),
 
           // --- MODAL: EXCEL CONVERSION & DIRECT IMPORT ---
@@ -4216,10 +4203,9 @@
                 h('div', { className: 'p-4 rounded-xl bg-orange-50/60 dark:bg-orange-950/30 border border-orange-200/80 dark:border-orange-900/40' }, [
                   h('div', { className: 'flex items-center gap-2 mb-1.5' }, [
                     h('img', { src: './logo.png', alt: 'KM100 Logo', className: 'w-6 h-6 object-contain rounded-full bg-white p-0.5 shadow-xs' }),
-                    h('img', { src: './tesda_logo.png', alt: 'TESDA Logo', className: 'w-6 h-6 object-contain rounded-full bg-white p-0.5 shadow-xs' }),
                     h('h4', { className: 'text-xs font-bold text-slate-900 dark:text-white' }, 'KM100 Skills & Training Center')
                   ]),
-                  h('p', { className: 'text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed' }, 'TESDA Accredited Technical-Vocational Institute. Real-time local storage persistence, two-way Excel import/export engine.')
+                  h('p', { className: 'text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed' }, 'KM100 Inventory Management System • Real-time local storage, Excel import/export.')
                 ]),
 
                 // Backup & Restore
@@ -4301,7 +4287,7 @@
                 ])
               ]),
 
-              h('div', { className: 'text-[11px] text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-800' }, 'KM100 Inventory System v2.0  â€¢  SheetJS & ExcelJS Enabled')
+              h('div', { className: 'text-[11px] text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-800' }, 'KM100 Inventory System v2.0  •  SheetJS & ExcelJS Enabled')
             ])
           ]),
 
@@ -4310,25 +4296,76 @@
             className: 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal',
             role: 'alertdialog',
             'aria-modal': 'true',
-            'aria-labelledby': 'confirm-dialog-title'
+            'aria-labelledby': 'confirm-dialog-title',
+            onClick: function(e) { if (e.target === e.currentTarget) setConfirmDialog(null); }
           }, [
-            h('div', { className: 'w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4' }, [
-              h('div', { className: 'flex items-center gap-3' }, [
-                h('div', { className: 'p-2 rounded-xl ' + (confirmDialog.isDestructive ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600' : 'bg-orange-100 text-orange-600') }, [
-                  h(Icon, { name: 'alertTriangle', size: 22 })
+            h('div', { className: 'w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-modal' }, [
+              // Header
+              h('div', { className: 'flex items-start gap-3.5' }, [
+                h('div', { className: 'p-3 rounded-2xl shrink-0 ' + (confirmDialog.isDestructive ? 'bg-rose-100 text-rose-600 ring-4 ring-rose-50' : 'bg-orange-100 text-orange-600 ring-4 ring-orange-50') }, [
+                  h(Icon, { name: confirmDialog.isDestructive ? 'trash' : 'alertTriangle', size: 22 })
                 ]),
-                h('h3', { id: 'confirm-dialog-title', className: 'text-base font-bold text-slate-900 dark:text-white' }, confirmDialog.title)
+                h('div', { className: 'space-y-1' }, [
+                  h('h3', { id: 'confirm-dialog-title', className: 'text-base font-bold text-slate-900' }, confirmDialog.title),
+                  h('p', { className: 'text-xs text-slate-500 leading-relaxed' }, confirmDialog.message)
+                ])
               ]),
-              h('p', { className: 'text-xs text-slate-600 dark:text-slate-300 leading-relaxed' }, confirmDialog.message),
-              h('div', { className: 'flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800' }, [
+
+              // Preview Card if deleting a single item
+              confirmDialog.itemPreview && h('div', {
+                className: 'p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs'
+              }, [
+                h('div', { className: 'font-bold text-slate-900 text-sm' }, confirmDialog.itemPreview.name),
+                h('div', { className: 'flex flex-wrap items-center gap-1.5 text-slate-600' }, [
+                  h('span', { className: 'px-2 py-0.5 rounded-md bg-white border border-slate-200 font-medium' }, confirmDialog.itemPreview.category),
+                  h('span', { className: 'px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono font-bold' }, confirmDialog.itemPreview.quantity),
+                  h('span', { className: 'px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-medium' }, confirmDialog.itemPreview.room),
+                  h(ConditionBadge, { condition: confirmDialog.itemPreview.status })
+                ])
+              ]),
+
+              // Preview Card if deleting multiple items in bulk
+              confirmDialog.bulkPreview && h('div', {
+                className: 'p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-2 text-xs'
+              }, [
+                h('div', { className: 'flex items-center justify-between text-slate-700 font-semibold' }, [
+                  h('span', null, 'Target Items Preview:'),
+                  h('span', { className: 'font-mono text-rose-600 font-bold' }, confirmDialog.bulkPreview.count + ' items (' + confirmDialog.bulkPreview.totalUnits + ' units)')
+                ]),
+                h('div', { className: 'space-y-1' }, [
+                  confirmDialog.bulkPreview.sampleNames.map(function(sName, idx) {
+                    return h('div', { key: idx, className: 'flex items-center gap-2 text-slate-600 font-mono text-[11px]' }, [
+                      h('span', { className: 'w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0' }),
+                      h('span', { className: 'truncate' }, sName)
+                    ]);
+                  }),
+                  confirmDialog.bulkPreview.remainingCount > 0 && h('div', { className: 'text-[11px] font-semibold text-rose-600 pl-3.5 pt-0.5' }, [
+                    '+ ' + confirmDialog.bulkPreview.remainingCount + ' more items...'
+                  ])
+                ])
+              ]),
+
+              // Warning Banner
+              h('div', { className: 'flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px]' }, [
+                h(Icon, { name: 'alertTriangle', size: 14, className: 'shrink-0' }),
+                h('span', null, 'This action is permanent and cannot be undone. You can export an Excel backup first if needed.')
+              ]),
+
+              // Modal Actions
+              h('div', { className: 'flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100' }, [
                 h('button', {
+                  type: 'button',
                   onClick: function() { setConfirmDialog(null); },
-                  className: 'px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }, 'Cancel'),
+                  className: 'px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors'
+                }, 'Cancel (Keep Items)'),
                 h('button', {
+                  type: 'button',
                   onClick: confirmDialog.onConfirm,
-                  className: 'px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm ' + (confirmDialog.isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-orange-600 hover:bg-orange-700')
-                }, 'Confirm Action')
+                  className: 'flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-lg shadow-rose-600/30 ' + (confirmDialog.isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-orange-600 hover:bg-orange-700') + ' transition-all active:scale-95'
+                }, [
+                  h(Icon, { name: confirmDialog.isDestructive ? 'trash' : 'check', size: 14 }),
+                  confirmDialog.actionLabel || 'Confirm Action'
+                ])
               ])
             ])
           ]),

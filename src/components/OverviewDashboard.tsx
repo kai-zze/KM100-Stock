@@ -8,7 +8,6 @@ interface Props {
   roomItemCounts: Record<string, { unique: number; totalQty: number }>;
   onSelectRoom: (roomId: string) => void;
   onAddItem: () => void;
-  onUploadExcel?: () => void;
 }
 
 export const OverviewDashboard: React.FC<Props> = ({
@@ -16,8 +15,7 @@ export const OverviewDashboard: React.FC<Props> = ({
   items,
   roomItemCounts,
   onSelectRoom,
-  onAddItem,
-  onUploadExcel
+  onAddItem
 }) => {
   const totalRooms = rooms.length;
   const totalUniqueItems = items.length;
@@ -50,15 +48,6 @@ export const OverviewDashboard: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {onUploadExcel && (
-              <button
-                onClick={onUploadExcel}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all shadow-sm active:scale-[0.98]"
-                title="Upload Excel or CSV file to convert & add directly to inventory"
-              >
-                <FileSpreadsheet size={15} /> Upload Excel
-              </button>
-            )}
             <button
               onClick={onAddItem}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white shadow-sm shadow-orange-500/20 transition-all active:scale-[0.98]"

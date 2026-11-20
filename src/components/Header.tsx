@@ -3,8 +3,6 @@ import {
   FileSpreadsheet,
   Sliders,
   Settings,
-  Sun,
-  Moon,
   ChevronDown,
   Download,
   Upload,
@@ -17,8 +15,6 @@ import {
 import { Room } from '../types/inventory';
 
 interface Props {
-  darkMode: boolean;
-  onToggleTheme: () => void;
   onOpenColumnsModal: () => void;
   onExportExcel: (mode: 'multi' | 'current') => void;
   onTriggerUploadExcel?: () => void;
@@ -31,8 +27,6 @@ interface Props {
 }
 
 export const Header: React.FC<Props> = ({
-  darkMode,
-  onToggleTheme,
   onOpenColumnsModal,
   onExportExcel,
   onTriggerUploadExcel,
@@ -49,38 +43,27 @@ export const Header: React.FC<Props> = ({
   return (
     <header className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 transition-colors no-print">
       <div className="flex items-center justify-between gap-2 sm:gap-4">
-        {/* Brand Title & Official Dual Logos */}
+        {/* Brand Title & Official Logo */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          <div className="flex items-center shrink-0">
             <img
               src="/logo.png"
               alt="KM100 Skills and Training Center Logo"
-              className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 object-contain drop-shadow rounded-full bg-white dark:bg-white p-0.5 border border-slate-200 dark:border-white/30 ring-2 ring-orange-500/25"
+              className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 object-contain rounded-full"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = "./logo.png";
-              }}
-            />
-            <img
-              src="/tesda_logo.png"
-              alt="TESDA Logo"
-              className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 object-contain drop-shadow rounded-full bg-white dark:bg-white p-0.5 border border-blue-200 dark:border-white/30 ring-2 ring-blue-600/25"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "./tesda_logo.png";
               }}
             />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="text-xs sm:text-base lg:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+              <h1 className="text-xs sm:text-base lg:text-lg font-bold tracking-tight text-slate-900 leading-tight truncate">
                 <span className="sm:hidden">KM100 Training</span>
                 <span className="hidden sm:inline">KM100 Skills and Training Center, Inc.</span>
               </h1>
-              <span className="hidden lg:inline-flex px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                TESDA TVI
-              </span>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">
-              Institutional Property & Physical Asset Inventory System
+            <p className="text-[10px] sm:text-xs text-slate-500 truncate">
+              Inventory Management System • Institutional OS
             </p>
           </div>
         </div>
@@ -286,15 +269,6 @@ export const Header: React.FC<Props> = ({
               </div>
             )}
           </div>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={onToggleTheme}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
-            title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
         </div>
       </div>
     </header>
