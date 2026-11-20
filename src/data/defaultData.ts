@@ -1,4 +1,4 @@
-﻿import { ColumnDefinition, InventoryItem, Room } from '../types/inventory';
+import { ColumnDefinition, InventoryItem, Room } from '../types/inventory';
 
 export const DEFAULT_COLUMNS: ColumnDefinition[] = [
   { id: 'name', label: 'ITEM NAME', type: 'text', required: true, isSystem: true, order: 1 },
