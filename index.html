@@ -66,7 +66,7 @@
   <script src="./public/logos_base64.js"></script>
 
   <!-- Supabase Client for Cloud Database & Realtime Sync -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./public/supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
 
   <style>
     /* Essential Fallback & Enhancement CSS */
@@ -122,7 +122,7 @@
       <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">Loading Inventory Management System...</p>
       <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #ea580c; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
       <!-- Supabase Client for Cloud Database & Realtime Sync -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./public/supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
 
   <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     </div>
@@ -4295,7 +4295,7 @@
             columns: columns,
             selectedRoomId: selectedRoomId,
             onClose: function() { setIsItemModalOpen(false); },
-            onSave: function(savedItem) {
+            onSave: function(savedItem) { syncItemToSupabase(savedItem);
               if (editingItem) {
                 setItems(function(prev) { return prev.map(function(i) { return i.id === savedItem.id ? savedItem : i; }); });
                 showToast('Updated item: ' + savedItem.name);
@@ -4324,7 +4324,7 @@
             isOpen: isRoomModalOpen,
             editingRoom: editingRoom,
             onClose: function() { setIsRoomModalOpen(false); },
-            onSave: function(savedRoom) {
+            onSave: function(savedRoom) { syncRoomToSupabase(savedRoom);
               if (editingRoom) {
                 setRooms(function(prev) { return prev.map(function(r) { return r.id === savedRoom.id ? savedRoom : r; }); });
                 showToast('Renamed room to "' + savedRoom.name + '"');
