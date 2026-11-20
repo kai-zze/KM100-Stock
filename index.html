@@ -4857,7 +4857,8 @@
                     h('span', { className: 'font-mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase' }, c.type),
                     c.isSystem && h('span', { className: 'text-[10px] text-amber-700 font-semibold' }, 'Core System')
                   ]),
-                  !c.isSystem && h('button', {`r`n                    onClick: function() { if (confirm('Delete column "' + c.label + '"? Data in this column will be hidden from view.')) { handleDelete(c.id); } },
+                  !c.isSystem && h('button', {
+                    onClick: function() { if (confirm('Delete column "' + c.label + '"? Data in this column will be hidden from view.')) { handleDelete(c.id); } },
                     'aria-label': 'Delete ' + c.label + ' column',
                     className: 'p-1 text-rose-500 hover:text-rose-700'
                   }, [h(Icon, { name: 'trash', size: 14 })])
