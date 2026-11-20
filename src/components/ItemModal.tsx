@@ -120,7 +120,7 @@ export const ItemModal: React.FC<Props> = ({
             <select
               value={formData.roomId}
               onChange={e => setFormData({ ...formData, roomId: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-white font-medium"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
               required
             >
               {rooms.map(room => (
@@ -139,7 +139,7 @@ export const ItemModal: React.FC<Props> = ({
                 col.options && col.options.length > 0
                   ? col.options
                   : (col.id === 'status' || col.id === 'condition'
-                      ? ['Working', 'Used', 'Deffective', 'Empty']
+                      ? ['Working', 'Used', 'Defective', 'Empty', 'Incomplete']
                       : col.id === 'units'
                         ? ['pcs', 'set', 'box', 'roll', 'pack']
                         : ['Tools', 'PC Hardware', 'Peripheral', 'Cables and Wires', 'Consumables', 'Diagnostic', 'Networking']);
@@ -151,7 +151,7 @@ export const ItemModal: React.FC<Props> = ({
                   <select
                     value={val}
                     onChange={e => setFormData({ ...formData, [col.id]: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-white font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
                     required={col.required}
                   >
                     {options.map(opt => (
@@ -180,7 +180,7 @@ export const ItemModal: React.FC<Props> = ({
                         [col.id]: e.target.value === '' ? '' : Number(e.target.value)
                       })
                     }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-mono"
                     required={col.required}
                   />
                 </div>
@@ -197,7 +197,7 @@ export const ItemModal: React.FC<Props> = ({
                   placeholder={`Enter ${col.label.toLowerCase()}...`}
                   value={val}
                   onChange={e => setFormData({ ...formData, [col.id]: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white"
                   required={col.required}
                 />
               </div>
@@ -214,7 +214,7 @@ export const ItemModal: React.FC<Props> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all active:scale-[0.98]"
+              className="px-5 py-2 rounded-xl font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
             >
               {editingItem ? 'Save Changes' : 'Create Item'}
             </button>

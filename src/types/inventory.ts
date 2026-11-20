@@ -10,7 +10,7 @@ export interface ColumnDefinition {
   order: number;
 }
 
-export type ItemStatus = 'Working' | 'Empty' | 'Deffective' | 'Used' | 'Incomplete' | string;
+export type ItemStatus = 'Working' | 'Empty' | 'Defective' | 'Deffective' | 'Used' | 'Incomplete' | string;
 export type ItemCondition = ItemStatus;
 
 export interface InventoryItem {

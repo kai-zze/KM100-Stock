@@ -293,3 +293,21 @@ declare module '@supabase/supabase-js' {
   const defaultSupabase: any;
   export default defaultSupabase;
 }
+
+declare module 'exceljs' {
+  export class Workbook {
+    creator: string;
+    lastModifiedBy: string;
+    created: Date;
+    modified: Date;
+    addWorksheet(name: string, options?: any): any;
+    addImage(options: any): number;
+    xlsx: {
+      writeBuffer(): Promise<ArrayBuffer>;
+      load(data: any): Promise<any>;
+    };
+    [key: string]: any;
+  }
+  const ExcelJS: any;
+  export default ExcelJS;
+}

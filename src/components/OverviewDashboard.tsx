@@ -35,7 +35,7 @@ export const OverviewDashboard: React.FC<Props> = ({
     totalQuantity > 0 ? Math.round((operationalCount / totalQuantity) * 100) : 100;
 
   return (
-    <div className="p-4 lg:p-6 bg-gradient-to-b from-blue-50/60 to-transparent dark:from-blue-950/20 border-b border-slate-200 dark:border-slate-800">
+    <div className="p-4 lg:p-6 bg-gradient-to-b from-amber-50/60 to-transparent dark:from-amber-950/20 border-b border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -50,7 +50,7 @@ export const OverviewDashboard: React.FC<Props> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onAddItem}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white shadow-sm shadow-orange-500/20 transition-all active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-600/20 transition-all active:scale-[0.98]"
             >
               <Plus size={16} /> Add Inventory Item
             </button>
@@ -62,7 +62,7 @@ export const OverviewDashboard: React.FC<Props> = ({
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Total Rooms</span>
-              <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+              <span className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
                 <Building size={16} />
               </span>
             </div>
@@ -133,10 +133,10 @@ export const OverviewDashboard: React.FC<Props> = ({
                 <button
                   key={room.id}
                   onClick={() => onSelectRoom(room.id)}
-                  className="text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all bg-slate-50/50 dark:bg-slate-950/40 group"
+                  className="text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md transition-all bg-slate-50/50 dark:bg-slate-950/40 group"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                    <span className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 truncate">
                       {room.name}
                     </span>
                     <ChevronRight

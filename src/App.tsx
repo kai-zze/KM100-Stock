@@ -372,7 +372,7 @@ export function App() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedRoomId('ALL')}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                      className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold"
                     >
                       Facilities
                     </button>
@@ -405,7 +405,7 @@ export function App() {
                       setEditingItem(null);
                       setIsItemModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98]"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-600/20 transition-all active:scale-[0.98]"
                   >
                     <Plus size={16} /> Add Item to {currentRoom.name}
                   </button>
@@ -428,7 +428,7 @@ export function App() {
                     placeholder="Search items, category, remarks, or custom fields..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400"
                   />
                   {searchQuery && (
                     <button
@@ -587,7 +587,7 @@ export function App() {
                 className={`p-2 rounded-xl ${
                   confirmDialog.isDestructive
                     ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600'
-                    : 'bg-blue-100 dark:bg-blue-950/60 text-blue-600'
+                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700'
                 }`}
               >
                 <AlertTriangle size={22} />
@@ -611,7 +611,7 @@ export function App() {
                 className={`px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition-all active:scale-[0.98] ${
                   confirmDialog.isDestructive
                     ? 'bg-rose-600 hover:bg-rose-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-amber-700 hover:bg-amber-800'
                 }`}
               >
                 Confirm Action
@@ -628,7 +628,7 @@ export function App() {
               ? 'bg-emerald-600 text-white'
               : toast.type === 'error'
               ? 'bg-rose-600 text-white'
-              : 'bg-blue-600 text-white'
+              : 'bg-amber-700 text-white'
           }`}
         >
           {toast.type === 'success' ? <Check size={18} /> : <Sparkles size={18} />}

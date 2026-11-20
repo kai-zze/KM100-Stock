@@ -32,7 +32,7 @@ export const DEFAULT_COLUMNS: ColumnDefinition[] = [
     id: 'status',
     label: 'Status',
     type: 'dropdown',
-    options: ['Working', 'Empty', 'Deffective', 'Used', 'Incomplete'],
+    options: ['Working', 'Empty', 'Defective', 'Deffective', 'Used', 'Incomplete'],
     required: true,
     order: 5
   }

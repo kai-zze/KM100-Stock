@@ -126,13 +126,13 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                           prev.map(c => (c.id === col.id ? { ...c, label: val } : c))
                         );
                       }}
-                      className="px-2.5 py-1 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 flex-1 max-w-[200px]"
+                      className="px-2.5 py-1 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 flex-1 max-w-[200px]"
                     />
                     <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                       {col.type}
                     </span>
                     {col.isSystem && (
-                      <span className="text-[10px] text-slate-400 italic">System Field</span>
+                      <span className="text-[10px] text-amber-700 font-semibold italic">Core Field</span>
                     )}
                   </div>
 
@@ -172,8 +172,8 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
           </div>
 
           {/* Add New Column Box */}
-          <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-3">
-            <h4 className="font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-3">
+            <h4 className="font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
               <Plus size={13} /> Add New Custom Column
             </h4>
 
@@ -187,7 +187,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                   placeholder="e.g. Serial Number, Supplier, Barcode"
                   value={newColLabel}
                   onChange={e => setNewColLabel(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                  className="w-full px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                 />
               </div>
 
@@ -226,7 +226,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
               type="button"
               onClick={handleAddColumn}
               disabled={!newColLabel.trim()}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 transition-colors"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white disabled:opacity-40 transition-colors"
             >
               Insert Column to Schema
             </button>
@@ -245,7 +245,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all active:scale-[0.98]"
+            className="px-5 py-2 rounded-xl font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
           >
             Save Column Layout
           </button>

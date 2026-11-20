@@ -126,7 +126,7 @@ export const Header: React.FC<Props> = ({
                     Master Inventory + 4 colored room facility tabs
                   </span>
                   <div className="flex items-center gap-1 pl-5 mt-1.5">
-                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                    <span className="px-1.5 py-0.5 text-[9px] rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400">
                       Dual Logos
                     </span>
                     <span className="px-1.5 py-0.5 text-[9px] rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
@@ -212,7 +212,7 @@ export const Header: React.FC<Props> = ({
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                   >
-                    <Download size={14} className="text-blue-500" />
+                    <Download size={14} className="text-amber-600" />
                     <div>
                       <div className="font-semibold">Export JSON Backup</div>
                       <div className="text-[10px] text-slate-400">Save complete database file</div>
