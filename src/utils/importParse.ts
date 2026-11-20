@@ -187,6 +187,7 @@ function buildItemsFromMatrix(
 
     items.push({
       id: generateItemId(),
+      roomId: '',
       name,
       category: cellAt(row, header.columns.category) || 'General',
       quantity: parseQuantity(cellAt(row, header.columns.quantity)),
@@ -274,11 +275,11 @@ export async function analyzeSpreadsheet(file: File): Promise<ImportAnalysis> {
     workbook.SheetNames.forEach((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
       if (!sheet) return;
-      const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+      const matrix = (XLSX.utils.sheet_to_json as any)(sheet, {
         header: 1,
         defval: '',
         blankrows: false
-      });
+      }) as unknown[][];
       const parsed = buildItemsFromMatrix(matrix, sheetName);
       if (parsed.length > 0) {
         items.push(...parsed);

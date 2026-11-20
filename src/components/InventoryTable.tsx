@@ -34,20 +34,20 @@ interface Props {
   onSetQuantity?: (itemId: string, qty: number) => void;
   onEditItem: (item: InventoryItem) => void;
   onDeleteItem: (item: InventoryItem) => void;
-  onPrintAssetTag: (item: InventoryItem) => void;
+  onPrintAssetTag?: (item: InventoryItem) => void;
   onAddItem: () => void;
   onResetFilters: () => void;
   isFiltered: boolean;
   totalItemsInCatalog: number;
-  totalFilteredCount: number;
-  totalFilteredUnits: number;
-  selectedIds: string[];
-  onToggleSelect: (itemId: string) => void;
-  onToggleSelectPage: (itemIds: string[], select: boolean) => void;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  totalFilteredCount?: number;
+  totalFilteredUnits?: number;
+  selectedIds?: string[];
+  onToggleSelect?: (itemId: string) => void;
+  onToggleSelectPage?: (itemIds: string[], select: boolean) => void;
+  page?: number;
+  pageSize?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export const InventoryTable: React.FC<Props> = ({
@@ -68,15 +68,15 @@ export const InventoryTable: React.FC<Props> = ({
   onResetFilters,
   isFiltered,
   totalItemsInCatalog,
-  totalFilteredCount,
-  totalFilteredUnits,
-  selectedIds,
-  onToggleSelect,
-  onToggleSelectPage,
-  page,
-  pageSize,
-  totalPages,
-  onPageChange
+  totalFilteredCount = items.length,
+  totalFilteredUnits = items.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0),
+  selectedIds = [],
+  onToggleSelect = () => {},
+  onToggleSelectPage = () => {},
+  page = 1,
+  pageSize = items.length || 25,
+  totalPages = 1,
+  onPageChange = () => {}
 }) => {
   const pageIds = items.map((item) => item.id);
   const allOnPageSelected =
@@ -92,10 +92,10 @@ export const InventoryTable: React.FC<Props> = ({
   const rangeEnd = Math.min(page * pageSize, totalFilteredCount);
 
   return (
-    <div className="flex-1 bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-0">
+    <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col min-h-0">
       <div className="flex-1 overflow-x-auto overflow-y-auto overscroll-contain [webkit-overflow-scrolling:touch]">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 bg-slate-50/95 backdrop-blur border-b border-slate-200 z-10">
+          <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-10">
             <tr>
               <th className="py-3 pl-4 pr-1 w-9">
                 <input
@@ -109,7 +109,7 @@ export const InventoryTable: React.FC<Props> = ({
               </th>
 
               {selectedRoomId === 'ALL' && (
-                <th className="py-3 px-4 font-bold text-slate-600 uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px]">
                   Room Location
                 </th>
               )}
@@ -117,7 +117,7 @@ export const InventoryTable: React.FC<Props> = ({
               {columns.map((col) => (
                 <th
                   key={col.id}
-                  onClick={() => onSort(col.id)}
+                  scope="col"
                   aria-sort={
                     sortField === col.id
                       ? sortDirection === 'asc'
@@ -125,33 +125,37 @@ export const InventoryTable: React.FC<Props> = ({
                         : 'descending'
                       : 'none'
                   }
-                  className="py-3 px-4 font-bold text-slate-600 uppercase tracking-wider text-[11px] cursor-pointer hover:bg-slate-100/60 select-none transition-colors"
+                  className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] select-none"
                 >
-                  <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => onSort(col.id)}
+                    className="flex items-center gap-1.5 w-full text-left rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
                     <span>{col.label}</span>
                     {sortField === col.id ? (
                       sortDirection === 'asc' ? (
-                        <ChevronUp size={13} className="text-amber-700" />
+                        <ChevronUp size={13} className="text-amber-700 dark:text-amber-400" />
                       ) : (
-                        <ChevronDown size={13} className="text-amber-700" />
+                        <ChevronDown size={13} className="text-amber-700 dark:text-amber-400" />
                       )
                     ) : (
                       <ArrowUpDown
                         size={11}
-                        className="text-slate-400 opacity-40 hover:opacity-100"
+                        className="text-slate-400 dark:text-slate-500 opacity-40 hover:opacity-100"
                       />
                     )}
-                  </div>
+                  </button>
                 </th>
               ))}
 
-              <th className="py-3 px-4 font-bold text-slate-600 uppercase tracking-wider text-[11px] text-right">
+              <th className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] text-right">
                 Actions
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {items.map((item) => {
               const itemRoom = rooms.find((room) => room.id === item.roomId);
               const isSelected = selectedIds.indexOf(item.id) !== -1;
@@ -160,7 +164,9 @@ export const InventoryTable: React.FC<Props> = ({
                 <tr
                   key={item.id}
                   className={`transition-colors group ${
-                    isSelected ? 'bg-amber-50/70' : 'hover:bg-amber-50/40'
+                    isSelected
+                      ? 'bg-amber-50/70 dark:bg-amber-950/30'
+                      : 'hover:bg-amber-50/40 dark:hover:bg-slate-800/50'
                   }`}
                 >
                   <td className="py-3 pl-4 pr-1">
@@ -177,10 +183,10 @@ export const InventoryTable: React.FC<Props> = ({
                     <td className="py-3 px-4 whitespace-nowrap">
                       <button
                         onClick={() => onSelectRoom(item.roomId)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-amber-100 hover:text-amber-800 cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer transition-colors"
                         title="Jump to this room"
                       >
-                        <Building size={12} className="text-amber-700" />
+                        <Building size={12} className="text-amber-700 dark:text-amber-400" />
                         {itemRoom?.name || 'Unassigned'}
                       </button>
                     </td>
@@ -203,11 +209,11 @@ export const InventoryTable: React.FC<Props> = ({
                       const numVal = Number(val) || 0;
                       return (
                         <td key={col.id} className="py-3 px-4 whitespace-nowrap">
-                          <div className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl p-1 shadow-inner">
+                          <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
                             <button
                               onClick={() => onQuantityChange(item.id, -1)}
                               aria-label={`Decrease quantity for ${item.name}`}
-                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm disabled:opacity-40"
+                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40"
                               disabled={numVal <= 0}
                               title="Decrease quantity by 1"
                             >
@@ -230,13 +236,13 @@ export const InventoryTable: React.FC<Props> = ({
                               }}
                               aria-label={`Manual quantity input for ${item.name}`}
                               title="Click to type or edit quantity directly"
-                              className="w-12 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs text-slate-900 bg-transparent border-0 focus:outline-none focus:bg-white focus:ring-1 focus:ring-orange-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-12 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
                               onClick={() => onQuantityChange(item.id, 1)}
                               aria-label={`Increase quantity for ${item.name}`}
-                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors shadow-sm"
+                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                               title="Increase quantity by 1"
                             >
                               <Plus size={12} />
@@ -249,13 +255,13 @@ export const InventoryTable: React.FC<Props> = ({
                     return (
                       <td key={col.id} className="py-3 px-4">
                         {col.id === 'name' ? (
-                          <span className="font-semibold text-slate-900">{val || '—'}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">{val || '—'}</span>
                         ) : col.id === 'category' ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs bg-slate-100 text-slate-700 font-medium">
+                          <span className="px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
                             {val || '—'}
                           </span>
                         ) : (
-                          <span className="text-slate-600">
+                          <span className="text-slate-600 dark:text-slate-300">
                             {val !== undefined && val !== null && val !== ''
                               ? String(val)
                               : '—'}
@@ -270,7 +276,7 @@ export const InventoryTable: React.FC<Props> = ({
                       <button
                         onClick={() => onPrintAssetTag(item)}
                         aria-label={`Print asset tag for ${item.name}`}
-                        className="p-1.5 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
                         title="Print Asset Tag Sticker"
                       >
                         <Tag size={14} />
@@ -278,7 +284,7 @@ export const InventoryTable: React.FC<Props> = ({
                       <button
                         onClick={() => onEditItem(item)}
                         aria-label={`Edit ${item.name}`}
-                        className="p-1.5 text-slate-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
                         title="Edit Item"
                       >
                         <Edit size={15} />
@@ -286,7 +292,7 @@ export const InventoryTable: React.FC<Props> = ({
                       <button
                         onClick={() => onDeleteItem(item)}
                         aria-label={`Delete ${item.name}`}
-                        className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                         title="Delete Item"
                       >
                         <Trash2 size={15} />
@@ -301,15 +307,15 @@ export const InventoryTable: React.FC<Props> = ({
       </div>
 
       {totalFilteredCount > 0 && (
-        <div className="py-2.5 px-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="py-2.5 px-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2.5">
             <span>
               Showing{' '}
-              <strong className="text-slate-900 font-mono">
+              <strong className="text-slate-900 dark:text-white font-mono">
                 {rangeStart}–{rangeEnd}
               </strong>{' '}
-              of <strong className="text-slate-900 font-mono">{totalFilteredCount}</strong> items
-              <span className="text-slate-400">
+              of <strong className="text-slate-900 dark:text-white font-mono">{totalFilteredCount}</strong> items
+              <span className="text-slate-500 dark:text-slate-400">
                 {' '}
                 (catalog: <span className="font-mono">{totalItemsInCatalog}</span>)
               </span>
@@ -321,7 +327,7 @@ export const InventoryTable: React.FC<Props> = ({
                   disabled={page <= 1}
                   onClick={() => onPageChange(Math.max(1, page - 1))}
                   aria-label="Previous page"
-                  className="p-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-100"
+                  className="p-1 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <ChevronLeft size={13} />
                 </button>
@@ -332,7 +338,7 @@ export const InventoryTable: React.FC<Props> = ({
                   disabled={page >= totalPages}
                   onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                   aria-label="Next page"
-                  className="p-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-100"
+                  className="p-1 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <ChevronRight size={13} />
                 </button>
@@ -342,18 +348,18 @@ export const InventoryTable: React.FC<Props> = ({
 
           <div className="font-mono">
             Filtered Subtotal:{' '}
-            <strong className="text-emerald-600">{totalFilteredUnits}</strong> units
+            <strong className="text-emerald-600 dark:text-emerald-400">{totalFilteredUnits}</strong> units
           </div>
         </div>
       )}
 
       {totalFilteredCount === 0 && (
         <div className="py-16 px-4 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-3">
             <Package size={28} />
           </div>
-          <h4 className="text-sm font-bold text-slate-800 mb-1">No Inventory Items Found</h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Inventory Items Found</h4>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
             {isFiltered
               ? 'No items match your active search and filter parameters. Try clearing your filters.'
               : 'This room has no items registered yet. Click below to add your first training inventory item.'}
@@ -361,14 +367,14 @@ export const InventoryTable: React.FC<Props> = ({
           {isFiltered ? (
             <button
               onClick={onResetFilters}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
             >
               Clear Search &amp; Filters
             </button>
           ) : (
             <button
               onClick={onAddItem}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
             >
               Add New Item
             </button>

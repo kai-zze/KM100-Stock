@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, ArrowRight, Tag, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { Room } from '../types/inventory';
 import { STATUS_OPTIONS } from '../utils/status';
 
@@ -9,6 +9,7 @@ interface Props {
   onClear: () => void;
   onMove: (roomId: string) => void;
   onSetStatus: (status: string) => void;
+  onExportExcel?: () => void;
   onDelete: () => void;
 }
 
@@ -18,84 +19,101 @@ export const BulkActionBar: React.FC<Props> = ({
   onClear,
   onMove,
   onSetStatus,
+  onExportExcel,
   onDelete
 }) => {
   if (count === 0) return null;
 
   return (
     <div
-      className="floating-bar fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100vw-24px)] sm:w-max max-w-[96vw] bg-slate-900/95 backdrop-blur-md text-white shadow-[0_20px_50px_rgba(0,0,0,0.45)] px-4 py-2 rounded-2xl border border-slate-700/90 flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-3 sm:gap-4 animate-modal text-xs ring-1 ring-white/10 no-print"
+      className="mb-3 animate-modal bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm px-3.5 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs no-print"
       role="toolbar"
       aria-label="Bulk actions for selected inventory items"
     >
-      <div className="flex items-center gap-2 pr-3 sm:border-r border-slate-700/80 shrink-0">
-        <span className="px-2 py-0.5 rounded-full bg-amber-600 text-white font-mono font-bold text-xs shadow-sm">
-          {count}
+      <div className="flex items-center gap-2.5">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-700 text-white font-mono font-bold text-xs shadow-sm">
+          <CheckCircle2 size={13} />
+          {count} Selected
         </span>
-        <span className="font-semibold">Selected</span>
         <button
           onClick={onClear}
-          className="ml-1 px-1.5 py-0.5 text-[11px] text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors flex items-center gap-1"
+          className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium transition-colors"
           title="Clear selection (Esc)"
         >
-          <X size={11} /> Clear
+          Deselect all
         </button>
       </div>
 
-      <div className="flex items-center gap-1.5 min-w-0">
-        <label className="text-[11px] text-slate-400 font-medium shrink-0" htmlFor="bulk-move">
-          Move:
-        </label>
-        <select
-          id="bulk-move"
-          defaultValue=""
-          onChange={(e) => {
-            const value = e.target.value;
-            e.target.value = '';
-            if (value) onMove(value);
-          }}
-          className="bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-600 cursor-pointer shadow-inner max-w-[120px] sm:max-w-none"
-        >
-          <option value="">Choose Room...</option>
-          {rooms.map((room) => (
-            <option key={room.id} value={room.id}>
-              {room.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="flex items-center flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <ArrowRight size={13} className="text-amber-700 dark:text-amber-400 shrink-0" />
+          <span className="text-[11px] font-semibold text-slate-500">Move to:</span>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const val = e.target.value;
+              e.target.value = '';
+              if (val) onMove(val);
+            }}
+            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[130px] sm:max-w-none truncate"
+          >
+            <option value="">Choose Room...</option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="flex items-center gap-1.5 min-w-0">
-        <label className="text-[11px] text-slate-400 font-medium shrink-0" htmlFor="bulk-status">
-          Status:
-        </label>
-        <select
-          id="bulk-status"
-          defaultValue=""
-          onChange={(e) => {
-            const value = e.target.value;
-            e.target.value = '';
-            if (value) onSetStatus(value);
-          }}
-          className="bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-600 cursor-pointer shadow-inner max-w-[120px] sm:max-w-none"
-        >
-          <option value="">Set Status...</option>
-          {STATUS_OPTIONS.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <Tag size={13} className="text-amber-700 dark:text-amber-400 shrink-0" />
+          <span className="text-[11px] font-semibold text-slate-500">Status:</span>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const val = e.target.value;
+              e.target.value = '';
+              if (val) onSetStatus(val);
+            }}
+            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
+          >
+            <option value="">Set Status...</option>
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="flex items-center gap-2 pl-0 sm:pl-3 sm:border-l border-slate-700/80 shrink-0 sm:ml-1">
+        {onExportExcel && (
+          <button
+            onClick={onExportExcel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+            title="Export selected items to Excel"
+          >
+            <FileSpreadsheet size={13} />
+            <span className="hidden sm:inline">Export Selected</span>
+          </button>
+        )}
+
         <button
           onClick={onDelete}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-rose-900/40 transition-all"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
           title={`Delete ${count} selected items`}
         >
-          <Trash2 size={14} />
+          <Trash2 size={13} />
           <span>Delete ({count})</span>
+        </button>
+
+        <button
+          onClick={onClear}
+          className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg"
+          title="Dismiss selection"
+          aria-label="Dismiss selection"
+        >
+          <X size={15} />
         </button>
       </div>
     </div>

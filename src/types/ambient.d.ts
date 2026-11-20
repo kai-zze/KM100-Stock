@@ -241,6 +241,10 @@ declare module 'lucide-react' {
   export const Layers: Icon;
   export const ShieldCheck: Icon;
   export const ChevronRight: Icon;
+  export const ChevronLeft: Icon;
+  export const ArrowRight: Icon;
+  export const CheckCircle2: Icon;
+  export const PackageX: Icon;
   export const AlertTriangle: Icon;
   export const FileSpreadsheet: Icon;
   export const Sliders: Icon;

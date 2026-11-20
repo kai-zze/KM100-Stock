@@ -33,20 +33,20 @@ export const MobileNav: React.FC<Props> = ({
         onClick={onClose}
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
       />
-      <div className="relative w-72 max-w-[85vw] h-full bg-white shadow-2xl flex flex-col z-10 border-r border-slate-200">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+      <div className="relative w-72 max-w-[85vw] h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col z-10 border-r border-slate-200 dark:border-slate-800">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+            <span className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
               <Building size={16} />
             </span>
-            <h3 id="mobile-drawer-title" className="font-bold text-sm text-slate-900">
+            <h3 id="mobile-drawer-title" className="font-bold text-sm text-slate-900 dark:text-white">
               Facility Rooms
             </h3>
           </div>
           <button
             onClick={onClose}
             aria-label="Close facility rooms menu"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600"
+            className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
           >
             <X size={18} />
           </button>
@@ -61,7 +61,7 @@ export const MobileNav: React.FC<Props> = ({
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               selectedRoomId === 'ALL'
                 ? 'bg-amber-700 text-white shadow-sm'
-                : 'text-slate-700 hover:bg-slate-100'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <div className="flex items-center gap-2.5">
@@ -72,7 +72,7 @@ export const MobileNav: React.FC<Props> = ({
               className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
                 selectedRoomId === 'ALL'
                   ? 'bg-amber-800 text-white'
-                  : 'bg-slate-100 text-slate-600'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
               }`}
             >
               {totalItemsCount}
@@ -92,19 +92,21 @@ export const MobileNav: React.FC<Props> = ({
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isSelected
                     ? 'bg-amber-700 text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-slate-100'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Building
                     size={15}
-                    className={isSelected ? 'text-white' : 'text-amber-600'}
+                    className={isSelected ? 'text-white' : 'text-amber-600 dark:text-amber-400'}
                   />
                   <span className="truncate">{room.name}</span>
                 </div>
                 <span
                   className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
-                    isSelected ? 'bg-amber-800 text-white' : 'bg-slate-100 text-slate-600'
+                    isSelected
+                      ? 'bg-amber-800 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}
                 >
                   {counts.unique}
@@ -114,13 +116,13 @@ export const MobileNav: React.FC<Props> = ({
           })}
         </div>
 
-        <div className="p-3 border-t border-slate-200">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={() => {
               onClose();
               onAddRoom();
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-amber-50 text-amber-700 border border-amber-200"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60"
           >
             <Plus size={14} /> Add New Facility Room
           </button>

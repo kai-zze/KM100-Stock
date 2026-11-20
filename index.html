@@ -3,16 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>KM100 Inventory Management System - Skills and Training Center, Inc.</title>
+  <title>KM100 Inventory Management System | Skills and Training Center, Inc.</title>
+
+  <!-- SEO -->
+  <meta name="description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities with Excel import/export and cloud sync.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="KM100 Skills and Training Center, Inc.">
+  <meta name="application-name" content="KM100 Inventory Management System">
+  <meta name="theme-color" content="#b45309">
+  <link rel="canonical" href="/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KM100 Inventory Management System">
+  <meta property="og:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
+  <meta property="og:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
+  <meta property="og:image" content="/logo.png">
+  <meta property="og:image:alt" content="KM100 Skills and Training Center, Inc. logo">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
+  <meta name="twitter:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
+  <meta name="twitter:image" content="/logo.png">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "#organization",
+        "name": "KM100 Skills and Training Center, Inc.",
+        "url": "/",
+        "logo": "/logo.png",
+        "description": "Skills and training center providing technical and vocational education."
+      },
+      {
+        "@type": "WebApplication",
+        "name": "KM100 Inventory Management System",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any",
+        "description": "Official inventory management system for tracking facility assets, equipment, quantities and conditions.",
+        "isAccessibleForFree": true,
+        "publisher": { "@id": "#organization" }
+      }
+    ]
+  }
+  </script>
+
   <link rel="icon" type="image/png" href="/favicon.png?v=4">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=4">
-  <link rel="shortcut icon" href="/favicon.ico?v=4">
   <link rel="apple-touch-icon" href="/logo.png">
 
-  <!-- Typography: Plus Jakarta Sans (Headings) & DM Sans (Body) via Google Fonts -->
+  <!-- Theme initialization: apply dark class before React hydrates to prevent FOUC -->
+  <script>
+    (function () {
+      var STORAGE_KEY = 'km100_inventory_theme_v2';
+      var saved = null;
+      try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var isDark = saved === 'dark' || (saved === null && prefersDark);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
+      }
+    })();
+  </script>
+
+  <!-- Typography: Plus Jakarta Sans (Headings) & DM Sans (Body) via Google Fonts.
+       Loaded asynchronously so the font stylesheet never blocks first paint. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="/logo.png" fetchpriority="high">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"></noscript>
 
   <style>
     /* Critical shell styles. Application styling lives in src/index.css. */
@@ -41,10 +110,16 @@
   </style>
 </head>
 <body class="h-full bg-slate-50 text-slate-900 antialiased selection:bg-amber-600 selection:text-white">
+  <noscript>
+    <div style="max-width: 640px; margin: 0 auto; padding: 48px 20px; font-family: system-ui, sans-serif; line-height: 1.6;">
+      <h1 style="margin: 0 0 12px; font-size: 24px;">KM100 Inventory Management System</h1>
+      <p style="margin: 0; color: #475569;">Official asset and property register for KM100 Skills and Training Center, Inc. The inventory management system tracks equipment, quantities and conditions across facilities, with Excel import/export and cloud sync. Please enable JavaScript to use the application.</p>
+    </div>
+  </noscript>
   <div id="root" class="h-full">
     <!-- Pre-loader, replaced by React on mount -->
     <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; text-align: center; padding: 20px;">
-      <img src="/logo.png" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+      <img src="/logo.png" width="80" height="80" decoding="async" fetchpriority="high" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
       <h2 style="margin: 0 0 8px 0; color: #0f172a; font-size: 20px; font-weight: 700;">KM100 Skills and Training Center, Inc.</h2>
       <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">Loading Inventory Management System...</p>
       <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #b45309; border-radius: 50%; animation: km100-spin 0.8s linear infinite;"></div>

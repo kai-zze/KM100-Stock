@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ColumnDefinition,
   ColumnType,
@@ -8,25 +8,50 @@ import {
 } from './types/inventory';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { MobileNav } from './components/MobileNav';
 import { OverviewDashboard } from './components/OverviewDashboard';
 import { InventoryTable } from './components/InventoryTable';
+import { BulkActionBar } from './components/BulkActionBar';
+import { ColumnsVisibilityMenu } from './components/ColumnsVisibilityMenu';
 import { ItemModal } from './components/ItemModal';
 import { ColumnsSchemaModal } from './components/ColumnsSchemaModal';
 import { RoomModal } from './components/RoomModal';
-import { exportInventoryToExcel } from './utils/excelExport';
-import { parseCsvText, parseImportRows } from './utils/csvImport';
-import { supabase } from './utils/supabaseClient';
-import * as XLSX from 'xlsx';
-import { Search, Filter, X, Edit, Plus, AlertTriangle, Check, Sparkles } from 'lucide-react';
+import { AssetTagModal } from './components/AssetTagModal';
+import { ImportPreviewModal } from './components/ImportPreviewModal';
+import { PrintReport } from './components/PrintReport';
+import { downloadInventoryCsv } from './utils/csvExport';
+import type { ImportAnalysis } from './utils/importParse';
+import { isNeedsAttention } from './utils/status';
+import { generateItemId, generateRoomId } from './utils/ids';
+import {
+  Search,
+  Filter,
+  X,
+  Edit,
+  Plus,
+  AlertTriangle,
+  Check,
+  Sparkles,
+  PackageX,
+  ShieldCheck,
+  Package,
+  Layers,
+  ArrowUpDown,
+  Building
+} from 'lucide-react';
 
 const STORAGE_KEY_ROOMS = 'km100_inventory_rooms_v1';
 const STORAGE_KEY_ITEMS = 'km100_inventory_items_v1';
 const STORAGE_KEY_COLUMNS = 'km100_inventory_columns_v1';
-const STORAGE_KEY_THEME = 'km100_inventory_theme_v1';
+const STORAGE_KEY_HIDDEN_COLS = 'km100_hidden_columns_v1';
+const STORAGE_KEY_THEME = 'km100_inventory_theme_v2';
+
+const PAGE_SIZE = 25;
 
 import { DEFAULT_COLUMNS, DEFAULT_ROOMS, DEFAULT_ITEMS } from './data/defaultData';
 
 export function App() {
+  // ── State Initialization ──────────────────────────────────────────
   const [rooms, setRooms] = useState<Room[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_ROOMS);
@@ -54,18 +79,38 @@ export function App() {
     }
   });
 
+  const [hiddenColumnIds, setHiddenColumnIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // ── Filtering, Search & Sorting ──────────────────────────────────
   const [selectedRoomId, setSelectedRoomId] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [conditionFilter, setConditionFilter] = useState('ALL');
+  const [needsAttentionFilter, setNeedsAttentionFilter] = useState(false);
+  const [outOfStockFilter, setOutOfStockFilter] = useState(false);
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
+  // ── Pagination & Bulk Selection ─────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // ── Modals & Overlays ───────────────────────────────────────────
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isColumnsModalOpen, setIsColumnsModalOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [assetTagItem, setAssetTagItem] = useState<InventoryItem | null>(null);
+  const [importAnalysis, setImportAnalysis] = useState<ImportAnalysis | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
     message: string;
@@ -75,109 +120,35 @@ export function App() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Supabase cloud sync state
-  const [isSupabaseReady, setIsSupabaseReady] = useState(false);
-  const [supabaseError, setSupabaseError] = useState<string | null>(null);
-
-  // Excel/CSV import state
-  const [importPending, setImportPending] = useState<{ file: File; data: any[] } | null>(null);
-
-  // Map Supabase row -> InventoryItem
-  const toInventoryItem = (row: any): InventoryItem => ({
-    id: row.id,
-    roomId: row.room_id,
-    name: row.name,
-    category: row.category ?? 'General',
-    quantity: Number(row.quantity) || 0,
-    units: row.units ?? 'pcs',
-    status: row.condition ?? 'Working',
-    condition: row.condition ?? 'Working',
-    remarks: row.remarks ?? '',
-    createdAt: row.created_at ?? new Date().toISOString(),
-    updatedAt: row.updated_at ?? new Date().toISOString()
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_THEME);
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch {
+      // ignore storage access errors
+    }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
-  // Map InventoryItem -> Supabase inventory_items row shape
-  const toItemRow = (item: InventoryItem) => ({
-    id: item.id,
-    room_id: item.roomId,
-    name: item.name,
-    category: item.category,
-    quantity: item.quantity,
-    units: item.units,
-    condition: item.condition ?? item.status ?? 'Working',
-    remarks: item.remarks ?? '',
-    custom_fields: {}
-  });
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // --- Supabase write helpers (fire-and-forget; local state is source of truth for UI) ---
-  const syncRoomsToSupabase = async (roomsToSync: Room[]) => {
-    try {
-      await supabase.from('rooms').upsert(
-        roomsToSync.map((r) => ({ id: r.id, name: r.name, description: r.description }))
-      );
-    } catch {
-      // Silently fail; localStorage remains the fallback
-    }
-  };
-
-  const syncColumnsToSupabase = async (columnsToSync: ColumnDefinition[]) => {
-    try {
-      await supabase.from('columns_schema').upsert(
-        columnsToSync.map((c) => ({
-          id: c.id,
-          label: c.label,
-          type: c.type,
-          order_index: c.order,
-          options: c.options ?? []
-        }))
-      );
-    } catch {
-      // Silently fail
-    }
-  };
-
-  const syncItemsToSupabase = async (itemsToSync: InventoryItem[]) => {
-    try {
-      await supabase.from('inventory_items').upsert(itemsToSync.map(toItemRow));
-    } catch {
-      // Silently fail
-    }
-  };
-
-  const syncSingleItemToSupabase = async (item: InventoryItem) => {
-    try {
-      await supabase.from('inventory_items').upsert(toItemRow(item));
-    } catch {
-      // Silently fail
-    }
-  };
-
-  const deleteItemFromSupabase = async (itemId: string) => {
-    try {
-      await supabase.from('inventory_items').delete().eq('id', itemId);
-    } catch {
-      // Silently fail
-    }
-  };
-
-  const deleteRoomFromSupabase = async (roomId: string) => {
-    try {
-      await supabase.from('inventory_items').delete().eq('room_id', roomId);
-      await supabase.from('rooms').delete().eq('id', roomId);
-    } catch {
-      // Silently fail
-    }
-  };
-
+  // ── Theme Application ───────────────────────────────────────────
   useEffect(() => {
-    // Lock system strictly to Light Mode
-    document.documentElement.classList.remove('dark');
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
     try {
-      localStorage.removeItem(STORAGE_KEY_THEME);
-    } catch {}
-  }, []);
+      localStorage.setItem(STORAGE_KEY_THEME, theme);
+    } catch {
+      // ignore storage access errors
+    }
+  }, [theme]);
 
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // ── Persistence Effects ─────────────────────────────────────────
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(rooms));
   }, [rooms]);
@@ -190,160 +161,61 @@ export function App() {
     localStorage.setItem(STORAGE_KEY_COLUMNS, JSON.stringify(columns));
   }, [columns]);
 
-  // --- Supabase cloud sync: load on mount, fall back to localStorage defaults ---
   useEffect(() => {
-    let mounted = true;
+    localStorage.setItem(STORAGE_KEY_HIDDEN_COLS, JSON.stringify(hiddenColumnIds));
+  }, [hiddenColumnIds]);
 
-    const loadFromSupabase = async () => {
-      try {
-        const [roomsRes, columnsRes, itemsRes] = await Promise.all([
-          supabase.from('rooms').select('*').order('name', { ascending: true }),
-          supabase.from('columns_schema').select('*').order('order_index', { ascending: true }),
-          supabase.from('inventory_items').select('*').order('created_at', { ascending: false })
-        ]);
-
-        if (!mounted) return;
-
-        if (roomsRes.data && roomsRes.data.length > 0) {
-          setRooms(
-            roomsRes.data.map((r: any) => ({
-              id: r.id,
-              name: r.name,
-              description: r.description
-            }))
-          );
-        }
-        if (columnsRes.data && columnsRes.data.length > 0) {
-          setColumns(
-            columnsRes.data.map((c: any) => ({
-              id: c.id,
-              label: c.label,
-              type: c.type as ColumnType,
-              options: c.options ?? [],
-              required: false,
-              isSystem: false,
-              order: c.order_index ?? 0
-            }))
-          );
-        }
-        if (itemsRes.data && itemsRes.data.length > 0) {
-          setItems(itemsRes.data.map(toInventoryItem));
-        }
-        setIsSupabaseReady(true);
-      } catch (err) {
-        if (!mounted) return;
-        setSupabaseError(err instanceof Error ? err.message : 'Supabase connection failed');
-        setIsSupabaseReady(true); // allow local fallback to proceed
-      }
-    };
-
-    loadFromSupabase();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // --- Supabase realtime subscription: mirror remote changes into local state ---
+  // Reset to page 1 whenever filters change
   useEffect(() => {
-    if (!isSupabaseReady) return;
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, conditionFilter, needsAttentionFilter, outOfStockFilter, selectedRoomId]);
 
-    const channel = supabase
-      .channel('km100-inventory-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'rooms' },
-        (payload: any) => {
-          if (payload.eventType === 'INSERT' && payload.new) {
-            setRooms((prev) => {
-              const exists = prev.some((r) => r.id === payload.new.id);
-              if (exists) return prev;
-              return [...prev, { id: payload.new.id, name: payload.new.name, description: payload.new.description }];
-            });
-          } else if (payload.eventType === 'UPDATE' && payload.new) {
-            setRooms((prev) =>
-              prev.map((r) =>
-                r.id === payload.new.id
-                  ? { ...r, name: payload.new.name, description: payload.new.description }
-                  : r
-              )
-            );
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            setRooms((prev) => prev.filter((r) => r.id !== payload.old.id));
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'columns_schema' },
-        (payload: any) => {
-          if (payload.eventType === 'INSERT' && payload.new) {
-            setColumns((prev) => {
-              const exists = prev.some((c) => c.id === payload.new.id);
-              if (exists) return prev;
-              return [
-                ...prev,
-                {
-                  id: payload.new.id,
-                  label: payload.new.label,
-                  type: payload.new.type as ColumnType,
-                  options: payload.new.options ?? [],
-                  order: payload.new.order_index ?? 0
-                }
-              ];
-            });
-          } else if (payload.eventType === 'UPDATE' && payload.new) {
-            setColumns((prev) =>
-              prev.map((c) =>
-                c.id === payload.new.id
-                  ? { ...c, label: payload.new.label, type: payload.new.type as ColumnType, order: payload.new.order_index }
-                  : c
-              )
-            );
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            setColumns((prev) => prev.filter((c) => c.id !== payload.old.id));
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'inventory_items' },
-        (payload: any) => {
-          if (payload.eventType === 'INSERT' && payload.new) {
-            setItems((prev) => {
-              const exists = prev.some((i) => i.id === payload.new.id);
-              if (exists) return prev;
-              return [toInventoryItem(payload.new), ...prev];
-            });
-          } else if (payload.eventType === 'UPDATE' && payload.new) {
-            setItems((prev) =>
-              prev.map((i) => (i.id === payload.new.id ? toInventoryItem(payload.new) : i))
-            );
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            setItems((prev) => prev.filter((i) => i.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isSupabaseReady]);
-
-  // Impeccable A11y: Escape Key to dismiss modals
+  // ── Keyboard Shortcuts (Standard Pro Operator Shortcuts) ────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (confirmDialog) setConfirmDialog(null);
-        else if (isItemModalOpen) setIsItemModalOpen(false);
-        else if (isColumnsModalOpen) setIsColumnsModalOpen(false);
-        else if (isRoomModalOpen) setIsRoomModalOpen(false);
+      // Focus search: press '/' when not typing in form fields
+      if (e.key === '/' && !e.isComposing) {
+        const target = e.target as HTMLElement;
+        const inInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+        if (!inInput) {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+
+      // Quick add item: Alt + N
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        setEditingItem(null);
+        setIsItemModalOpen(true);
+      }
+
+      // Escape key clears selection or closes overlay
+      if (e.key === 'Escape' && !e.isComposing) {
+        if (selectedIds.length > 0) {
+          setSelectedIds([]);
+        } else if (confirmDialog) {
+          setConfirmDialog(null);
+        } else if (assetTagItem) {
+          setAssetTagItem(null);
+        } else if (importAnalysis) {
+          setImportAnalysis(null);
+        } else if (isItemModalOpen) {
+          setIsItemModalOpen(false);
+        } else if (isColumnsModalOpen) {
+          setIsColumnsModalOpen(false);
+        } else if (isRoomModalOpen) {
+          setIsRoomModalOpen(false);
+        } else if (isMobileNavOpen) {
+          setIsMobileNavOpen(false);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [confirmDialog, isItemModalOpen, isColumnsModalOpen, isRoomModalOpen]);
+  }, [selectedIds, confirmDialog, assetTagItem, importAnalysis, isItemModalOpen, isColumnsModalOpen, isRoomModalOpen, isMobileNavOpen]);
 
+  // ── Toast Helper ────────────────────────────────────────────────
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
     setTimeout(() => {
@@ -351,16 +223,17 @@ export function App() {
     }, 3500);
   };
 
+  // ── Derived Data ────────────────────────────────────────────────
   const currentRoom = useMemo(() => {
-    return rooms.find(r => r.id === selectedRoomId);
+    return rooms.find((r) => r.id === selectedRoomId);
   }, [rooms, selectedRoomId]);
 
   const roomItemCounts = useMemo(() => {
     const counts: Record<string, { unique: number; totalQty: number }> = {};
-    rooms.forEach(r => {
+    rooms.forEach((r) => {
       counts[r.id] = { unique: 0, totalQty: 0 };
     });
-    items.forEach(item => {
+    items.forEach((item) => {
       if (counts[item.roomId]) {
         counts[item.roomId].unique += 1;
         counts[item.roomId].totalQty += Number(item.quantity) || 0;
@@ -370,23 +243,49 @@ export function App() {
   }, [rooms, items]);
 
   const availableCategories = useMemo(() => {
-    const catCol = columns.find(c => c.id === 'category');
-    if (catCol && catCol.options && catCol.options.length > 0) {
+    const catCol = columns.find((c) => c.id === 'category');
+    if (catCol?.options && catCol.options.length > 0) {
       return catCol.options;
     }
     const set = new Set<string>();
-    items.forEach(it => {
+    items.forEach((it) => {
       if (it.category) set.add(it.category);
     });
     return Array.from(set);
   }, [columns, items]);
 
+  // Items in active room view (prior to text/status filters)
+  const roomScopedItems = useMemo(() => {
+    if (selectedRoomId === 'ALL') return items;
+    return items.filter((it) => it.roomId === selectedRoomId);
+  }, [items, selectedRoomId]);
+
+  // Quick KPI metrics for current view
+  const attentionCount = useMemo(() => {
+    return roomScopedItems.filter((it) => isNeedsAttention(it)).length;
+  }, [roomScopedItems]);
+
+  const outOfStockCount = useMemo(() => {
+    return roomScopedItems.filter((it) => (Number(it.quantity) || 0) <= 0).length;
+  }, [roomScopedItems]);
+
+  // Visible columns based on show/hide checklist
+  const visibleColumns = useMemo(() => {
+    return columns.filter((col) => hiddenColumnIds.indexOf(col.id) === -1);
+  }, [columns, hiddenColumnIds]);
+
+  // Filtered and sorted dataset
   const filteredItems = useMemo(() => {
     return items
-      .filter(item => {
+      .filter((item) => {
         if (selectedRoomId !== 'ALL' && item.roomId !== selectedRoomId) return false;
         if (categoryFilter !== 'ALL' && item.category !== categoryFilter) return false;
-        if (conditionFilter !== 'ALL' && item.condition !== conditionFilter) return false;
+        if (conditionFilter !== 'ALL' && item.condition !== conditionFilter && item.status !== conditionFilter) {
+          return false;
+        }
+        if (needsAttentionFilter && !isNeedsAttention(item)) return false;
+        if (outOfStockFilter && (Number(item.quantity) || 0) > 0) return false;
+
         if (searchQuery.trim() !== '') {
           const q = searchQuery.toLowerCase();
           const matches = Object.entries(item).some(([k, val]) => {
@@ -412,10 +311,27 @@ export function App() {
         });
         return sortDirection === 'asc' ? comp : -comp;
       });
-  }, [items, selectedRoomId, categoryFilter, conditionFilter, searchQuery, sortField, sortDirection]);
+  }, [
+    items,
+    selectedRoomId,
+    categoryFilter,
+    conditionFilter,
+    needsAttentionFilter,
+    outOfStockFilter,
+    searchQuery,
+    sortField,
+    sortDirection
+  ]);
 
+  // Paginated slice
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, currentPage]);
+
+  // ── Item Quantity Direct Manipulation ───────────────────────────
   const handleQuantityChange = async (itemId: string, delta: number) => {
-    const item = items.find((i) => i.id === itemId);
     setItems((prev) =>
       prev.map((it) => {
         if (it.id === itemId) {
@@ -425,18 +341,10 @@ export function App() {
         return it;
       })
     );
-    if (item) {
-      await syncSingleItemToSupabase({
-        ...item,
-        quantity: Math.max(0, (Number(item.quantity) || 0) + delta),
-        updatedAt: new Date().toISOString()
-      });
-    }
   };
 
   const handleSetQuantity = async (itemId: string, newQty: number) => {
     const val = Math.max(0, newQty || 0);
-    const item = items.find((i) => i.id === itemId);
     setItems((prev) =>
       prev.map((it) => {
         if (it.id === itemId) {
@@ -445,19 +353,113 @@ export function App() {
         return it;
       })
     );
-    if (item) {
-      await syncSingleItemToSupabase({ ...item, quantity: val, updatedAt: new Date().toISOString() });
-    }
   };
 
+  // ── Bulk Selection Handlers ─────────────────────────────────────
+  const handleToggleSelect = (itemId: string) => {
+    setSelectedIds((prev) => {
+      const idx = prev.indexOf(itemId);
+      if (idx === -1) return [...prev, itemId];
+      return prev.filter((id) => id !== itemId);
+    });
+  };
+
+  const handleToggleSelectPage = (pageIds: string[], select: boolean) => {
+    setSelectedIds((prev) => {
+      const set = new Set(prev);
+      if (select) {
+        pageIds.forEach((id) => set.add(id));
+      } else {
+        pageIds.forEach((id) => set.delete(id));
+      }
+      return Array.from(set);
+    });
+  };
+
+  const handleBulkMove = (targetRoomId: string) => {
+    const count = selectedIds.length;
+    if (count === 0) return;
+    const targetRoom = rooms.find((r) => r.id === targetRoomId);
+    const roomName = targetRoom?.name || 'facility room';
+    const now = new Date().toISOString();
+
+    setItems((prev) =>
+      prev.map((it) => {
+        if (selectedIds.indexOf(it.id) !== -1) {
+          return { ...it, roomId: targetRoomId, room: roomName, updatedAt: now };
+        }
+        return it;
+      })
+    );
+    showToast(`Transferred ${count} items to "${roomName}"`, 'success');
+    setSelectedIds([]);
+  };
+
+  const handleBulkSetStatus = (newStatus: string) => {
+    const count = selectedIds.length;
+    if (count === 0) return;
+    const now = new Date().toISOString();
+
+    setItems((prev) =>
+      prev.map((it) => {
+        if (selectedIds.indexOf(it.id) !== -1) {
+          return { ...it, status: newStatus, condition: newStatus, updatedAt: now };
+        }
+        return it;
+      })
+    );
+    showToast(`Updated status to "${newStatus}" for ${count} items`, 'success');
+    setSelectedIds([]);
+  };
+
+  const handleBulkExportExcel = async () => {
+    const selected = items.filter((it) => selectedIds.indexOf(it.id) !== -1);
+    if (selected.length === 0) return;
+    const { exportInventoryToExcel } = await import('./utils/excelExport');
+    exportInventoryToExcel('current', rooms, selected, columns, currentRoom);
+    showToast(`Exported ${selected.length} items to Excel`, 'success');
+  };
+
+  const handleExportExcel = async (mode: 'multi' | 'current') => {
+    const { exportInventoryToExcel } = await import('./utils/excelExport');
+    exportInventoryToExcel(mode, rooms, items, columns, currentRoom);
+  };
+
+  const handleBulkDelete = () => {
+    const count = selectedIds.length;
+    if (count === 0) return;
+    setConfirmDialog({
+      title: `Delete ${count} Selected Items`,
+      message: `Are you sure you want to delete ${count} inventory ${
+        count === 1 ? 'item' : 'items'
+      }? This action removes them from the catalog.`,
+      isDestructive: true,
+      onConfirm: () => {
+        setItems((prev) => prev.filter((it) => selectedIds.indexOf(it.id) === -1));
+        showToast(`Deleted ${count} items`, 'success');
+        setSelectedIds([]);
+        setConfirmDialog(null);
+      }
+    });
+  };
+
+  // ── Column Visibility Toggle ────────────────────────────────────
+  const handleToggleColumn = (columnId: string) => {
+    setHiddenColumnIds((prev) => {
+      const idx = prev.indexOf(columnId);
+      if (idx === -1) return [...prev, columnId];
+      return prev.filter((id) => id !== columnId);
+    });
+  };
+
+  // ── Delete Confirmations ────────────────────────────────────────
   const confirmDeleteItem = (item: InventoryItem) => {
     setConfirmDialog({
       title: 'Delete Inventory Item',
       message: `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
       isDestructive: true,
-      onConfirm: async () => {
+      onConfirm: () => {
         setItems((prev) => prev.filter((i) => i.id !== item.id));
-        await deleteItemFromSupabase(item.id);
         showToast(`Deleted "${item.name}"`, 'success');
         setConfirmDialog(null);
       }
@@ -465,18 +467,16 @@ export function App() {
   };
 
   const confirmDeleteRoom = (room: Room) => {
-    const roomItems = items.filter(i => i.roomId === room.id);
-    const count = roomItems.length;
+    const count = items.filter((i) => i.roomId === room.id).length;
     setConfirmDialog({
-      title: `Delete Room: ${room.name}`,
-      message: `Deleting this room will also permanently delete ${count} associated inventory ${
+      title: `Delete Facility Room: ${room.name}`,
+      message: `Deleting this room will also remove its ${count} associated inventory ${
         count === 1 ? 'item' : 'items'
       }. Proceed?`,
       isDestructive: true,
-      onConfirm: async () => {
+      onConfirm: () => {
         setRooms((prev) => prev.filter((r) => r.id !== room.id));
         setItems((prev) => prev.filter((i) => i.roomId !== room.id));
-        await deleteRoomFromSupabase(room.id);
         if (selectedRoomId === room.id) setSelectedRoomId('ALL');
         showToast(`Room "${room.name}" removed`, 'success');
         setConfirmDialog(null);
@@ -484,21 +484,19 @@ export function App() {
     });
   };
 
+  // ── Reset & Clear ───────────────────────────────────────────────
   const handleResetSampleData = () => {
     setConfirmDialog({
       title: 'Reset to Sample Data',
       message:
-        'This will replace all current rooms, custom columns, and items with the default KM100 training center catalog. Proceed?',
+        'This will replace all current rooms and items with the official KM100 Skills and Training Center catalog. Proceed?',
       isDestructive: true,
-      onConfirm: async () => {
+      onConfirm: () => {
         setRooms(DEFAULT_ROOMS);
         setItems(DEFAULT_ITEMS);
         setColumns(DEFAULT_COLUMNS);
         setSelectedRoomId('ALL');
-        await syncRoomsToSupabase(DEFAULT_ROOMS);
-        await syncColumnsToSupabase(DEFAULT_COLUMNS);
-        await syncItemsToSupabase(DEFAULT_ITEMS);
-        showToast('Reset to default training center sample data', 'info');
+        showToast('Reset to default training center sample catalog', 'info');
         setConfirmDialog(null);
       }
     });
@@ -506,27 +504,21 @@ export function App() {
 
   const handleClearAllData = () => {
     setConfirmDialog({
-      title: 'Clear All Inventory Data',
+      title: 'Purge All Inventory Data',
       message:
         'Are you sure you want to clear all rooms and items? This creates a completely empty fresh inventory workspace.',
       isDestructive: true,
-      onConfirm: async () => {
+      onConfirm: () => {
         setRooms([]);
         setItems([]);
         setSelectedRoomId('ALL');
-        try {
-          await supabase.from('inventory_items').delete().gte('id', '');
-          await supabase.from('rooms').delete().gte('id', '');
-          await supabase.from('columns_schema').delete().gte('id', '');
-        } catch {
-          // Supabase clear best-effort
-        }
         showToast('All inventory cleared', 'info');
         setConfirmDialog(null);
       }
     });
   };
 
+  // ── Backup JSON Handlers ────────────────────────────────────────
   const handleBackupExport = () => {
     const payload = {
       version: '1.0',
@@ -552,7 +544,7 @@ export function App() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = event => {
+    reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!data.rooms || !data.items || !data.columns) {
@@ -571,74 +563,100 @@ export function App() {
     e.target.value = '';
   };
 
-  // --- Excel/CSV import: trigger file picker ---
+  // ── High-Craft Spreadsheet Import with Preview Modal ───────────
   const handleTriggerUploadExcel = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.xlsx,.xls,.csv';
-    input.onchange = (ev: Event) => {
+    input.onchange = async (ev: Event) => {
       const target = ev.target as HTMLInputElement;
       const file = target.files?.[0];
       if (!file) return;
-      setImportPending({ file, data: [] });
-      handleImportExcelFile(file);
+      try {
+        const { analyzeSpreadsheet } = await import('./utils/importParse');
+        const analysis = await analyzeSpreadsheet(file);
+        if (analysis.totalItems === 0) {
+          showToast('No valid inventory items found in the file.', 'error');
+          return;
+        }
+        setImportAnalysis(analysis);
+      } catch (err) {
+        showToast('Failed to analyze spreadsheet: ' + (err instanceof Error ? err.message : String(err)), 'error');
+      }
     };
     input.click();
   };
 
-  // --- Excel/CSV import: parse file and merge into inventory ---
-  const handleImportExcelFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const result = event.target?.result;
-        let rows: any[] = [];
+  const handleImportDirect = () => {
+    if (!importAnalysis) return;
+    const existingRoomNames = new Map(rooms.map((r) => [r.name.trim().toLowerCase(), r.id]));
+    const newRooms: Room[] = [...rooms];
 
-        if (file.name.toLowerCase().endsWith('.csv')) {
-          const text = typeof result === 'string' ? result : new TextDecoder().decode(result as ArrayBuffer);
-          rows = parseCsvText(text);
-        } else {
-          const data = new Uint8Array(result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
-        }
-
-        const defaultRoomId =
-          selectedRoomId !== 'ALL' ? selectedRoomId : 'room-ccs';
-        const importedItems = parseImportRows(rows, defaultRoomId);
-
-        if (importedItems.length === 0) {
-          alert('No valid rows found in the file.');
-          setImportPending(null);
-          return;
-        }
-
-        setItems((prev) => [...importedItems, ...prev]);
-        setSelectedRoomId('ALL');
-        syncItemsToSupabase(importedItems);
-        showToast(`Imported ${importedItems.length} item(s) from ${file.name}`, 'success');
-        setImportPending(null);
-      } catch (err) {
-        alert('Failed to import file: ' + (err instanceof Error ? err.message : String(err)));
-        setImportPending(null);
+    importAnalysis.roomsList.forEach((roomName) => {
+      const key = roomName.trim().toLowerCase();
+      if (!existingRoomNames.has(key)) {
+        const id = generateRoomId();
+        existingRoomNames.set(key, id);
+        newRooms.push({ id, name: roomName });
       }
-    };
-    reader.onerror = () => {
-      alert('Failed to read file.');
-      setImportPending(null);
-    };
+    });
 
-    if (file.name.toLowerCase().endsWith('.csv')) {
-      reader.readAsText(file);
-    } else {
-      reader.readAsArrayBuffer(file);
-    }
+    const fallbackRoomId = rooms[0]?.id || 'room-ccs';
+    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
+      ...it,
+      roomId: existingRoomNames.get(it.room?.trim().toLowerCase()) || fallbackRoomId
+    }));
+
+    setRooms(newRooms);
+    setItems((prev) => [...mappedItems, ...prev]);
+    showToast(`Successfully imported ${mappedItems.length} items across ${importAnalysis.roomsList.length} facilities`, 'success');
+    setImportAnalysis(null);
+  };
+
+  const handleImportCurrentRoom = () => {
+    if (!importAnalysis) return;
+    const targetRoomId = selectedRoomId !== 'ALL' ? selectedRoomId : (rooms[0]?.id || 'room-ccs');
+    const targetRoomName = rooms.find((r) => r.id === targetRoomId)?.name || 'Current Room';
+
+    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
+      ...it,
+      roomId: targetRoomId,
+      room: targetRoomName
+    }));
+
+    setItems((prev) => [...mappedItems, ...prev]);
+    showToast(`Added ${mappedItems.length} items to "${targetRoomName}"`, 'success');
+    setImportAnalysis(null);
+  };
+
+  const handleReplaceAll = () => {
+    if (!importAnalysis) return;
+    const existingRoomNames = new Map<string, string>();
+    const newRooms: Room[] = [];
+
+    importAnalysis.roomsList.forEach((roomName) => {
+      const key = roomName.trim().toLowerCase();
+      const id = generateRoomId();
+      existingRoomNames.set(key, id);
+      newRooms.push({ id, name: roomName });
+    });
+
+    const fallbackRoomId = newRooms[0]?.id || 'room-ccs';
+    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
+      ...it,
+      roomId: existingRoomNames.get(it.room?.trim().toLowerCase()) || fallbackRoomId
+    }));
+
+    setRooms(newRooms);
+    setItems(mappedItems);
+    setSelectedRoomId('ALL');
+    showToast(`Replaced entire catalog with ${mappedItems.length} items from spreadsheet`, 'success');
+    setImportAnalysis(null);
   };
 
   const handleSort = (columnId: string) => {
     if (sortField === columnId) {
-      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(columnId);
       setSortDirection('asc');
@@ -646,20 +664,26 @@ export function App() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="flex h-screen flex-col bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100">
+      {/* ── Global Institutional Header ─────────────────────────────── */}
       <Header
         onOpenColumnsModal={() => setIsColumnsModalOpen(true)}
-        onExportExcel={mode => exportInventoryToExcel(mode, rooms, items, columns, currentRoom)}
+        onExportExcel={handleExportExcel}
+        onExportCsv={() => downloadInventoryCsv(items, rooms, columns)}
         onTriggerUploadExcel={handleTriggerUploadExcel}
         onExportBackup={handleBackupExport}
         onImportBackup={handleBackupImport}
         onResetSampleData={handleResetSampleData}
         onClearAllData={handleClearAllData}
+        onOpenMobileMenu={() => setIsMobileNavOpen(true)}
         selectedRoomId={selectedRoomId}
         currentRoom={currentRoom}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       <div className="flex flex-1 overflow-hidden">
+        {/* ── Desktop Facilities Sidebar ───────────────────────────── */}
         <Sidebar
           rooms={rooms}
           selectedRoomId={selectedRoomId}
@@ -668,7 +692,7 @@ export function App() {
             setEditingRoom(null);
             setIsRoomModalOpen(true);
           }}
-          onEditRoom={room => {
+          onEditRoom={(room) => {
             setEditingRoom(room);
             setIsRoomModalOpen(true);
           }}
@@ -677,7 +701,9 @@ export function App() {
           roomItemCounts={roomItemCounts}
         />
 
+        {/* ── Main Content Area ────────────────────────────────────── */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          {/* Overview Dashboard (When "All Rooms" is selected) */}
           {selectedRoomId === 'ALL' && (
             <OverviewDashboard
               rooms={rooms}
@@ -686,7 +712,7 @@ export function App() {
               onSelectRoom={setSelectedRoomId}
               onAddItem={() => {
                 if (rooms.length === 0) {
-                  alert('Please create at least one room first.');
+                  showToast('Create a facility room before adding inventory items.', 'error');
                   return;
                 }
                 setEditingItem(null);
@@ -695,6 +721,7 @@ export function App() {
             />
           )}
 
+          {/* Individual Room Header */}
           {selectedRoomId !== 'ALL' && currentRoom && (
             <div className="p-4 lg:p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
               <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -712,7 +739,7 @@ export function App() {
                     </h2>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {currentRoom.description || 'Room Inventory Catalog'} &bull;{' '}
+                    {currentRoom.description || 'Facility Inventory Catalog'} &bull;{' '}
                     {roomItemCounts[currentRoom.id]?.unique || 0} unique items,{' '}
                     {roomItemCounts[currentRoom.id]?.totalQty || 0} total units
                   </p>
@@ -724,8 +751,8 @@ export function App() {
                       setEditingRoom(currentRoom);
                       setIsRoomModalOpen(true);
                     }}
-                    className="p-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors"
-                    title="Edit Room Details"
+                    className="p-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition-colors"
+                    title="Edit Facility Name / Description"
                   >
                     <Edit size={15} />
                   </button>
@@ -744,21 +771,111 @@ export function App() {
             </div>
           )}
 
-          {/* Table Area */}
-          <div className="flex-1 p-4 lg:p-6 flex flex-col min-h-0">
+          {/* ── Table & Interactive Control Area ───────────────────── */}
+          <div className="flex-1 p-3 sm:p-4 lg:p-6 flex flex-col min-h-0">
             <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col">
-              {/* Filter Toolbar */}
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="relative flex-1 min-w-[200px]">
+              {/* Quick Status KPI Strip (Industry Standard Bar) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3.5 no-print">
+                <button
+                  onClick={() => {
+                    setNeedsAttentionFilter(false);
+                    setOutOfStockFilter(false);
+                    setConditionFilter('ALL');
+                  }}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    !needsAttentionFilter && !outOfStockFilter && conditionFilter === 'ALL'
+                      ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/80 shadow-sm'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-slate-500 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Catalog SKUs</span>
+                    <Package size={14} className="text-amber-700" />
+                  </div>
+                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white tabular-nums">
+                    {roomScopedItems.length}
+                  </div>
+                  <span className="text-[10px] text-slate-400">Total tracked items</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setNeedsAttentionFilter(false);
+                    setOutOfStockFilter(false);
+                  }}
+                  className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-left hover:border-slate-300 transition-all"
+                >
+                  <div className="flex items-center justify-between text-slate-500 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">In-Stock Units</span>
+                    <Layers size={14} className="text-emerald-600" />
+                  </div>
+                  <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    {roomScopedItems.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0)}
+                  </div>
+                  <span className="text-[10px] text-slate-400">Physical total</span>
+                </button>
+
+                <button
+                  onClick={() => setNeedsAttentionFilter((prev) => !prev)}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    needsAttentionFilter
+                      ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 dark:border-rose-800 shadow-sm'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-rose-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-slate-500 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Needs Attention</span>
+                    <AlertTriangle size={14} className="text-rose-500" />
+                  </div>
+                  <div className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 tabular-nums flex items-center gap-2">
+                    {attentionCount}
+                    {attentionCount > 0 && (
+                      <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold">
+                        Filter
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400">Defective, empty, incomplete</span>
+                </button>
+
+                <button
+                  onClick={() => setOutOfStockFilter((prev) => !prev)}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    outOfStockFilter
+                      ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-800 shadow-sm'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-slate-500 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Depleted / Out</span>
+                    <PackageX size={14} className="text-amber-600" />
+                  </div>
+                  <div className="text-xl font-bold font-mono text-amber-700 dark:text-amber-400 tabular-nums flex items-center gap-2">
+                    {outOfStockCount}
+                    {outOfStockCount > 0 && (
+                      <span className="text-[10px] font-sans px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
+                        Filter
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400">0 quantity recorded</span>
+                </button>
+              </div>
+
+              {/* ── Toolbar: Search, Filters, Column Toggle ────────────── */}
+              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
+                {/* Search box with keyboard shortcut indicator */}
+                <div className="relative flex-1 min-w-[220px]">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Search size={16} />
+                    <Search size={15} />
                   </div>
                   <input
+                    ref={searchInputRef}
                     type="text"
-                    placeholder="Search items, category, remarks, or custom fields..."
+                    placeholder="Search catalog by name, category, remarks, or serial... (Press '/' to focus)"
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors"
                   />
                   {searchQuery && (
                     <button
@@ -770,17 +887,19 @@ export function App() {
                   )}
                 </div>
 
+                {/* Filter Dropdowns & Column Visibility */}
                 <div className="flex items-center gap-2 flex-wrap">
+                  {/* Category Filter */}
                   <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5">
                     <Filter size={13} className="text-slate-400" />
                     <span className="text-[11px] font-medium text-slate-500">Cat:</span>
                     <select
                       value={categoryFilter}
-                      onChange={e => setCategoryFilter(e.target.value)}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
                       className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
                     >
                       <option value="ALL">All Categories</option>
-                      {availableCategories.map(cat => (
+                      {availableCategories.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
                         </option>
@@ -788,28 +907,44 @@ export function App() {
                     </select>
                   </div>
 
+                  {/* Condition Filter */}
                   <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5">
                     <span className="text-[11px] font-medium text-slate-500">Condition:</span>
                     <select
                       value={conditionFilter}
-                      onChange={e => setConditionFilter(e.target.value)}
+                      onChange={(e) => setConditionFilter(e.target.value)}
                       className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
                     >
                       <option value="ALL">All Conditions</option>
-                      <option value="Working">Working</option>
-                      <option value="Used">Used</option>
-                      <option value="Defective">Defective</option>
-                      <option value="Empty">Empty</option>
-                      <option value="Incomplete">Incomplete</option>
+                      {ITEM_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  {(searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL') && (
+                  {/* Column Visibility Menu */}
+                  <ColumnsVisibilityMenu
+                    columns={columns}
+                    hiddenColumnIds={hiddenColumnIds}
+                    onToggleColumn={handleToggleColumn}
+                    onOpenSchemaBuilder={() => setIsColumnsModalOpen(true)}
+                  />
+
+                  {/* Reset Filters Button */}
+                  {(searchQuery ||
+                    categoryFilter !== 'ALL' ||
+                    conditionFilter !== 'ALL' ||
+                    needsAttentionFilter ||
+                    outOfStockFilter) && (
                     <button
                       onClick={() => {
                         setSearchQuery('');
                         setCategoryFilter('ALL');
                         setConditionFilter('ALL');
+                        setNeedsAttentionFilter(false);
+                        setOutOfStockFilter(false);
                       }}
                       className="px-2.5 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors font-semibold"
                     >
@@ -819,9 +954,21 @@ export function App() {
                 </div>
               </div>
 
+              {/* ── Contextual Inline Bulk Action Bar ───────────────── */}
+              <BulkActionBar
+                count={selectedIds.length}
+                rooms={rooms}
+                onClear={() => setSelectedIds([])}
+                onMove={handleBulkMove}
+                onSetStatus={handleBulkSetStatus}
+                onExportExcel={handleBulkExportExcel}
+                onDelete={handleBulkDelete}
+              />
+
+              {/* ── Main Data Table ─────────────────────────────────── */}
               <InventoryTable
-                items={filteredItems}
-                columns={columns}
+                items={paginatedItems}
+                columns={visibleColumns}
                 rooms={rooms}
                 selectedRoomId={selectedRoomId}
                 sortField={sortField}
@@ -830,14 +977,15 @@ export function App() {
                 onSelectRoom={setSelectedRoomId}
                 onQuantityChange={handleQuantityChange}
                 onSetQuantity={handleSetQuantity}
-                onEditItem={item => {
+                onEditItem={(item) => {
                   setEditingItem(item);
                   setIsItemModalOpen(true);
                 }}
                 onDeleteItem={confirmDeleteItem}
+                onPrintAssetTag={(item) => setAssetTagItem(item)}
                 onAddItem={() => {
                   if (rooms.length === 0) {
-                    alert('Please create a room first.');
+                    showToast('Create a facility room before adding inventory items.', 'error');
                     return;
                   }
                   setEditingItem(null);
@@ -847,15 +995,53 @@ export function App() {
                   setSearchQuery('');
                   setCategoryFilter('ALL');
                   setConditionFilter('ALL');
+                  setNeedsAttentionFilter(false);
+                  setOutOfStockFilter(false);
                 }}
-                isFiltered={Boolean(searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL')}
+                isFiltered={Boolean(
+                  searchQuery ||
+                  categoryFilter !== 'ALL' ||
+                  conditionFilter !== 'ALL' ||
+                  needsAttentionFilter ||
+                  outOfStockFilter
+                )}
                 totalItemsInCatalog={items.length}
+                totalFilteredCount={filteredItems.length}
+                totalFilteredUnits={filteredItems.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0)}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onToggleSelectPage={handleToggleSelectPage}
+                page={currentPage}
+                pageSize={PAGE_SIZE}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
               />
             </div>
           </div>
         </main>
       </div>
 
+      {/* ── Slide-in Mobile Drawer ──────────────────────────────────── */}
+      {isMobileNavOpen && (
+        <MobileNav
+          rooms={rooms}
+          selectedRoomId={selectedRoomId}
+          totalItemsCount={items.length}
+          roomItemCounts={roomItemCounts}
+          onSelectRoom={(id) => {
+            setSelectedRoomId(id);
+            setIsMobileNavOpen(false);
+          }}
+          onAddRoom={() => {
+            setIsMobileNavOpen(false);
+            setEditingRoom(null);
+            setIsRoomModalOpen(true);
+          }}
+          onClose={() => setIsMobileNavOpen(false)}
+        />
+      )}
+
+      {/* ── Item Add / Edit Modal ───────────────────────────────────── */}
       {isItemModalOpen && (
         <ItemModal
           isOpen={isItemModalOpen}
@@ -867,11 +1053,9 @@ export function App() {
           onSave={async (savedItem) => {
             if (editingItem) {
               setItems((prev) => prev.map((i) => (i.id === savedItem.id ? savedItem : i)));
-              await syncSingleItemToSupabase(savedItem);
               showToast(`Updated item "${savedItem.name}"`, 'success');
             } else {
               setItems((prev) => [savedItem, ...prev]);
-              await syncSingleItemToSupabase(savedItem);
               showToast(`Added item "${savedItem.name}"`, 'success');
             }
             setIsItemModalOpen(false);
@@ -879,6 +1063,7 @@ export function App() {
         />
       )}
 
+      {/* ── Schema Builder Modal ────────────────────────────────────── */}
       {isColumnsModalOpen && (
         <ColumnsSchemaModal
           isOpen={isColumnsModalOpen}
@@ -886,26 +1071,24 @@ export function App() {
           columns={columns}
           onSave={async (newCols) => {
             setColumns(newCols);
-            await syncColumnsToSupabase(newCols);
             showToast('Inventory column schema updated successfully!', 'success');
             setIsColumnsModalOpen(false);
           }}
         />
       )}
 
+      {/* ── Room Add / Rename Modal ─────────────────────────────────── */}
       {isRoomModalOpen && (
         <RoomModal
           isOpen={isRoomModalOpen}
           onClose={() => setIsRoomModalOpen(false)}
           editingRoom={editingRoom}
-          onSave={async savedRoom => {
+          onSave={async (savedRoom) => {
             if (editingRoom) {
               setRooms((prev) => prev.map((r) => (r.id === savedRoom.id ? savedRoom : r)));
-              await syncRoomsToSupabase([savedRoom]);
               showToast(`Renamed room to "${savedRoom.name}"`, 'success');
             } else {
               setRooms((prev) => [...prev, savedRoom]);
-              await syncRoomsToSupabase([...rooms, savedRoom]);
               setSelectedRoomId(savedRoom.id);
               showToast(`Created facility room "${savedRoom.name}"`, 'success');
             }
@@ -914,6 +1097,35 @@ export function App() {
         />
       )}
 
+      {/* ── Equipment Asset Tag Printable Sticker Modal ─────────────── */}
+      {assetTagItem && (
+        <AssetTagModal
+          item={assetTagItem}
+          rooms={rooms}
+          onClose={() => setAssetTagItem(null)}
+        />
+      )}
+
+      {/* ── Spreadsheet Upload Preview & Strategy Modal ─────────────── */}
+      {importAnalysis && (
+        <ImportPreviewModal
+          analysis={importAnalysis}
+          currentRoom={currentRoom}
+          onCancel={() => setImportAnalysis(null)}
+          onImportDirect={handleImportDirect}
+          onImportCurrentRoom={handleImportCurrentRoom}
+          onReplaceAll={handleReplaceAll}
+        />
+      )}
+
+      {/* ── Formal Printable Audit Report (Revealed on window.print) ── */}
+      <PrintReport
+        items={filteredItems}
+        rooms={rooms}
+        facilityName={currentRoom ? currentRoom.name : 'Master Inventory (All Facilities)'}
+      />
+
+      {/* ── Action Confirmation Dialog ──────────────────────────────── */}
       {confirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
@@ -956,6 +1168,7 @@ export function App() {
         </div>
       )}
 
+      {/* ── Toast Notifications ─────────────────────────────────────── */}
       {toast && (
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl animate-toast ${

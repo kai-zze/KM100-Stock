@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileSpreadsheet, X, Plus, Folder, Trash2 } from 'lucide-react';
 import { Room } from '../types/inventory';
-import { ImportAnalysis } from '../utils/importParse';
+import type { ImportAnalysis } from '../utils/importParse';
 import { ConditionBadge } from './ConditionBadge';
 
 interface Props {
