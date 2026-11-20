@@ -27,7 +27,7 @@
     })();
   </script>
   <!-- Tailwind CSS: Local first with CDN fallback -->
-  <script src="./tailwindcss.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com'"></script>
+  <script src="./public/tailwindcss.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com'"></script>
   <script>
     if (window.tailwind) {
       tailwind.config = {
@@ -57,25 +57,25 @@
   </script>
 
   <!-- React 18 & ReactDOM: Local first with CDN fallbacks -->
-  <script src="./react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18.2.0/umd/react.production.min.js'"></script>
-  <script src="./react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js'"></script>
+  <script src="./public/react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18.2.0/umd/react.production.min.js'"></script>
+  <script src="./public/react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js'"></script>
 
   <!-- ExcelJS for Rich Professional Excel Export with Logos & Formatting: Local first with CDN fallback -->
-  <script src="./exceljs.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'"></script>
+  <script src="./public/exceljs.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'"></script>
 
   <!-- SheetJS (xlsx) for Reliable Excel Import/Export Fallback: Local first with CDN fallback -->
-  <script src="./xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'"></script>
+  <script src="./public/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'"></script>
 
   <!-- Institutional Logo Data: Local first -->
-  <script src="./logos_base64.js"></script>
+  <script src="./public/logos_base64.js"></script>
 
   <!-- Supabase Client for Cloud Database & Realtime Sync -->
-  <script src="./supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
+  <script src="./public/supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
 
   <style>
     /* Essential Fallback & Enhancement CSS */
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -121,7 +121,7 @@
   
   <div id="root" class="h-full">
     <!-- Immediate Pre-loader / Fallback Screen -->
-    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'DM Sans', system-ui, sans-serif; text-align: center; padding: 20px;">
+    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; text-align: center; padding: 20px;">
       <img src="./logo.png" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
       <h2 style="margin: 0 0 8px 0; color: #0f172a; font-size: 20px; font-weight: 700;">KM100 Skills and Training Center, Inc.</h2>
       <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">Loading Inventory Management System...</p>
@@ -136,7 +136,7 @@
     window.onerror = function(msg, url, lineNo, columnNo, error) {
       var root = document.getElementById('root');
       if (root) {
-        root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; font-family: 'DM Sans', system-ui, sans-serif; color: #9f1239;">' +
+        root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; font-family: system-ui, sans-serif; color: #9f1239;">' +
           '<h3 style="margin-top:0;">Failed to launch Inventory OS</h3>' +
           '<p style="font-size: 14px;">Error: ' + msg + ' (Line: ' + lineNo + ')</p>' +
           '<p style="font-size: 13px; color: #475569;">Please verify that you have an internet connection to load the external React library on first visit, or try refreshing.</p>' +
@@ -152,7 +152,7 @@
           if (!window.React || !window.ReactDOM) {
             var root = document.getElementById('root');
             if (root) {
-              root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 16px; font-family: 'DM Sans', system-ui, sans-serif; color: #9a3412; text-align: center;">' +
+              root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 16px; font-family: system-ui, sans-serif; color: #9a3412; text-align: center;">' +
                 '<img src="./logo.png" style="width: 64px; height: 64px; margin: 0 auto 16px auto; display: block; border-radius: 50%;">' +
                 '<h3 style="margin-top:0;">KM100 Inventory System</h3>' +
                 '<p style="font-size: 14px;">React library CDN could not be contacted. Please verify your internet connection on initial launch.</p>' +
