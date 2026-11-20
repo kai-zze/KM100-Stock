@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   ColumnDefinition,
+  ColumnType,
   InventoryItem,
-  Room
+  Room,
+  ITEM_STATUSES
 } from './types/inventory';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -12,6 +14,9 @@ import { ItemModal } from './components/ItemModal';
 import { ColumnsSchemaModal } from './components/ColumnsSchemaModal';
 import { RoomModal } from './components/RoomModal';
 import { exportInventoryToExcel } from './utils/excelExport';
+import { parseCsvText, parseImportRows } from './utils/csvImport';
+import { supabase } from './utils/supabaseClient';
+import * as XLSX from 'xlsx';
 import { Search, Filter, X, Edit, Plus, AlertTriangle, Check, Sparkles } from 'lucide-react';
 
 const STORAGE_KEY_ROOMS = 'km100_inventory_rooms_v1';
@@ -70,6 +75,101 @@ export function App() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Supabase cloud sync state
+  const [isSupabaseReady, setIsSupabaseReady] = useState(false);
+  const [supabaseError, setSupabaseError] = useState<string | null>(null);
+
+  // Excel/CSV import state
+  const [importPending, setImportPending] = useState<{ file: File; data: any[] } | null>(null);
+
+  // Map Supabase row -> InventoryItem
+  const toInventoryItem = (row: any): InventoryItem => ({
+    id: row.id,
+    roomId: row.room_id,
+    name: row.name,
+    category: row.category ?? 'General',
+    quantity: Number(row.quantity) || 0,
+    units: row.units ?? 'pcs',
+    status: row.condition ?? 'Working',
+    condition: row.condition ?? 'Working',
+    remarks: row.remarks ?? '',
+    createdAt: row.created_at ?? new Date().toISOString(),
+    updatedAt: row.updated_at ?? new Date().toISOString()
+  });
+
+  // Map InventoryItem -> Supabase inventory_items row shape
+  const toItemRow = (item: InventoryItem) => ({
+    id: item.id,
+    room_id: item.roomId,
+    name: item.name,
+    category: item.category,
+    quantity: item.quantity,
+    units: item.units,
+    condition: item.condition ?? item.status ?? 'Working',
+    remarks: item.remarks ?? '',
+    custom_fields: {}
+  });
+
+  // --- Supabase write helpers (fire-and-forget; local state is source of truth for UI) ---
+  const syncRoomsToSupabase = async (roomsToSync: Room[]) => {
+    try {
+      await supabase.from('rooms').upsert(
+        roomsToSync.map((r) => ({ id: r.id, name: r.name, description: r.description }))
+      );
+    } catch {
+      // Silently fail; localStorage remains the fallback
+    }
+  };
+
+  const syncColumnsToSupabase = async (columnsToSync: ColumnDefinition[]) => {
+    try {
+      await supabase.from('columns_schema').upsert(
+        columnsToSync.map((c) => ({
+          id: c.id,
+          label: c.label,
+          type: c.type,
+          order_index: c.order,
+          options: c.options ?? []
+        }))
+      );
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const syncItemsToSupabase = async (itemsToSync: InventoryItem[]) => {
+    try {
+      await supabase.from('inventory_items').upsert(itemsToSync.map(toItemRow));
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const syncSingleItemToSupabase = async (item: InventoryItem) => {
+    try {
+      await supabase.from('inventory_items').upsert(toItemRow(item));
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const deleteItemFromSupabase = async (itemId: string) => {
+    try {
+      await supabase.from('inventory_items').delete().eq('id', itemId);
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const deleteRoomFromSupabase = async (roomId: string) => {
+    try {
+      await supabase.from('inventory_items').delete().eq('room_id', roomId);
+      await supabase.from('rooms').delete().eq('id', roomId);
+    } catch {
+      // Silently fail
+    }
+  };
+
   useEffect(() => {
     // Lock system strictly to Light Mode
     document.documentElement.classList.remove('dark');
@@ -89,6 +189,146 @@ export function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_COLUMNS, JSON.stringify(columns));
   }, [columns]);
+
+  // --- Supabase cloud sync: load on mount, fall back to localStorage defaults ---
+  useEffect(() => {
+    let mounted = true;
+
+    const loadFromSupabase = async () => {
+      try {
+        const [roomsRes, columnsRes, itemsRes] = await Promise.all([
+          supabase.from('rooms').select('*').order('name', { ascending: true }),
+          supabase.from('columns_schema').select('*').order('order_index', { ascending: true }),
+          supabase.from('inventory_items').select('*').order('created_at', { ascending: false })
+        ]);
+
+        if (!mounted) return;
+
+        if (roomsRes.data && roomsRes.data.length > 0) {
+          setRooms(
+            roomsRes.data.map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              description: r.description
+            }))
+          );
+        }
+        if (columnsRes.data && columnsRes.data.length > 0) {
+          setColumns(
+            columnsRes.data.map((c: any) => ({
+              id: c.id,
+              label: c.label,
+              type: c.type as ColumnType,
+              options: c.options ?? [],
+              required: false,
+              isSystem: false,
+              order: c.order_index ?? 0
+            }))
+          );
+        }
+        if (itemsRes.data && itemsRes.data.length > 0) {
+          setItems(itemsRes.data.map(toInventoryItem));
+        }
+        setIsSupabaseReady(true);
+      } catch (err) {
+        if (!mounted) return;
+        setSupabaseError(err instanceof Error ? err.message : 'Supabase connection failed');
+        setIsSupabaseReady(true); // allow local fallback to proceed
+      }
+    };
+
+    loadFromSupabase();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // --- Supabase realtime subscription: mirror remote changes into local state ---
+  useEffect(() => {
+    if (!isSupabaseReady) return;
+
+    const channel = supabase
+      .channel('km100-inventory-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rooms' },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            setRooms((prev) => {
+              const exists = prev.some((r) => r.id === payload.new.id);
+              if (exists) return prev;
+              return [...prev, { id: payload.new.id, name: payload.new.name, description: payload.new.description }];
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            setRooms((prev) =>
+              prev.map((r) =>
+                r.id === payload.new.id
+                  ? { ...r, name: payload.new.name, description: payload.new.description }
+                  : r
+              )
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setRooms((prev) => prev.filter((r) => r.id !== payload.old.id));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'columns_schema' },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            setColumns((prev) => {
+              const exists = prev.some((c) => c.id === payload.new.id);
+              if (exists) return prev;
+              return [
+                ...prev,
+                {
+                  id: payload.new.id,
+                  label: payload.new.label,
+                  type: payload.new.type as ColumnType,
+                  options: payload.new.options ?? [],
+                  order: payload.new.order_index ?? 0
+                }
+              ];
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            setColumns((prev) =>
+              prev.map((c) =>
+                c.id === payload.new.id
+                  ? { ...c, label: payload.new.label, type: payload.new.type as ColumnType, order: payload.new.order_index }
+                  : c
+              )
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setColumns((prev) => prev.filter((c) => c.id !== payload.old.id));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'inventory_items' },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            setItems((prev) => {
+              const exists = prev.some((i) => i.id === payload.new.id);
+              if (exists) return prev;
+              return [toInventoryItem(payload.new), ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            setItems((prev) =>
+              prev.map((i) => (i.id === payload.new.id ? toInventoryItem(payload.new) : i))
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setItems((prev) => prev.filter((i) => i.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isSupabaseReady]);
 
   // Impeccable A11y: Escape Key to dismiss modals
   useEffect(() => {
@@ -174,9 +414,10 @@ export function App() {
       });
   }, [items, selectedRoomId, categoryFilter, conditionFilter, searchQuery, sortField, sortDirection]);
 
-  const handleQuantityChange = (itemId: string, delta: number) => {
-    setItems(prev =>
-      prev.map(it => {
+  const handleQuantityChange = async (itemId: string, delta: number) => {
+    const item = items.find((i) => i.id === itemId);
+    setItems((prev) =>
+      prev.map((it) => {
         if (it.id === itemId) {
           const newQty = Math.max(0, (Number(it.quantity) || 0) + delta);
           return { ...it, quantity: newQty, updatedAt: new Date().toISOString() };
@@ -184,18 +425,29 @@ export function App() {
         return it;
       })
     );
+    if (item) {
+      await syncSingleItemToSupabase({
+        ...item,
+        quantity: Math.max(0, (Number(item.quantity) || 0) + delta),
+        updatedAt: new Date().toISOString()
+      });
+    }
   };
 
-  const handleSetQuantity = (itemId: string, newQty: number) => {
+  const handleSetQuantity = async (itemId: string, newQty: number) => {
     const val = Math.max(0, newQty || 0);
-    setItems(prev =>
-      prev.map(it => {
+    const item = items.find((i) => i.id === itemId);
+    setItems((prev) =>
+      prev.map((it) => {
         if (it.id === itemId) {
           return { ...it, quantity: val, updatedAt: new Date().toISOString() };
         }
         return it;
       })
     );
+    if (item) {
+      await syncSingleItemToSupabase({ ...item, quantity: val, updatedAt: new Date().toISOString() });
+    }
   };
 
   const confirmDeleteItem = (item: InventoryItem) => {
@@ -203,8 +455,9 @@ export function App() {
       title: 'Delete Inventory Item',
       message: `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
       isDestructive: true,
-      onConfirm: () => {
-        setItems(prev => prev.filter(i => i.id !== item.id));
+      onConfirm: async () => {
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
+        await deleteItemFromSupabase(item.id);
         showToast(`Deleted "${item.name}"`, 'success');
         setConfirmDialog(null);
       }
@@ -220,9 +473,10 @@ export function App() {
         count === 1 ? 'item' : 'items'
       }. Proceed?`,
       isDestructive: true,
-      onConfirm: () => {
-        setRooms(prev => prev.filter(r => r.id !== room.id));
-        setItems(prev => prev.filter(i => i.roomId !== room.id));
+      onConfirm: async () => {
+        setRooms((prev) => prev.filter((r) => r.id !== room.id));
+        setItems((prev) => prev.filter((i) => i.roomId !== room.id));
+        await deleteRoomFromSupabase(room.id);
         if (selectedRoomId === room.id) setSelectedRoomId('ALL');
         showToast(`Room "${room.name}" removed`, 'success');
         setConfirmDialog(null);
@@ -236,11 +490,14 @@ export function App() {
       message:
         'This will replace all current rooms, custom columns, and items with the default KM100 training center catalog. Proceed?',
       isDestructive: true,
-      onConfirm: () => {
+      onConfirm: async () => {
         setRooms(DEFAULT_ROOMS);
         setItems(DEFAULT_ITEMS);
         setColumns(DEFAULT_COLUMNS);
         setSelectedRoomId('ALL');
+        await syncRoomsToSupabase(DEFAULT_ROOMS);
+        await syncColumnsToSupabase(DEFAULT_COLUMNS);
+        await syncItemsToSupabase(DEFAULT_ITEMS);
         showToast('Reset to default training center sample data', 'info');
         setConfirmDialog(null);
       }
@@ -253,10 +510,17 @@ export function App() {
       message:
         'Are you sure you want to clear all rooms and items? This creates a completely empty fresh inventory workspace.',
       isDestructive: true,
-      onConfirm: () => {
+      onConfirm: async () => {
         setRooms([]);
         setItems([]);
         setSelectedRoomId('ALL');
+        try {
+          await supabase.from('inventory_items').delete().gte('id', '');
+          await supabase.from('rooms').delete().gte('id', '');
+          await supabase.from('columns_schema').delete().gte('id', '');
+        } catch {
+          // Supabase clear best-effort
+        }
         showToast('All inventory cleared', 'info');
         setConfirmDialog(null);
       }
@@ -307,6 +571,71 @@ export function App() {
     e.target.value = '';
   };
 
+  // --- Excel/CSV import: trigger file picker ---
+  const handleTriggerUploadExcel = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (ev: Event) => {
+      const target = ev.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+      setImportPending({ file, data: [] });
+      handleImportExcelFile(file);
+    };
+    input.click();
+  };
+
+  // --- Excel/CSV import: parse file and merge into inventory ---
+  const handleImportExcelFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const result = event.target?.result;
+        let rows: any[] = [];
+
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          const text = typeof result === 'string' ? result : new TextDecoder().decode(result as ArrayBuffer);
+          rows = parseCsvText(text);
+        } else {
+          const data = new Uint8Array(result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+        }
+
+        const defaultRoomId =
+          selectedRoomId !== 'ALL' ? selectedRoomId : 'room-ccs';
+        const importedItems = parseImportRows(rows, defaultRoomId);
+
+        if (importedItems.length === 0) {
+          alert('No valid rows found in the file.');
+          setImportPending(null);
+          return;
+        }
+
+        setItems((prev) => [...importedItems, ...prev]);
+        setSelectedRoomId('ALL');
+        syncItemsToSupabase(importedItems);
+        showToast(`Imported ${importedItems.length} item(s) from ${file.name}`, 'success');
+        setImportPending(null);
+      } catch (err) {
+        alert('Failed to import file: ' + (err instanceof Error ? err.message : String(err)));
+        setImportPending(null);
+      }
+    };
+    reader.onerror = () => {
+      alert('Failed to read file.');
+      setImportPending(null);
+    };
+
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      reader.readAsText(file);
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
   const handleSort = (columnId: string) => {
     if (sortField === columnId) {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
@@ -321,6 +650,7 @@ export function App() {
       <Header
         onOpenColumnsModal={() => setIsColumnsModalOpen(true)}
         onExportExcel={mode => exportInventoryToExcel(mode, rooms, items, columns, currentRoom)}
+        onTriggerUploadExcel={handleTriggerUploadExcel}
         onExportBackup={handleBackupExport}
         onImportBackup={handleBackupImport}
         onResetSampleData={handleResetSampleData}
@@ -468,7 +798,7 @@ export function App() {
                       <option value="ALL">All Conditions</option>
                       <option value="Working">Working</option>
                       <option value="Used">Used</option>
-                      <option value="Deffective">Deffective</option>
+                      <option value="Defective">Defective</option>
                       <option value="Empty">Empty</option>
                       <option value="Incomplete">Incomplete</option>
                     </select>
@@ -534,12 +864,14 @@ export function App() {
           columns={columns}
           rooms={rooms}
           selectedRoomId={selectedRoomId}
-          onSave={savedItem => {
+          onSave={async (savedItem) => {
             if (editingItem) {
-              setItems(prev => prev.map(i => (i.id === savedItem.id ? savedItem : i)));
+              setItems((prev) => prev.map((i) => (i.id === savedItem.id ? savedItem : i)));
+              await syncSingleItemToSupabase(savedItem);
               showToast(`Updated item "${savedItem.name}"`, 'success');
             } else {
-              setItems(prev => [savedItem, ...prev]);
+              setItems((prev) => [savedItem, ...prev]);
+              await syncSingleItemToSupabase(savedItem);
               showToast(`Added item "${savedItem.name}"`, 'success');
             }
             setIsItemModalOpen(false);
@@ -552,8 +884,9 @@ export function App() {
           isOpen={isColumnsModalOpen}
           onClose={() => setIsColumnsModalOpen(false)}
           columns={columns}
-          onSave={newCols => {
+          onSave={async (newCols) => {
             setColumns(newCols);
+            await syncColumnsToSupabase(newCols);
             showToast('Inventory column schema updated successfully!', 'success');
             setIsColumnsModalOpen(false);
           }}
@@ -565,12 +898,14 @@ export function App() {
           isOpen={isRoomModalOpen}
           onClose={() => setIsRoomModalOpen(false)}
           editingRoom={editingRoom}
-          onSave={savedRoom => {
+          onSave={async savedRoom => {
             if (editingRoom) {
-              setRooms(prev => prev.map(r => (r.id === savedRoom.id ? savedRoom : r)));
+              setRooms((prev) => prev.map((r) => (r.id === savedRoom.id ? savedRoom : r)));
+              await syncRoomsToSupabase([savedRoom]);
               showToast(`Renamed room to "${savedRoom.name}"`, 'success');
             } else {
-              setRooms(prev => [...prev, savedRoom]);
+              setRooms((prev) => [...prev, savedRoom]);
+              await syncRoomsToSupabase([...rooms, savedRoom]);
               setSelectedRoomId(savedRoom.id);
               showToast(`Created facility room "${savedRoom.name}"`, 'success');
             }

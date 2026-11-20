@@ -25,6 +25,7 @@
       "react/jsx-dev-runtime": ["src/types/ambient.d.ts"],
       "lucide-react": ["src/types/ambient.d.ts"],
       "xlsx": ["src/types/ambient.d.ts"],
+      "exceljs": ["src/types/ambient.d.ts"],
       "@supabase/supabase-js": ["src/types/ambient.d.ts"],
       "*": ["src/types/*", "*"]
     }

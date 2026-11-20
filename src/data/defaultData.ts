@@ -1,4 +1,4 @@
-import { ColumnDefinition, InventoryItem, Room } from '../types/inventory';
+import { ColumnDefinition, InventoryItem, Room, ITEM_STATUSES } from '../types/inventory';
 
 export const DEFAULT_COLUMNS: ColumnDefinition[] = [
   { id: 'name', label: 'ITEM NAME', type: 'text', required: true, isSystem: true, order: 1 },
@@ -32,7 +32,7 @@ export const DEFAULT_COLUMNS: ColumnDefinition[] = [
     id: 'status',
     label: 'Status',
     type: 'dropdown',
-    options: ['Working', 'Empty', 'Defective', 'Deffective', 'Used', 'Incomplete'],
+    options: [...ITEM_STATUSES.filter(s => s !== 'Deffective')],
     required: true,
     order: 5
   }
@@ -42,7 +42,15 @@ export const DEFAULT_ROOMS: Room[] = [
   { id: 'room-ccs', name: 'Contact Center Services', description: 'Contact Center Services Training Lab' },
   { id: 'room-admin', name: 'Admin Office', description: 'KM100 Administration & Operations Office' },
   { id: 'room-css', name: 'Computer System Servicing', description: 'Computer Systems Servicing NC II Lab' },
-  { id: 'room-bp', name: 'Bread & Pastry', description: 'Bread and Pastry Production Training Facility' }
+  { id: 'room-bp', name: 'Bread & Pastry', description: 'Bread and Pastry Production Training Facility' },
+  { id: 'room-avr', name: 'Audio Visual Room', description: 'Facility room' },
+  { id: 'room-lib', name: 'Library', description: 'Facility room' },
+  { id: 'room-lr1', name: 'Lecture Room 1', description: 'Facility room' },
+  { id: 'room-lr2', name: 'Lecture Room 2', description: 'Facility room' },
+  { id: 'room-lr3', name: 'Lecture Room 3', description: 'Facility room' },
+  { id: 'room-fb', name: 'Food & Beverages', description: 'Facility room' },
+  { id: 'room-hk', name: 'Housekeeping', description: 'Facility room' },
+  { id: 'room-eccd', name: 'Early Childhood Care Development', description: 'Facility room' }
 ];
 
 export const DEFAULT_ITEMS: InventoryItem[] = [    {

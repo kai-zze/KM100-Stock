@@ -126,7 +126,7 @@ export const OverviewDashboard: React.FC<Props> = ({
               const counts = roomItemCounts[room.id] || { unique: 0, totalQty: 0 };
               const rItems = items.filter(i => i.roomId === room.id);
               const needsAction = rItems
-                .filter(i => i.condition === 'Needs Repair' || i.condition === 'Condemned')
+                .filter(i => i.condition === 'Defective' || i.condition === 'Empty' || i.condition === 'Incomplete')
                 .reduce((a, b) => a + (Number(b.quantity) || 0), 0);
 
               return (
