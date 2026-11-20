@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import {
   ColumnDefinition,
   ColumnType,
@@ -13,12 +13,12 @@ import { OverviewDashboard } from './components/OverviewDashboard';
 import { InventoryTable } from './components/InventoryTable';
 import { BulkActionBar } from './components/BulkActionBar';
 import { ColumnsVisibilityMenu } from './components/ColumnsVisibilityMenu';
-import { ItemModal } from './components/ItemModal';
-import { ColumnsSchemaModal } from './components/ColumnsSchemaModal';
-import { RoomModal } from './components/RoomModal';
-import { AssetTagModal } from './components/AssetTagModal';
-import { ImportPreviewModal } from './components/ImportPreviewModal';
-import { PrintReport } from './components/PrintReport';
+const ItemModal = (React as any).lazy(() => import('./components/ItemModal'));
+const ColumnsSchemaModal = (React as any).lazy(() => import('./components/ColumnsSchemaModal'));
+const RoomModal = (React as any).lazy(() => import('./components/RoomModal'));
+const AssetTagModal = (React as any).lazy(() => import('./components/AssetTagModal'));
+const ImportPreviewModal = (React as any).lazy(() => import('./components/ImportPreviewModal'));
+const PrintReport = (React as any).lazy(() => import('./components/PrintReport'));
 import { downloadInventoryCsv } from './utils/csvExport';
 import type { ImportAnalysis } from './utils/importParse';
 import { isNeedsAttention } from './utils/status';
@@ -1043,7 +1043,8 @@ export function App() {
 
       {/* ── Item Add / Edit Modal ───────────────────────────────────── */}
       {isItemModalOpen && (
-        <ItemModal
+        <Suspense fallback={null}>
+          <ItemModal
           isOpen={isItemModalOpen}
           onClose={() => setIsItemModalOpen(false)}
           editingItem={editingItem}
@@ -1061,11 +1062,13 @@ export function App() {
             setIsItemModalOpen(false);
           }}
         />
+        </Suspense>
       )}
 
       {/* ── Schema Builder Modal ────────────────────────────────────── */}
       {isColumnsModalOpen && (
-        <ColumnsSchemaModal
+        <Suspense fallback={null}>
+          <ColumnsSchemaModal
           isOpen={isColumnsModalOpen}
           onClose={() => setIsColumnsModalOpen(false)}
           columns={columns}
@@ -1075,11 +1078,13 @@ export function App() {
             setIsColumnsModalOpen(false);
           }}
         />
+        </Suspense>
       )}
 
       {/* ── Room Add / Rename Modal ─────────────────────────────────── */}
       {isRoomModalOpen && (
-        <RoomModal
+        <Suspense fallback={null}>
+          <RoomModal
           isOpen={isRoomModalOpen}
           onClose={() => setIsRoomModalOpen(false)}
           editingRoom={editingRoom}
@@ -1095,20 +1100,24 @@ export function App() {
             setIsRoomModalOpen(false);
           }}
         />
+        </Suspense>
       )}
 
       {/* ── Equipment Asset Tag Printable Sticker Modal ─────────────── */}
       {assetTagItem && (
-        <AssetTagModal
+        <Suspense fallback={null}>
+          <AssetTagModal
           item={assetTagItem}
           rooms={rooms}
           onClose={() => setAssetTagItem(null)}
         />
+        </Suspense>
       )}
 
       {/* ── Spreadsheet Upload Preview & Strategy Modal ─────────────── */}
       {importAnalysis && (
-        <ImportPreviewModal
+        <Suspense fallback={null}>
+          <ImportPreviewModal
           analysis={importAnalysis}
           currentRoom={currentRoom}
           onCancel={() => setImportAnalysis(null)}
@@ -1116,14 +1125,17 @@ export function App() {
           onImportCurrentRoom={handleImportCurrentRoom}
           onReplaceAll={handleReplaceAll}
         />
+        </Suspense>
       )}
 
       {/* ── Formal Printable Audit Report (Revealed on window.print) ── */}
-      <PrintReport
+      <Suspense fallback={null}>
+        <PrintReport
         items={filteredItems}
         rooms={rooms}
         facilityName={currentRoom ? currentRoom.name : 'Master Inventory (All Facilities)'}
       />
+      </Suspense>
 
       {/* ── Action Confirmation Dialog ──────────────────────────────── */}
       {confirmDialog && (
@@ -1188,4 +1200,6 @@ export function App() {
 }
 
 export default App;
+
+
 
