@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
@@ -8,6 +8,10 @@
   <link rel="icon" type="image/x-icon" href="./favicon.ico?v=4">
   <link rel="shortcut icon" href="./favicon.ico?v=4">
   <link rel="apple-touch-icon" href="./logo.png">
+  <!-- Typography: Plus Jakarta Sans (Headings) & DM Sans (Body) via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   
     <script>
     // Force browser to refresh favicon
@@ -23,7 +27,7 @@
     })();
   </script>
   <!-- Tailwind CSS: Local first with CDN fallback -->
-  <script src="./tailwindcss.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com'"></script>
+  <script src="./public/tailwindcss.js" onerror="this.onerror=null;this.src='https://cdn.tailwindcss.com'"></script>
   <script>
     if (window.tailwind) {
       tailwind.config = {
@@ -53,25 +57,26 @@
   </script>
 
   <!-- React 18 & ReactDOM: Local first with CDN fallbacks -->
-  <script src="./react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18.2.0/umd/react.production.min.js'"></script>
-  <script src="./react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js'"></script>
+  <script src="./public/react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18.2.0/umd/react.production.min.js'"></script>
+  <script src="./public/react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js'"></script>
 
   <!-- ExcelJS for Rich Professional Excel Export with Logos & Formatting: Local first with CDN fallback -->
-  <script src="./exceljs.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'"></script>
+  <script src="./public/exceljs.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'"></script>
 
   <!-- SheetJS (xlsx) for Reliable Excel Import/Export Fallback: Local first with CDN fallback -->
-  <script src="./xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'"></script>
+  <script src="./public/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'"></script>
 
   <!-- Institutional Logo Data: Local first -->
-  <script src="./logos_base64.js"></script>
+  <script src="./public/logos_base64.js"></script>
 
   <!-- Supabase Client for Cloud Database & Realtime Sync -->
-  <script src="./supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
+  <script src="./public/supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
 
   <style>
     /* Essential Fallback & Enhancement CSS */
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     @media (pointer: coarse) {
@@ -112,11 +117,11 @@
     .print-only { display: none; }
   </style>
 </head>
-<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-orange-500 selection:text-white transition-colors duration-200">
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-amber-600 selection:text-white transition-colors duration-200">
   
   <div id="root" class="h-full">
     <!-- Immediate Pre-loader / Fallback Screen -->
-    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; text-align: center; padding: 20px;">
+    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'DM Sans', system-ui, sans-serif; text-align: center; padding: 20px;">
       <img src="./logo.png" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
       <h2 style="margin: 0 0 8px 0; color: #0f172a; font-size: 20px; font-weight: 700;">KM100 Skills and Training Center, Inc.</h2>
       <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">Loading Inventory Management System...</p>
@@ -131,7 +136,7 @@
     window.onerror = function(msg, url, lineNo, columnNo, error) {
       var root = document.getElementById('root');
       if (root) {
-        root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; font-family: system-ui, sans-serif; color: #9f1239;">' +
+        root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; font-family: 'DM Sans', system-ui, sans-serif; color: #9f1239;">' +
           '<h3 style="margin-top:0;">Failed to launch Inventory OS</h3>' +
           '<p style="font-size: 14px;">Error: ' + msg + ' (Line: ' + lineNo + ')</p>' +
           '<p style="font-size: 13px; color: #475569;">Please verify that you have an internet connection to load the external React library on first visit, or try refreshing.</p>' +
@@ -147,7 +152,7 @@
           if (!window.React || !window.ReactDOM) {
             var root = document.getElementById('root');
             if (root) {
-              root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 16px; font-family: system-ui, sans-serif; color: #9a3412; text-align: center;">' +
+              root.innerHTML = '<div style="padding: 30px; max-width: 600px; margin: 40px auto; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 16px; font-family: 'DM Sans', system-ui, sans-serif; color: #9a3412; text-align: center;">' +
                 '<img src="./logo.png" style="width: 64px; height: 64px; margin: 0 auto 16px auto; display: block; border-radius: 50%;">' +
                 '<h3 style="margin-top:0;">KM100 Inventory System</h3>' +
                 '<p style="font-size: 14px;">React library CDN could not be contacted. Please verify your internet connection on initial launch.</p>' +
@@ -307,7 +312,7 @@
           id: 'status', 
           label: 'Status', 
           type: 'dropdown', 
-          options: ['Working', 'Empty', 'Deffective', 'Used', 'Incomplete'], 
+          options: ['Working', 'Empty', 'Defective', 'Used', 'Incomplete'], 
           required: true, 
           order: 5 
         }
@@ -387,8 +392,8 @@
         "category":  "PC Hardware and Components",
         "quantity":  1,
         "units":  "pcs",
-        "status":  "Deffective",
-        "condition":  "Deffective",
+        "status":  "Defective",
+        "condition":  "Defective",
         "createdAt":  "2026-11-19T02:16:11Z",
         "updatedAt":  "2026-11-19T02:16:11Z"
     },
@@ -939,8 +944,8 @@
         "category":  "PC Hardware and Components",
         "quantity":  1,
         "units":  "pcs",
-        "status":  "Deffective",
-        "condition":  "Deffective",
+        "status":  "Defective",
+        "condition":  "Defective",
         "createdAt":  "2026-11-19T02:16:11Z",
         "updatedAt":  "2026-11-19T02:16:11Z"
     },
@@ -999,8 +1004,8 @@
         "category":  "Diagnostic and Testing",
         "quantity":  43,
         "units":  "pcs",
-        "status":  "Deffective",
-        "condition":  "Deffective",
+        "status":  "Defective",
+        "condition":  "Defective",
         "createdAt":  "2026-11-19T02:16:11Z",
         "updatedAt":  "2026-11-19T02:16:11Z"
     },
@@ -1215,8 +1220,8 @@
         "category":  "Cables and Connectors",
         "quantity":  397,
         "units":  "pcs",
-        "status":  "Deffective",
-        "condition":  "Deffective",
+        "status":  "Defective",
+        "condition":  "Defective",
         "createdAt":  "2026-11-19T02:16:11Z",
         "updatedAt":  "2026-11-19T02:16:11Z"
     },
@@ -1455,8 +1460,8 @@
         "category":  "PC Hardware and Components",
         "quantity":  2,
         "units":  "pcs",
-        "status":  "Deffective",
-        "condition":  "Deffective",
+        "status":  "Defective",
+        "condition":  "Defective",
         "createdAt":  "2026-11-19T02:16:11Z",
         "updatedAt":  "2026-11-19T02:16:11Z"
     },
@@ -1681,7 +1686,7 @@
         var styles = {
           'Working': 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700/80',
           'Used': 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700/80',
-          'Deffective': 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-700/80',
+          'Defective': 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-700/80',
           'Empty': 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
           'Incomplete': 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/60 dark:text-orange-200 dark:border-orange-700/80',
           'Good': 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700/80',
@@ -1692,8 +1697,8 @@
         var dotColors = {
           'Working': 'bg-emerald-500',
           'Used': 'bg-amber-500',
-          'Deffective': 'bg-rose-500',
-          'Empty': 'bg-slate-400',
+          'Defective': 'bg-rose-500',
+          'Empty': 'bg-slate-500',
           'Incomplete': 'bg-orange-500',
           'Good': 'bg-emerald-500',
           'Fair': 'bg-amber-500',
@@ -2077,7 +2082,7 @@
               if (file.name.match(/\.(xlsx|xls|csv)$/i)) {
                 processExcelFile(file);
               } else {
-                alert('Please upload an Excel spreadsheet (.xlsx, .xls) or .csv file.');
+                showToast('Please upload an Excel (.xlsx, .xls) or CSV file.', 'error');
               }
             }
           }
@@ -2118,7 +2123,7 @@
         var attentionCount = useMemo(function() {
           return items.filter(function(it) {
             var st = it.status || it.condition;
-            return st === 'Deffective' || st === 'Empty' || st === 'Incomplete' || Number(it.quantity) <= 0;
+            return st === 'Defective' || st === 'Empty' || st === 'Incomplete' || Number(it.quantity) <= 0;
           }).length;
         }, [items]);
 
@@ -2131,7 +2136,7 @@
             // Needs attention filter
             if (needsAttentionOnly) {
               var st = item.status || item.condition;
-              var isProblem = st === 'Deffective' || st === 'Empty' || st === 'Incomplete' || Number(item.quantity) <= 0;
+              var isProblem = st === 'Defective' || st === 'Empty' || st === 'Incomplete' || Number(item.quantity) <= 0;
               if (!isProblem) return false;
             }
 
@@ -2169,8 +2174,8 @@
         }, [items, selectedRoomId, needsAttentionOnly, searchQuery, categoryFilter, conditionFilter, sortField, sortDirection]);
 
         // Pagination slice
-        var totalPages = 1;
-        var paginatedItems = filteredItems;
+        var totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+        var paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
         // Visible columns after filter
         var visibleColumns = useMemo(function() {
@@ -2242,7 +2247,7 @@
             setHiddenColumnIds(hiddenColumnIds.filter(function(id) { return id !== colId; }));
           } else {
             if (visibleColumns.length <= 1) {
-              alert('At least one column must remain visible.');
+              showToast('At least one column must remain visible.', 'error');
               return;
             }
             setHiddenColumnIds(hiddenColumnIds.concat([colId]));
@@ -2251,15 +2256,19 @@
 
         // CRUD Operations
         function handleQuantityChange(itemId, delta) {
+          var updatedItem = null;
           setItems(function(prev) {
-            return prev.map(function(item) {
+            var next = prev.map(function(item) {
               if (item.id === itemId) {
                 var current = Number(item.quantity) || 0;
-                var next = Math.max(0, current + delta);
-                return Object.assign({}, item, { quantity: next, updatedAt: new Date().toISOString() });
+                var nextQty = Math.max(0, current + delta);
+                updatedItem = Object.assign({}, item, { quantity: nextQty, updatedAt: new Date().toISOString() });
+                return updatedItem;
               }
               return item;
             });
+            if (updatedItem) syncItemToSupabase(updatedItem);
+            return next;
           });
         }
 
@@ -2395,7 +2404,7 @@
           if (!file) return;
 
           if (!window.XLSX) {
-            alert('Excel processing engine is still initializing. Please try again in a moment.');
+            showToast('Excel engine still loading � please try again in a moment.', 'error');
             return;
           }
 
@@ -2480,7 +2489,7 @@
                   var normStatus = 'Working';
                   var lowerS = rawStatus.toLowerCase();
                   if (lowerS.indexOf('def') !== -1 || lowerS.indexOf('dmg') !== -1 || lowerS.indexOf('broken') !== -1 || lowerS.indexOf('bad') !== -1 || lowerS.indexOf('repair') !== -1) {
-                    normStatus = 'Deffective';
+                    normStatus = 'Defective';
                   } else if (lowerS.indexOf('used') !== -1 || lowerS.indexOf('fair') !== -1 || lowerS.indexOf('wear') !== -1 || lowerS.indexOf('moderate') !== -1) {
                     normStatus = 'Used';
                   } else if (lowerS.indexOf('empty') !== -1 || lowerS.indexOf('out') !== -1 || lowerS.indexOf('zero') !== -1 || lowerS.indexOf('deplet') !== -1) {
@@ -2520,7 +2529,7 @@
               });
 
               if (allParsedItems.length === 0) {
-                alert('No valid inventory items could be extracted from the uploaded spreadsheet. Please check the file format.');
+                showToast('No valid inventory items found in the spreadsheet. Check the file format.', 'error');
                 return;
               }
 
@@ -2538,7 +2547,7 @@
 
             } catch(err) {
               console.error('Import error:', err);
-              alert('Error converting spreadsheet: ' + err.message);
+              showToast('Error converting spreadsheet: ' + err.message, 'error');
             }
           };
           reader.readAsArrayBuffer(file);
@@ -2669,7 +2678,7 @@
                 border: 'FFFDE68A'// Amber-200
               };
             }
-            if (st === 'Deffective' || st === 'Condemned' || st === 'Needs Repair') {
+            if (st === 'Defective' || st === 'Condemned' || st === 'Needs Repair') {
               return {
                 bg: 'FFFFE4E6',   // Rose-100 soft rose pill
                 font: 'FFBE123C', // Rose-700 deep red bold
@@ -3024,7 +3033,7 @@
                 var curRoom = rooms.find(function(r) { return r.id === selectedRoomId; });
                 var rName = curRoom ? curRoom.name : 'KM100 Inventory';
                 // If filters or sorting are applied on the screen, export the exact filtered and sorted items!
-                var rItems = (searchQuery || selectedCategory !== 'ALL' || selectedStatus !== 'ALL' || lowStockOnly)
+                var rItems = (searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL' || needsAttentionOnly)
                   ? filteredItems
                   : (selectedRoomId === 'ALL' ? items : items.filter(function(i) { return i.roomId === selectedRoomId; }));
                 var cleanTitle = (rName.replace(/[:\\/?*\[\]]/g, '') || 'KM100 Inventory').slice(0, 31);
@@ -3108,7 +3117,7 @@
               });
             } else {
               var rName = currentRoom ? currentRoom.name : 'KM100 Inventory';
-              var rItems = (searchQuery || selectedCategory !== 'ALL' || selectedStatus !== 'ALL' || lowStockOnly)
+              var rItems = (searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL' || needsAttentionOnly)
                 ? filteredItems
                 : (selectedRoomId === 'ALL' ? items : items.filter(function(i) { return i.roomId === selectedRoomId; }));
               var ws = buildRoomSheet(rItems, rName);
@@ -3153,7 +3162,7 @@
             csvHeader
           ];
 
-          var exportItems = (searchQuery || selectedCategory !== 'ALL' || selectedStatus !== 'ALL' || lowStockOnly)
+          var exportItems = (searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL' || needsAttentionOnly)
             ? filteredItems
             : (selectedRoomId === 'ALL' ? items : items.filter(function(i) { return i.roomId === selectedRoomId; }));
 
@@ -3230,7 +3239,7 @@
                 ]),
                 h('div', { className: 'min-w-0' }, [
                   h('div', { className: 'flex items-center gap-1.5 sm:gap-2' }, [
-                    h('h1', { className: 'text-xs sm:text-base font-bold text-slate-900 tracking-tight leading-tight truncate' }, [
+                    h('h1', { className: 'text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight truncate' }, [
                       h('span', { className: 'sm:hidden' }, 'KM100 Training Center'),
                       h('span', { className: 'hidden sm:inline' }, 'KM100 Skills and Training Center, Inc.')
                     ])
@@ -3265,6 +3274,8 @@
                   ]),
 
                   isExportDropdownOpen && h('div', {
+                    role: 'menu',
+                    'aria-label': 'Export options',
                     className: 'absolute right-0 mt-1 w-80 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 py-1.5 z-50 text-xs animate-modal',
                     onMouseLeave: function() { setIsExportDropdownOpen(false); }
                   }, [
@@ -3273,6 +3284,7 @@
                       h('span', { className: 'px-1.5 py-0.5 text-[10px] font-semibold rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' }, 'UI Styled')
                     ]),
                     h('button', {
+                      role: 'menuitem',
                       onClick: function() { handleExcelExport('multi'); },
                       className: 'w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200 flex flex-col transition-colors'
                     }, [
@@ -3283,14 +3295,10 @@
                         ]),
                         h('span', { className: 'text-[10px] font-mono text-slate-400' }, '.xlsx')
                       ]),
-                      h('span', { className: 'text-[11px] text-slate-500 dark:text-slate-400 pl-5 mt-0.5' }, 'Master Inventory + 4 colored room facility tabs'),
-                      h('div', { className: 'flex items-center gap-1 pl-5 mt-1.5' }, [
-                        h('span', { className: 'px-1.5 py-0.5 text-[9px] rounded bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400' }, 'Dual Logos'),
-                        h('span', { className: 'px-1.5 py-0.5 text-[9px] rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' }, 'Pill Badges'),
-                        h('span', { className: 'px-1.5 py-0.5 text-[9px] rounded bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400' }, '=SUM() Formulas')
-                      ])
+                      h('span', { className: 'text-[11px] text-slate-500 dark:text-slate-400 pl-5 mt-0.5' }, 'Master Inventory + 4 colored room facility tabs with logos, pill badges & SUM formulas')
                     ]),
                     h('button', {
+                      role: 'menuitem',
                       onClick: function() { handleExcelExport('current'); },
                       className: 'w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200 flex flex-col border-t border-slate-100 dark:border-slate-800/60 transition-colors'
                     }, [
@@ -3304,6 +3312,7 @@
                       h('span', { className: 'text-[11px] text-slate-500 dark:text-slate-400 pl-5 mt-0.5' }, selectedRoomId === 'ALL' ? (searchQuery ? 'Exports filtered query results with badges' : 'All 114 catalog items with badges') : (currentRoom ? currentRoom.name : 'Current Room'))
                     ]),
                     h('button', {
+                      role: 'menuitem',
                       onClick: handleCsvExport,
                       className: 'w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200 flex flex-col border-t border-slate-100 dark:border-slate-800/60 transition-colors'
                     }, [
@@ -3316,7 +3325,7 @@
                       ]),
                       h('span', { className: 'text-[11px] text-slate-500 dark:text-slate-400 pl-5 mt-0.5' }, 'UTF-8 clean data table (no blank rows)')
                     ]),
-                    h('div', { className: 'px-3 py-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 bg-slate-50/50 dark:bg-slate-800/20 text-center rounded-b-xl' }, 'âœ“ Styled to match system UI & Condition Badges')
+                    h('div', { className: 'px-3 py-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 bg-slate-50/50 dark:bg-slate-800/20 text-center rounded-b-xl' }, '✓ Styled to match system UI & Condition Badges')
                   ])
                 ]),
 
@@ -3416,7 +3425,8 @@
               key: 'mobile-drawer-wrap',
               className: 'fixed inset-0 z-50 flex md:hidden no-print animate-modal',
               role: 'dialog',
-              'aria-modal': 'true'
+              'aria-modal': 'true',
+              'aria-labelledby': 'mobile-drawer-title'
             }, [
               h('div', {
                 onClick: function() { setIsMobileMenuOpen(false); },
@@ -3428,10 +3438,11 @@
                 h('div', { className: 'p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between' }, [
                   h('div', { className: 'flex items-center gap-2' }, [
                     h('span', { className: 'p-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-600' }, [h(Icon, { name: 'building', size: 16 })]),
-                    h('h3', { className: 'font-bold text-sm text-slate-900 dark:text-white' }, 'Facility Rooms')
+                    h('h3', { id: 'mobile-drawer-title', className: 'font-bold text-sm text-slate-900 dark:text-white' }, 'Facility Rooms')
                   ]),
                   h('button', {
                     onClick: function() { setIsMobileMenuOpen(false); },
+                    'aria-label': 'Close facility rooms menu',
                     className: 'p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
                   }, [h(Icon, { name: 'x', size: 18 })])
                 ]),
@@ -3563,7 +3574,7 @@
               ]),
               
               // Overview Dashboard (if ALL selected)
-              selectedRoomId === 'ALL' && h('div', { key: 'overview-dash', className: 'p-4 lg:p-6 bg-gradient-to-b from-orange-50/40 to-transparent dark:from-orange-950/20 border-b border-slate-200 dark:border-slate-800 no-print' }, [
+              selectedRoomId === 'ALL' && h('div', { key: 'overview-dash', className: 'p-4 lg:p-6 bg-orange-50/20 dark:from-orange-950/20 border-b border-slate-200 dark:border-slate-800 no-print' }, [
                 h('div', { className: 'max-w-7xl mx-auto space-y-4' }, [
                   h('div', { className: 'flex flex-col sm:flex-row sm:items-center justify-between gap-2' }, [
                     h('div', null, [
@@ -3573,7 +3584,7 @@
                     h('div', { className: 'flex items-center gap-2 shrink-0' }, [
                       h('button', {
                         onClick: function() {
-                          if (rooms.length === 0) { alert('Please create a room first.'); return; }
+                          if (rooms.length === 0) { showToast('Create a facility room first before adding items.', 'error'); return; }
                           setEditingItem(null);
                           setIsItemModalOpen(true);
                         },
@@ -3592,7 +3603,7 @@
                         h('span', { className: 'text-xs font-semibold uppercase tracking-wider' }, 'Total Rooms'),
                         h('span', { className: 'p-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-600' }, [h(Icon, { name: 'building', size: 16 })])
                       ]),
-                      h('div', { className: 'text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums' }, overallStats.totalRooms),
+                      h('div', { className: 'text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums' }, overallStats.totalRooms),
                       h('p', { className: 'text-[11px] text-slate-400 mt-1' }, 'Configured facilities')
                     ]),
                     h('div', { className: 'bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm' }, [
@@ -3600,7 +3611,7 @@
                         h('span', { className: 'text-xs font-semibold uppercase tracking-wider' }, 'Unique Items'),
                         h('span', { className: 'p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600' }, [h(Icon, { name: 'package', size: 16 })])
                       ]),
-                      h('div', { className: 'text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums' }, overallStats.totalUniqueItems),
+                      h('div', { className: 'text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums' }, overallStats.totalUniqueItems),
                       h('p', { className: 'text-[11px] text-slate-400 mt-1' }, 'Distinct catalog items')
                     ]),
                     h('div', { className: 'bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm' }, [
@@ -3608,7 +3619,7 @@
                         h('span', { className: 'text-xs font-semibold uppercase tracking-wider' }, 'Total Quantity'),
                         h('span', { className: 'p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600' }, [h(Icon, { name: 'layers', size: 16 })])
                       ]),
-                      h('div', { className: 'text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono tabular-nums' }, overallStats.totalQuantity),
+                      h('div', { className: 'text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono tabular-nums' }, overallStats.totalQuantity),
                       h('p', { className: 'text-[11px] text-slate-400 mt-1' }, 'Physical units tracked')
                     ]),
                     h('div', { className: 'bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm' }, [
@@ -3616,7 +3627,7 @@
                         h('span', { className: 'text-xs font-semibold uppercase tracking-wider' }, 'Working Ratio'),
                         h('span', { className: 'p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600' }, [h(Icon, { name: 'shieldCheck', size: 16 })])
                       ]),
-                      h('div', { className: 'text-2xl font-black text-teal-600 dark:text-teal-400 font-mono tabular-nums' }, overallStats.operationalPct + '%'),
+                      h('div', { className: 'text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono tabular-nums' }, overallStats.operationalPct + '%'),
                       h('p', { className: 'text-[11px] text-slate-400 mt-1' }, 'Working condition units')
                     ])
                   ]),
@@ -3629,14 +3640,19 @@
                     ]),
                     h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3' }, rooms.map(function(room) {
                       var counts = roomItemCounts[room.id] || { unique: 0, totalQty: 0 };
+                      var isEmptyRoom = counts.unique === 0;
                       return h('button', {
                         key: room.id,
                         onClick: function() { setSelectedRoomId(room.id); },
-                        className: 'text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-600 hover:shadow-md transition-all bg-slate-50/50 dark:bg-slate-950/40 group'
+                        className: 'text-left p-3.5 rounded-xl border ' + (isEmptyRoom ? 'border-dashed border-slate-300 dark:border-slate-700 opacity-80 ' : 'border-slate-200 dark:border-slate-800 ') + 'hover:border-orange-400 dark:hover:border-orange-600 hover:shadow-md transition-all bg-slate-50/50 dark:bg-slate-950/40 group'
                       }, [
                         h('div', { className: 'font-semibold text-xs text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 truncate mb-1' }, room.name),
                         h('p', { className: 'text-[11px] text-slate-400 line-clamp-1 mb-2.5' }, room.description || 'Facility room'),
                         h('div', { className: 'flex items-center justify-between text-xs pt-2 border-t border-slate-200/80 dark:border-slate-800/80 font-mono' }, [
+                          h('span', { className: 'text-slate-500 dark:text-slate-400' }, counts.unique + (isEmptyRoom ? ' items (empty)' : ' items')),
+                          h('span', { className: 'font-bold ' + (isEmptyRoom ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300') }, counts.totalQty + ' units')
+                        ])
+                      ]);
                           h('span', { className: 'text-slate-500 dark:text-slate-400' }, [
                             h('strong', { className: 'text-slate-800 dark:text-slate-200' }, counts.unique), ' items'
                           ]),
@@ -3714,11 +3730,12 @@
                         placeholder: 'Search items, category, remarks, status... (Press "/" to focus)',
                         value: searchQuery,
                         onChange: function(e) { setSearchQuery(e.target.value); },
-                        className: 'w-full pl-9 pr-14 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/40 text-slate-900 dark:text-slate-100'
+                        className: 'w-full pl-9 pr-14 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-600/40 text-slate-900 dark:text-slate-100'
                       }),
                       h('div', { className: 'absolute inset-y-0 right-0 pr-2 flex items-center gap-1.5' }, [
                         searchQuery && h('button', {
                           onClick: function() { setSearchQuery(''); },
+                          'aria-label': 'Clear search query',
                           className: 'p-1 text-slate-400 hover:text-slate-600'
                         }, [h(Icon, { name: 'x', size: 13 })]),
                         h('kbd', { className: 'hidden sm:inline-block px-1.5 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 rounded border border-slate-300 dark:border-slate-700 font-mono' }, '/')
@@ -3729,18 +3746,20 @@
                       // "Needs Attention" Toggle Pill
                       h('button', {
                         onClick: function() { setNeedsAttentionOnly(!needsAttentionOnly); },
+                        'aria-pressed': needsAttentionOnly,
                         className: 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ' + (needsAttentionOnly ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-500/30' : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-rose-400')
                       }, [
                         h(Icon, { name: 'alertTriangle', size: 14, className: needsAttentionOnly ? 'text-white' : 'text-rose-500' }),
                         h('span', null, 'Needs Attention'),
-                        attentionCount > 0 && h('span', { className: 'px-1.5 py-0.2 rounded-full text-[10px] font-mono ' + (needsAttentionOnly ? 'bg-rose-800 text-white' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300') }, attentionCount)
+                        attentionCount > 0 && h('span', { className: 'px-1.5 py-0.5 rounded-full text-[10px] font-mono ' + (needsAttentionOnly ? 'bg-rose-800 text-white' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300') }, attentionCount)
                       ]),
 
                       // Category Filter
                       h('div', { className: 'flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5' }, [
                         h(Icon, { name: 'filter', size: 13, className: 'text-slate-400' }),
-                        h('span', { className: 'text-[11px] font-medium text-slate-500' }, 'Cat:'),
+                        h('label', { htmlFor: 'cat-filter', className: 'text-[11px] font-medium text-slate-500 cursor-pointer' }, 'Cat:'),
                         h('select', {
+                          id: 'cat-filter',
                           value: categoryFilter,
                           onChange: function(e) { setCategoryFilter(e.target.value); },
                           className: 'bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer max-w-[140px] truncate'
@@ -3751,8 +3770,9 @@
 
                       // Status Filter
                       h('div', { className: 'flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5' }, [
-                        h('span', { className: 'text-[11px] font-medium text-slate-500' }, 'Status:'),
+                        h('label', { htmlFor: 'status-filter', className: 'text-[11px] font-medium text-slate-500 cursor-pointer' }, 'Status:'),
                         h('select', {
+                          id: 'status-filter',
                           value: conditionFilter,
                           onChange: function(e) { setConditionFilter(e.target.value); },
                           className: 'bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer'
@@ -3760,7 +3780,7 @@
                           h('option', { key: 'all', value: 'ALL' }, 'All Statuses'),
                           h('option', { key: 'w', value: 'Working' }, 'Working'),
                           h('option', { key: 'u', value: 'Used' }, 'Used'),
-                          h('option', { key: 'd', value: 'Deffective' }, 'Deffective'),
+                          h('option', { key: 'd', value: 'Defective' }, 'Defective'),
                           h('option', { key: 'e', value: 'Empty' }, 'Empty'),
                           h('option', { key: 'i', value: 'Incomplete' }, 'Incomplete')
                         ])
@@ -3779,6 +3799,8 @@
                         ]),
 
                         isColViewDropdownOpen && h('div', {
+                          role: 'menu',
+                          'aria-label': 'Toggle columns menu',
                           className: 'absolute right-0 mt-1 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 text-xs animate-modal',
                           onMouseLeave: function() { setIsColViewDropdownOpen(false); }
                         }, [
@@ -3787,13 +3809,14 @@
                             var isVisible = hiddenColumnIds.indexOf(col.id) === -1;
                             return h('label', {
                               key: col.id,
+                              role: 'menuitem',
                               className: 'flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer select-none text-slate-700 dark:text-slate-300'
                             }, [
                               h('input', {
                                 type: 'checkbox',
                                 checked: isVisible,
                                 onChange: function() { toggleColumnVisibility(col.id); },
-                                className: 'rounded border-slate-300 text-orange-600 focus:ring-orange-500'
+                                className: 'rounded border-slate-300 text-orange-600 focus:ring-amber-600'
                               }),
                               h('span', { className: isVisible ? 'font-medium' : 'text-slate-400 line-through' }, col.label)
                             ]);
@@ -3845,7 +3868,7 @@
                       className: 'flex-1 overflow-x-auto overflow-y-auto overscroll-contain [webkit-overflow-scrolling:touch] transition-all',
                       style: { paddingBottom: selectedItemIds.length > 0 ? '5.5rem' : '0px' }
                     }, [
-                      h('table', { className: 'w-full text-left border-collapse text-xs' }, [
+                      h('table', { className: 'w-full text-left border-collapse text-xs', style: { minWidth: '640px' } }, [
                         // Sticky Header
                         h('thead', { className: 'sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 z-10' }, [
                           h('tr', null, [
@@ -3855,17 +3878,30 @@
                                 type: 'checkbox',
                                 checked: isAllPageSelected,
                                 onChange: toggleSelectAllPage,
-                                title: 'Select all items',
-                                className: 'rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer w-4 h-4'
+                                'aria-label': 'Select all items on this page',
+                                className: 'rounded border-slate-300 text-orange-600 focus:ring-amber-600 cursor-pointer w-4 h-4'
                               })
                             ]),
 
-                            selectedRoomId === 'ALL' && h('th', { key: 'th-room', className: 'py-3 px-3 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px]' }, 'Room Location'),
+                            selectedRoomId === 'ALL' && h('th', { key: 'th-room', className: 'py-3 px-3 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[11px]' }, 'Room Location'),
                             
                             visibleColumns.map(function(col) {
                               return h('th', {
                                 key: col.id,
+                                tabIndex: 0,
+                                role: 'columnheader',
                                 'aria-sort': sortField === col.id ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none',
+                                onKeyDown: function(e) {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    if (sortField === col.id) {
+                                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                                    } else {
+                                      setSortField(col.id);
+                                      setSortDirection('asc');
+                                    }
+                                  }
+                                },
                                 onClick: function() {
                                   if (sortField === col.id) {
                                     setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -3874,7 +3910,7 @@
                                     setSortDirection('asc');
                                   }
                                 },
-                                className: 'py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 select-none'
+                                className: 'py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 select-none focus:outline-none focus:ring-1 focus:ring-amber-600'
                               }, [
                                 h('div', { className: 'flex items-center gap-1.5' }, [
                                   h('span', null, col.label),
@@ -3883,7 +3919,7 @@
                               ]);
                             }),
 
-                            h('th', { key: 'th-actions', className: 'py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] text-right' }, 'Actions')
+                            h('th', { key: 'th-actions', className: 'py-3 px-4 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[11px] text-right' }, 'Actions')
                           ])
                         ]),
 
@@ -3897,20 +3933,21 @@
                             className: (isSelected ? 'bg-orange-50/70 dark:bg-orange-950/40 ' : '') + 'hover:bg-orange-50/30 dark:hover:bg-orange-950/20 transition-colors'
                           }, [
                             // Row Checkbox
-                            h('td', { key: 'td-select', className: 'py-3 pl-4 pr-2' }, [
+                            h('td', { key: 'td-select', className: 'py-3 pl-4 pr-2 w-8' }, [
                               h('input', {
                                 type: 'checkbox',
                                 checked: isSelected,
                                 onChange: function() { toggleSelectItem(item.id); },
-                                className: 'rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer w-4 h-4'
+                                className: 'rounded border-slate-300 text-orange-600 focus:ring-amber-600 cursor-pointer w-4 h-4'
                               })
                             ]),
 
                             // Room Location (when in ALL view)
                             selectedRoomId === 'ALL' && h('td', { key: 'td-room', className: 'py-3 px-3 whitespace-nowrap' }, [
-                              h('span', {
+                              h('button', {
+                                type: 'button',
                                 onClick: function() { setSelectedRoomId(item.roomId); },
-                                className: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900/60 cursor-pointer'
+                                className: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-100 dark:hover:bg-orange-900/60 cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-600'
                               }, [
                                 h(Icon, { name: 'building', size: 12, className: 'text-orange-500' }),
                                 (itemRoom ? itemRoom.name : (item.room || 'Unassigned'))
@@ -3950,7 +3987,7 @@
                                       onChange: function(e) { handleSetQuantity(item.id, e.target.value); },
                                       'aria-label': 'Manual quantity input for ' + item.name,
                                       title: 'Click to type or edit quantity directly',
-                                      className: 'w-12 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-1 focus:ring-orange-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+                                      className: 'w-12 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-1 focus:ring-amber-600 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                                     }),
                                     h('button', {
                                       onClick: function() { handleQuantityChange(item.id, 1); },
@@ -3963,9 +4000,9 @@
                               }
 
                               return h('td', { key: col.id, className: 'py-3 px-4' }, [
-                                col.id === 'name' ? h('span', { className: 'font-semibold text-slate-900 dark:text-white' }, val || ' - ') :
-                                col.id === 'category' ? h('span', { className: 'px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-800 font-medium' }, val || ' - ') :
-                                h('span', { className: 'text-slate-600 dark:text-slate-400' }, (val !== undefined && val !== null && val !== '') ? String(val) : ' - ')
+                                col.id === 'name' ? h('span', { className: 'font-semibold text-slate-900 dark:text-white max-w-[180px] sm:max-w-[260px] truncate block', title: val || '' }, val || h('span', { className: 'text-slate-300' }, '—')) :
+                                col.id === 'category' ? h('span', { className: 'px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium' }, val || h('span', { className: 'text-slate-300' }, '—')) :
+                                h('span', { className: 'text-slate-600 dark:text-slate-400' }, (val !== undefined && val !== null && val !== '') ? String(val) : h('span', { className: 'text-slate-300' }, '—'))
                               ]);
                             }),
 
@@ -3997,15 +4034,53 @@
                       ])
                     ]),
 
+                    // Empty State
+                    filteredItems.length === 0 && h('div', { className: 'p-12 text-center' }, [
+                      h('div', { className: 'w-12 h-12 mx-auto rounded-2xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center mb-3' }, [
+                        h(Icon, { name: 'package', size: 24 })
+                      ]),
+                      (searchQuery || categoryFilter !== 'ALL' || conditionFilter !== 'ALL' || needsAttentionOnly) ? [
+                        h('h4', { key: 't', className: 'text-sm font-bold text-slate-900 dark:text-white' }, 'No items match your criteria'),
+                        h('p', { key: 'd', className: 'text-xs text-slate-400 mt-1 max-w-sm mx-auto' }, 'Try clearing your search query or reset the category/condition filters.'),
+                        h('button', {
+                          key: 'b',
+                          onClick: function() { setSearchQuery(''); setCategoryFilter('ALL'); setConditionFilter('ALL'); setNeedsAttentionOnly(false); },
+                          className: 'mt-3 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white shadow-sm'
+                        }, 'Reset All Filters')
+                      ] : [
+                        h('h4', { key: 't', className: 'text-sm font-bold text-slate-900 dark:text-white' }, 'This facility room has no inventory items yet'),
+                        h('p', { key: 'd', className: 'text-xs text-slate-400 mt-1 max-w-sm mx-auto' }, 'Start tracking equipment and assets for this room.'),
+                        h('button', {
+                          key: 'b',
+                          onClick: function() { setEditingItem(null); setIsItemModalOpen(true); },
+                          className: 'mt-3 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white shadow-sm inline-flex items-center gap-1.5'
+                        }, [h(Icon, { name: 'plus', size: 14 }), 'Add First Item'])
+                      ]
+                    ]),
+
                     // Footer with Continuous Scroll Summary & Subtotals
-                    h('div', { className: 'py-2.5 px-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400' }, [
+                    filteredItems.length > 0 && h('div', { className: 'py-2.5 px-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400' }, [
                       h('div', { className: 'flex items-center gap-2.5' }, [
                         h('span', null, [
-                          'Showing all ',
+                          'Showing ',
+                          h('strong', { className: 'text-slate-900 dark:text-white font-mono' }, paginatedItems.length),
+                          ' of ',
                           h('strong', { className: 'text-slate-900 dark:text-white font-mono' }, filteredItems.length),
                           ' items'
                         ]),
-                        h('span', { className: 'text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline' }, '• Scroll up/down to view all items')
+                        totalPages > 1 && h('div', { className: 'flex items-center gap-1 ml-2' }, [
+                          h('button', {
+                            disabled: currentPage <= 1,
+                            onClick: function() { setCurrentPage(Math.max(1, currentPage - 1)); },
+                            className: 'px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }, '«'),
+                          h('span', { className: 'font-mono text-[11px]' }, currentPage + ' / ' + totalPages),
+                          h('button', {
+                            disabled: currentPage >= totalPages,
+                            onClick: function() { setCurrentPage(Math.min(totalPages, currentPage + 1)); },
+                            className: 'px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }, '»')
+                        ])
                       ]),
 
                       h('div', { className: 'font-mono text-right' }, [
@@ -4013,19 +4088,6 @@
                         h('strong', { className: 'text-emerald-600 dark:text-emerald-400' }, filteredItems.reduce(function(a, b) { return a + (Number(b.quantity) || 0); }, 0)),
                         ' units'
                       ])
-                    ]),
-
-                    // Empty State
-                    filteredItems.length === 0 && h('div', { className: 'p-12 text-center' }, [
-                      h('div', { className: 'w-12 h-12 mx-auto rounded-2xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center mb-3' }, [
-                        h(Icon, { name: 'package', size: 24 })
-                      ]),
-                      h('h4', { className: 'text-sm font-bold text-slate-900 dark:text-white' }, 'No items match your criteria'),
-                      h('p', { className: 'text-xs text-slate-400 mt-1 max-w-sm mx-auto' }, 'Try clearing your search query or reset the category/condition filters.'),
-                      h('button', {
-                        onClick: function() { setSearchQuery(''); setCategoryFilter('ALL'); setConditionFilter('ALL'); setNeedsAttentionOnly(false); },
-                        className: 'mt-3 px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-600 hover:bg-orange-700 text-white shadow-sm'
-                      }, 'Reset All Filters')
                     ])
                   ])
                 ])
@@ -4035,7 +4097,7 @@
 
           // --- FLOATING ACTION BAR FOR MULTI-SELECT ---
           selectedItemIds.length > 0 && h('div', {
-            className: 'floating-bar fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100vw-24px)] sm:w-auto max-w-xl bg-slate-900 text-white shadow-[0_20px_50px_rgba(0,0,0,0.35)] px-4 py-2.5 rounded-2xl border border-slate-700/80 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 animate-modal text-xs'
+            className: 'floating-bar fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100vw-24px)] sm:w-max max-w-[96vw] bg-slate-900/95 backdrop-blur-md text-white shadow-[0_20px_50px_rgba(0,0,0,0.45)] px-4 py-2 rounded-2xl border border-slate-700/90 flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-3 sm:gap-4 animate-modal text-xs ring-1 ring-white/10'
           }, [
             // Selection Badge & Clear
             h('div', { className: 'flex items-center gap-2 pr-3 sm:border-r border-slate-700/80 shrink-0' }, [
@@ -4049,34 +4111,34 @@
             ]),
 
             // Batch Move Room
-            h('div', { className: 'flex items-center gap-1.5' }, [
-              h('span', { className: 'text-[11px] text-slate-400 font-medium' }, 'Move:'),
+            h('div', { className: 'flex items-center gap-1.5 min-w-0' }, [
+              h('span', { className: 'text-[11px] text-slate-400 font-medium shrink-0' }, 'Move:'),
               h('select', {
                 onChange: function(e) { handleBulkMove(e.target.value); e.target.value = ''; },
-                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner'
+                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-600 cursor-pointer shadow-inner max-w-[120px] sm:max-w-none'
               }, [h('option', { value: '' }, 'Choose Room...')].concat(rooms.map(function(r) {
                 return h('option', { key: r.id, value: r.id }, r.name);
               })))
             ]),
 
             // Batch Status Change
-            h('div', { className: 'flex items-center gap-1.5' }, [
-              h('span', { className: 'text-[11px] text-slate-400 font-medium' }, 'Status:'),
+            h('div', { className: 'flex items-center gap-1.5 min-w-0' }, [
+              h('span', { className: 'text-[11px] text-slate-400 font-medium shrink-0' }, 'Status:'),
               h('select', {
                 onChange: function(e) { handleBulkStatus(e.target.value); e.target.value = ''; },
-                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner'
+                className: 'bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-600 cursor-pointer shadow-inner max-w-[120px] sm:max-w-none'
               }, [
                 h('option', { value: '' }, 'Set Status...'),
                 h('option', { value: 'Working' }, 'Working'),
                 h('option', { value: 'Used' }, 'Used'),
-                h('option', { value: 'Deffective' }, 'Deffective'),
+                h('option', { value: 'Defective' }, 'Defective'),
                 h('option', { value: 'Empty' }, 'Empty'),
                 h('option', { value: 'Incomplete' }, 'Incomplete')
               ])
             ]),
 
             // Prominent Delete Button
-            h('div', { className: 'flex items-center gap-2 pl-0 sm:pl-2 sm:border-l border-slate-700/80 shrink-0 ml-auto sm:ml-0' }, [
+            h('div', { className: 'flex items-center gap-2 pl-0 sm:pl-3 sm:border-l border-slate-700/80 shrink-0 sm:ml-1' }, [
               h('button', {
                 onClick: handleBulkDelete,
                 className: 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-rose-900/40 transition-all cursor-pointer',
@@ -4087,6 +4149,7 @@
               ]),
               h('button', {
                 onClick: function() { setSelectedItemIds([]); },
+                'aria-label': 'Dismiss selection bar',
                 className: 'p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors',
                 title: 'Dismiss selection bar'
               }, [h(Icon, { name: 'x', size: 14 })])
@@ -4096,7 +4159,9 @@
           // --- MODAL: EXCEL CONVERSION & DIRECT IMPORT ---
           importPreview && h('div', {
             className: 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal',
-            role: 'dialog'
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-labelledby': 'import-modal-title'
           }, [
             h('div', { className: 'w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 max-h-[92vh] flex flex-col' }, [
               // Modal Header
@@ -4106,14 +4171,14 @@
                     h(Icon, { name: 'fileSpreadsheet', size: 22 })
                   ]),
                   h('div', null, [
-                    h('h3', { className: 'text-base font-bold text-slate-900 dark:text-white flex items-center gap-2' }, [
+                    h('h3', { id: 'import-modal-title', className: 'text-base font-bold text-slate-900 dark:text-white flex items-center gap-2' }, [
                       h('span', null, 'Excel File Converted'),
                       h('span', { className: 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' }, importPreview.totalItems + ' items ready')
                     ]),
-                    h('p', { className: 'text-xs text-slate-500 font-mono mt-0.5' }, importPreview.fileName + (importPreview.fileSize ? ' • ' + importPreview.fileSize : ''))
+                    h('p', { className: 'text-xs text-slate-500 font-mono mt-0.5' }, importPreview.fileName + (importPreview.fileSize ? ' � ' + importPreview.fileSize : ''))
                   ])
                 ]),
-                h('button', { onClick: function() { setImportPreview(null); }, className: 'p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400' }, [
+                h('button', { onClick: function() { setImportPreview(null); }, 'aria-label': 'Close import preview', className: 'p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400' }, [
                   h(Icon, { name: 'x', size: 18 })
                 ])
               ]),
@@ -4133,7 +4198,7 @@
                       className: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-slate-700/80 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs'
                     }, [
                       h('span', null, rn),
-                      h('strong', { className: 'px-1.5 py-0.2 rounded bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 font-mono text-[10px]' }, count)
+                      h('strong', { className: 'px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 font-mono text-[10px]' }, count)
                     ]);
                   }))
                 ]),
@@ -4178,7 +4243,7 @@
                     className: 'flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-500/25 transition-all active:scale-[0.98]'
                   }, [
                     h(Icon, { name: 'plus', size: 16 }),
-                    h('span', null, '⚡ Add Directly to Inventory (' + importPreview.totalItems + ')')
+                    h('span', null, 'Add Directly to Inventory (' + importPreview.totalItems + ')')
                   ]),
 
                   // Add All to Current Room
@@ -4195,9 +4260,13 @@
                 h('div', { className: 'flex items-center justify-between pt-1' }, [
                   h('button', {
                     onClick: function() {
-                      if (confirm('Are you sure you want to completely REPLACE all inventory items with this Excel file? Existing items will be wiped.')) {
-                        executeImport('replace');
-                      }
+                      setConfirmDialog({
+                        title: 'Replace Entire Inventory Database',
+                        message: 'This will permanently delete ALL current inventory items and replace them with the imported data (' + importPreview.totalItems + ' items). This action cannot be undone.',
+                        isDestructive: true,
+                        actionLabel: 'Replace Database',
+                        onConfirm: function() { executeImport('replace'); setConfirmDialog(null); }
+                      });
                     },
                     className: 'text-[11px] font-medium text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1'
                   }, [
@@ -4229,15 +4298,17 @@
           // --- MODAL: ASSET TAG STICKER GENERATOR ---
           assetTagItem && h('div', {
             className: 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal',
-            role: 'dialog'
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-labelledby': 'asset-tag-title'
           }, [
             h('div', { className: 'w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4' }, [
               h('div', { className: 'flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800' }, [
                 h('div', { className: 'flex items-center gap-2' }, [
                   h('div', { className: 'p-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-600' }, [h(Icon, { name: 'tag', size: 18 })]),
-                  h('h3', { className: 'text-sm font-bold text-slate-900 dark:text-white' }, 'Equipment Asset Tag')
+                  h('h3', { id: 'asset-tag-title', className: 'text-sm font-bold text-slate-900 dark:text-white' }, 'Equipment Asset Tag')
                 ]),
-                h('button', { onClick: function() { setAssetTagItem(null); }, className: 'p-1 text-slate-400' }, [h(Icon, { name: 'x', size: 16 })])
+                h('button', { onClick: function() { setAssetTagItem(null); }, 'aria-label': 'Close asset tag dialog', className: 'p-1 text-slate-400 hover:text-slate-600' }, [h(Icon, { name: 'x', size: 16 })])
               ]),
 
               // Physical Printable Sticker Box
@@ -4361,7 +4432,7 @@
                     h('img', { src: './logo.png', alt: 'KM100 Logo', className: 'w-6 h-6 object-contain rounded-full bg-white p-0.5 shadow-xs' }),
                     h('h4', { className: 'text-xs font-bold text-slate-900 dark:text-white' }, 'KM100 Skills & Training Center')
                   ]),
-                  h('p', { className: 'text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed' }, 'KM100 Inventory Management System • Real-time local storage, Excel import/export.')
+                  h('p', { className: 'text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed' }, 'KM100 Inventory Management System � Real-time local storage, Excel import/export.')
                 ]),
 
                 // Supabase Cloud Backend Configuration Card
@@ -4410,7 +4481,7 @@
                 ]),
               ]),
 
-              h('div', { className: 'text-[11px] text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-800' }, 'KM100 Inventory System v2.0  •  SheetJS & ExcelJS Enabled')
+              h('div', { className: 'text-[11px] text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-800' }, 'KM100 Inventory System v2.0  �  SheetJS & ExcelJS Enabled')
             ])
           ]),
 
@@ -4422,21 +4493,21 @@
             'aria-labelledby': 'confirm-dialog-title',
             onClick: function(e) { if (e.target === e.currentTarget) setConfirmDialog(null); }
           }, [
-            h('div', { className: 'w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-modal' }, [
+            h('div', { className: 'w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 animate-modal' }, [
               // Header
               h('div', { className: 'flex items-start gap-3.5' }, [
                 h('div', { className: 'p-3 rounded-2xl shrink-0 ' + (confirmDialog.isDestructive ? 'bg-rose-100 text-rose-600 ring-4 ring-rose-50' : 'bg-orange-100 text-orange-600 ring-4 ring-orange-50') }, [
                   h(Icon, { name: confirmDialog.isDestructive ? 'trash' : 'alertTriangle', size: 22 })
                 ]),
                 h('div', { className: 'space-y-1' }, [
-                  h('h3', { id: 'confirm-dialog-title', className: 'text-base font-bold text-slate-900' }, confirmDialog.title),
-                  h('p', { className: 'text-xs text-slate-500 leading-relaxed' }, confirmDialog.message)
+                  h('h3', { id: 'confirm-dialog-title', className: 'text-base font-bold text-slate-900 dark:text-white' }, confirmDialog.title),
+                  h('p', { className: 'text-xs text-slate-500 dark:text-slate-400 leading-relaxed' }, confirmDialog.message)
                 ])
               ]),
 
               // Preview Card if deleting a single item
               confirmDialog.itemPreview && h('div', {
-                className: 'p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs'
+                className: 'p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2 text-xs'
               }, [
                 h('div', { className: 'font-bold text-slate-900 text-sm' }, confirmDialog.itemPreview.name),
                 h('div', { className: 'flex flex-wrap items-center gap-1.5 text-slate-600' }, [
@@ -4469,17 +4540,18 @@
               ]),
 
               // Warning Banner
-              h('div', { className: 'flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px]' }, [
+              h('div', { className: 'flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-[11px]' }, [
                 h(Icon, { name: 'alertTriangle', size: 14, className: 'shrink-0' }),
                 h('span', null, 'This action is permanent and cannot be undone. You can export an Excel backup first if needed.')
               ]),
 
               // Modal Actions
-              h('div', { className: 'flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100' }, [
+              h('div', { className: 'flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800' }, [
                 h('button', {
                   type: 'button',
+                  autoFocus: true,
                   onClick: function() { setConfirmDialog(null); },
-                  className: 'px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors'
+                  className: 'px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
                 }, 'Cancel (Keep Items)'),
                 h('button', {
                   type: 'button',
@@ -4514,8 +4586,8 @@
 
         function handleSubmit(e) {
           e.preventDefault();
-          if (!formData.name || !formData.name.trim()) { alert('Item Name is required.'); return; }
-          if (!formData.roomId) { alert('Please select a facility room.'); return; }
+          if (!formData.name || !formData.name.trim()) { showToast('Item Name is required.', 'error'); return; }
+          if (!formData.roomId) { showToast('Please select a facility room.', 'error'); return; }
 
           var now = new Date().toISOString();
           var payload = Object.assign({}, formData, {
@@ -4568,7 +4640,7 @@
                 var val = formData[col.id] !== undefined ? formData[col.id] : '';
 
                 if (col.type === 'dropdown') {
-                  var opts = (col.options && col.options.length) ? col.options : ['Working', 'Empty', 'Deffective', 'Used', 'Incomplete'];
+                  var opts = (col.options && col.options.length) ? col.options : ['Working', 'Empty', 'Defective', 'Used', 'Incomplete'];
                   return h('div', { key: col.id }, [
                     h('label', { className: 'block font-semibold text-slate-700 dark:text-slate-300 mb-1' }, [col.label, col.required ? h('span', { className: 'text-rose-500' }, ' *') : null]),
                     h('select', {
@@ -4645,7 +4717,7 @@
 
         function handleSubmit(e) {
           e.preventDefault();
-          if (!name.trim()) { alert('Room Name is required.'); return; }
+          if (!name.trim()) { showToast('Room Name is required.', 'error'); return; }
           var payload = {
             id: props.editingRoom ? props.editingRoom.id : 'room-' + Date.now(),
             name: name.trim(),
@@ -4730,7 +4802,7 @@
 
         function handleAddColumn(e) {
           e.preventDefault();
-          if (!newLabel.trim()) { alert('Column Name is required.'); return; }
+          if (!newLabel.trim()) { showToast('Column Name is required.', 'error'); return; }
           var key = newLabel.toLowerCase().replace(/[^a-z0-9]/g, '_');
           var opts = newType === 'dropdown' ? newOptions.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : undefined;
 
@@ -4785,8 +4857,7 @@
                     h('span', { className: 'font-mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase' }, c.type),
                     c.isSystem && h('span', { className: 'text-[10px] text-orange-600 font-semibold' }, 'Core System')
                   ]),
-                  !c.isSystem && h('button', {
-                    onClick: function() { handleDelete(c.id); },
+                  !c.isSystem && h('button', {`r`n                    onClick: function() { if (confirm('Delete column "' + c.label + '"? Data in this column will be hidden from view.')) { handleDelete(c.id); } },
                     'aria-label': 'Delete ' + c.label + ' column',
                     className: 'p-1 text-rose-500 hover:text-rose-700'
                   }, [h(Icon, { name: 'trash', size: 14 })])
