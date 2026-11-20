@@ -1846,26 +1846,89 @@
         var _toast = useState(null);
         var toast = _toast[0], setToast = _toast[1];
 
-        // Supabase Cloud Backend Integration State
-        var _sbUrl = useState(function() { return localStorage.getItem(STORAGE_KEY_SUPABASE_URL) || DEFAULT_SUPABASE_URL; });
-        var supabaseUrl = _sbUrl[0], setSupabaseUrl = _sbUrl[1];
-        var _sbKey = useState(function() { return localStorage.getItem(STORAGE_KEY_SUPABASE_KEY) || DEFAULT_SUPABASE_KEY; });
-        var supabaseKey = _sbKey[0], setSupabaseKey = _sbKey[1];
+        // Supabase Cloud Backend - Direct & Locked Integration
+        var supabaseUrl = DEFAULT_SUPABASE_URL;
+        var supabaseKey = DEFAULT_SUPABASE_KEY;
         var _sbSync = useState('idle'); // 'idle' | 'syncing' | 'connected' | 'error'
         var supabaseSyncStatus = _sbSync[0], setSupabaseSyncStatus = _sbSync[1];
 
         // Initialize Supabase Client
         var supabaseClient = useMemo(function() {
-          if (window.supabase && supabaseUrl && supabaseKey) {
+          if (window.supabase) {
             try {
-              return window.supabase.createClient(supabaseUrl.trim(), supabaseKey.trim());
+              return window.supabase.createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY);
             } catch(e) {
               console.warn('Supabase initialization failed:', e);
               return null;
             }
           }
           return null;
-        }, [supabaseUrl, supabaseKey]);
+        }, []);
+
+        // Helper to push an item directly to Supabase
+        function syncItemToSupabase(item) {
+          if (!supabaseClient) return;
+          var customFields = {};
+          columns.forEach(function(col) {
+            if (['name', 'category', 'quantity', 'units', 'status', 'condition', 'remarks', 'roomId'].indexOf(col.id) === -1) {
+              if (item[col.id] !== undefined) customFields[col.id] = item[col.id];
+            }
+          });
+
+          var payload = {
+            id: item.id,
+            room_id: item.roomId || null,
+            name: item.name,
+            category: item.category || 'General',
+            quantity: Number(item.quantity) || 0,
+            units: item.units || 'pcs',
+            condition: item.status || item.condition || 'Working',
+            remarks: item.remarks || '',
+            custom_fields: customFields,
+            updated_at: new Date().toISOString()
+          };
+
+          supabaseClient.from('inventory_items').upsert(payload).then(function(res) {
+            if (res.error) console.warn('Supabase item upsert error:', res.error);
+          });
+        }
+
+        // Helper to delete an item directly from Supabase
+        function deleteItemFromSupabase(itemId) {
+          if (!supabaseClient) return;
+          supabaseClient.from('inventory_items').delete().eq('id', itemId).then(function(res) {
+            if (res.error) console.warn('Supabase item delete error:', res.error);
+          });
+        }
+
+        // Helper to bulk delete items from Supabase
+        function bulkDeleteItemsFromSupabase(itemIds) {
+          if (!supabaseClient || !itemIds || itemIds.length === 0) return;
+          supabaseClient.from('inventory_items').delete().in('id', itemIds).then(function(res) {
+            if (res.error) console.warn('Supabase bulk delete error:', res.error);
+          });
+        }
+
+        // Helper to push a room directly to Supabase
+        function syncRoomToSupabase(room) {
+          if (!supabaseClient) return;
+          supabaseClient.from('rooms').upsert({
+            id: room.id,
+            name: room.name,
+            description: room.description || '',
+            updated_at: new Date().toISOString()
+          }).then(function(res) {
+            if (res.error) console.warn('Supabase room upsert error:', res.error);
+          });
+        }
+
+        // Helper to delete a room from Supabase
+        function deleteRoomFromSupabase(roomId) {
+          if (!supabaseClient) return;
+          supabaseClient.from('rooms').delete().eq('id', roomId).then(function(res) {
+            if (res.error) console.warn('Supabase room delete error:', res.error);
+          });
+        }
 
         // Cloud Data Synchronization: Fetch on mount/reconnect
         useEffect(function() {
@@ -2229,7 +2292,7 @@
               status: item.status || item.condition || 'Working'
             },
             onConfirm: function() {
-              setItems(function(prev) { return prev.filter(function(i) { return i.id !== item.id; }); });
+              deleteItemFromSupabase(item.id); setItems(function(prev) { return prev.filter(function(i) { return i.id !== item.id; }); });
               setSelectedItemIds(function(prev) { return prev.filter(function(i) { return i !== item.id; }); });
               setConfirmDialog(null);
               showToast('Deleted item: ' + item.name);
@@ -2245,7 +2308,7 @@
             isDestructive: true,
             actionLabel: 'Delete Room',
             onConfirm: function() {
-              setRooms(function(prev) { return prev.filter(function(r) { return r.id !== room.id; }); });
+              deleteRoomFromSupabase(room.id); setRooms(function(prev) { return prev.filter(function(r) { return r.id !== room.id; }); });
               setItems(function(prev) { return prev.filter(function(i) { return i.roomId !== room.id; }); });
               if (selectedRoomId === room.id) setSelectedRoomId('ALL');
               setConfirmDialog(null);
