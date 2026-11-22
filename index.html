@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>KM100 Inventory Management System | Skills and Training Center, Inc.</title>
+  <title>KM100 Inventory Management System</title>
 
   <!-- SEO -->
   <meta name="description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities with Excel import/export and cloud sync.">
@@ -16,14 +16,14 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="KM100 Inventory Management System">
-  <meta property="og:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
+  <meta property="og:title" content="KM100 Inventory Management System">
   <meta property="og:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
   <meta property="og:image" content="/logo.png">
   <meta property="og:image:alt" content="KM100 Skills and Training Center, Inc. logo">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
+  <meta name="twitter:title" content="KM100 Inventory Management System">
   <meta name="twitter:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
   <meta name="twitter:image" content="/logo.png">
 
@@ -56,21 +56,15 @@
   <link rel="icon" type="image/png" href="/favicon.png?v=4">
   <link rel="apple-touch-icon" href="/logo.png">
 
-  <!-- Theme initialization: apply dark class before React hydrates to prevent FOUC -->
+  <!-- Permanent Institutional Light Mode -->
   <script>
     (function () {
-      var STORAGE_KEY = 'km100_inventory_theme_v2';
-      var saved = null;
-      try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
-      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var isDark = saved === 'dark' || (saved === null && prefersDark);
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.style.colorScheme = 'dark';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.style.colorScheme = 'light';
-      }
+      try {
+        localStorage.removeItem('km100_inventory_theme_v2');
+        localStorage.removeItem('km100_inventory_theme_v1');
+      } catch (e) {}
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
     })();
   </script>
 
@@ -79,9 +73,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="image" href="/logo.png" fetchpriority="high">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"></noscript>
 
   <style>
     /* Critical shell styles. Application styling lives in src/index.css. */
@@ -92,29 +86,89 @@
 
     @keyframes km100-spin { to { transform: rotate(360deg); } }
 
-    /* Print Styles for Formal Institutional Inventory Audit */
+    /* Print Styles for Formal Institutional Inventory Audit & Asset Tag Stickers */
     @media print {
-      body { background: white !important; color: black !important; }
-      header, aside, .no-print, [role="dialog"], [role="alertdialog"], button, input, select, .animate-toast, .floating-bar {
+      html, body, #root, #root > div {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow: visible !important;
+        background: white !important;
+        color: black !important;
+      }
+      header, aside, .no-print, [role="alertdialog"], button, input, select, .animate-toast, .floating-bar {
         display: none !important;
       }
-      /* Hide all screen-only content; reveal only the formal audit report */
+      /* Hide all screen-only content; reveal only the formal audit report by default */
       #root > div > *:not(#printable-report) { display: none !important; }
       main { display: none !important; }
-      #printable-report { display: block !important; position: static !important; }
-      #root > div { display: block !important; height: auto !important; overflow: visible !important; }
-      table { width: 100% !important; border-collapse: collapse !important; font-size: 9pt !important; }
-      th, td { border: 1px solid #444 !important; padding: 5px 8px !important; color: #000 !important; }
-      th { background-color: #f1f5f9 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      #printable-report {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
       .print-only { display: block !important; }
+      [role="dialog"] { display: none !important; }
+
+      /* Exact background colors and borders in print */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Multi-page table headers repeat cleanly */
+      thead {
+        display: table-header-group !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
       @page {
-        size: letter;
-        margin: 0.75in 0.75in 0.9in 0.75in;
+        size: letter portrait;
+        margin: 0.5in;
         @bottom-center {
           content: "KM100 Skills and Training Center, Inc. — Page " counter(page) " of " counter(pages);
           font-size: 8pt;
           color: #666;
         }
+      }
+
+      /* Asset Tag Sticker Specific Print Mode */
+      body.print-asset-tag #printable-report {
+        display: none !important;
+      }
+      body.print-asset-tag #root > div {
+        display: none !important;
+      }
+      body.print-asset-tag .asset-tag-overlay {
+        display: flex !important;
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      body.print-asset-tag .asset-tag-overlay > div {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        background: transparent !important;
+      }
+      body.print-asset-tag .asset-tag-controls {
+        display: none !important;
+      }
+      body.print-asset-tag .asset-tag-sticker {
+        display: block !important;
+        width: 3.5in !important;
+        margin: 0 auto !important;
+        padding: 12px !important;
+        border: 2px solid #000 !important;
+        border-radius: 8px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
     }
     .print-only { display: none; }

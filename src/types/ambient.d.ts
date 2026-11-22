@@ -6,7 +6,7 @@ declare namespace React {
   export type ReactElement<P = any, T = any> = any;
   export type ComponentType<P = {}> = any;
   export type Component<P = {}, S = {}> = any;
-  export type FC<P = {}> = (props: P) => any;
+  export type FC<P = {}> = ((props: P) => any) & { displayName?: string };
   export type FunctionComponent<P = {}> = FC<P>;
   export type PropsWithChildren<P = {}> = P & { children?: ReactNode };
   export type CSSProperties = { [key: string]: any };
@@ -82,6 +82,8 @@ declare namespace React {
   export function useEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
   export function useMemo<T>(factory: () => T, deps: readonly any[] | undefined): T;
   export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly any[]): T;
+  export function useDeferredValue<T>(value: T): T;
+  export function useTransition(): [boolean, (callback: () => void) => void];
   export function useRef<T>(initialValue: T): { current: T };
   export function useRef<T = any>(): { current: T | undefined };
   export function useContext<T>(context: any): T;
@@ -276,6 +278,13 @@ declare module 'lucide-react' {
   export const ExternalLink: Icon;
   export const Copy: Icon;
   export const Save: Icon;
+  export const LogOut: Icon;
+  export const Lock: Icon;
+  export const User: Icon;
+  export const UserPlus: Icon;
+  export const Key: Icon;
+  export const Shield: Icon;
+  export const Mail: Icon;
   const defaultIcon: Icon;
   export default defaultIcon;
 }

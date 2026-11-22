@@ -27,20 +27,20 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
       aria-modal="true"
       aria-labelledby="asset-tag-title"
     >
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-4">
-        <div className="asset-tag-controls flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="w-full max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-4">
+        <div className="asset-tag-controls flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+            <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
               <Tag size={18} />
             </div>
-            <h3 id="asset-tag-title" className="text-sm font-bold text-slate-900">
-              Equipment Asset Tag
+            <h3 id="asset-tag-title" className="text-sm font-heading font-bold text-slate-900 dark:text-white">
+              Asset tag
             </h3>
           </div>
           <button
             onClick={onClose}
             aria-label="Close asset tag dialog"
-            className="p-1 text-slate-400 hover:text-slate-600"
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           >
             <X size={16} />
           </button>
@@ -54,7 +54,7 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
               <h4 className="text-[11px] font-black uppercase text-black leading-tight">
                 KM100 Skills &amp; Training Center
               </h4>
-              <p className="text-[9px] text-gray-700">Institutional Asset Identification</p>
+              <p className="text-[9px] text-gray-700">Property asset tag</p>
             </div>
           </div>
 
@@ -102,7 +102,7 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
             onClick={handlePrint}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white"
           >
-            <Printer size={14} /> Print Sticker
+            <Printer size={14} /> Print sticker
           </button>
         </div>
       </div>

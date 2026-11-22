@@ -5,23 +5,9 @@ import {
   Room
 } from '../types/inventory';
 import { ConditionBadge } from './ConditionBadge';
-import {
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Minus,
-  Edit,
-  Trash2,
-  Building,
-  Package,
-  Tag
-} from 'lucide-react';
 
 interface Props {
-  /** Items on the current page. */
+  /** All items to display continuously. */
   items: InventoryItem[];
   columns: ColumnDefinition[];
   rooms: Room[];
@@ -34,20 +20,12 @@ interface Props {
   onSetQuantity?: (itemId: string, qty: number) => void;
   onEditItem: (item: InventoryItem) => void;
   onDeleteItem: (item: InventoryItem) => void;
-  onPrintAssetTag?: (item: InventoryItem) => void;
   onAddItem: () => void;
   onResetFilters: () => void;
   isFiltered: boolean;
-  totalItemsInCatalog: number;
-  totalFilteredCount?: number;
-  totalFilteredUnits?: number;
   selectedIds?: string[];
   onToggleSelect?: (itemId: string) => void;
-  onToggleSelectPage?: (itemIds: string[], select: boolean) => void;
-  page?: number;
-  pageSize?: number;
-  totalPages?: number;
-  onPageChange?: (page: number) => void;
+  onToggleSelectAll?: (itemIds: string[], select: boolean) => void;
 }
 
 export const InventoryTable: React.FC<Props> = ({
@@ -63,53 +41,50 @@ export const InventoryTable: React.FC<Props> = ({
   onSetQuantity,
   onEditItem,
   onDeleteItem,
-  onPrintAssetTag,
   onAddItem,
   onResetFilters,
   isFiltered,
-  totalItemsInCatalog,
-  totalFilteredCount = items.length,
-  totalFilteredUnits = items.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0),
   selectedIds = [],
   onToggleSelect = () => {},
-  onToggleSelectPage = () => {},
-  page = 1,
-  pageSize = items.length || 25,
-  totalPages = 1,
-  onPageChange = () => {}
+  onToggleSelectAll = () => {},
 }) => {
-  const pageIds = items.map((item) => item.id);
-  const allOnPageSelected =
-    pageIds.length > 0 && pageIds.every((id) => selectedIds.indexOf(id) !== -1);
-  const someOnPageSelected =
-    !allOnPageSelected && pageIds.some((id) => selectedIds.indexOf(id) !== -1);
+  const allIds = items.map((item) => item.id);
+  const allSelected =
+    allIds.length > 0 && allIds.every((id) => selectedIds.indexOf(id) !== -1);
+  const someSelected =
+    !allSelected && allIds.some((id) => selectedIds.indexOf(id) !== -1);
 
   const setHeaderCheckbox = (node: HTMLInputElement | null) => {
-    if (node) node.indeterminate = someOnPageSelected;
+    if (node) node.indeterminate = someSelected;
   };
 
-  const rangeStart = totalFilteredCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const rangeEnd = Math.min(page * pageSize, totalFilteredCount);
-
   return (
-    <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col min-h-0">
-      <div className="flex-1 overflow-x-auto overflow-y-auto overscroll-contain [webkit-overflow-scrolling:touch]">
-        <table className="w-full text-left border-collapse text-xs">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+      {/* Mobile Horizontal Scroll Indicator Banner */}
+      <div className="sm:hidden px-3 py-1.5 bg-amber-50/70 dark:bg-amber-950/30 text-[11px] text-amber-800 dark:text-amber-300 flex items-center justify-between border-b border-amber-100 dark:border-amber-900/40 select-none">
+        <span className="font-medium flex items-center gap-1.5">
+          <span>↔</span> Swipe horizontally to view all columns &amp; actions
+        </span>
+        <span className="font-bold text-amber-600 dark:text-amber-400">({items.length} items)</span>
+      </div>
+
+      <div className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
+        <table className="w-full text-left border-collapse text-sm min-w-[720px] lg:min-w-full">
           <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-10">
             <tr>
-              <th className="py-4 pl-4 pr-1 w-9">
+              <th className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap">
                 <input
                   ref={setHeaderCheckbox}
                   type="checkbox"
-                  checked={allOnPageSelected}
-                  onChange={(e) => onToggleSelectPage(pageIds, e.target.checked)}
-                  aria-label="Select all items on this page"
+                  checked={allSelected}
+                  onChange={(e) => onToggleSelectAll(allIds, e.target.checked)}
+                  aria-label="Select all items"
                   className="rounded border-slate-300 text-amber-700 focus:ring-amber-600 cursor-pointer"
                 />
               </th>
 
               {selectedRoomId === 'ALL' && (
-                <th className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs whitespace-nowrap">
                   Room Location
                 </th>
               )}
@@ -125,7 +100,7 @@ export const InventoryTable: React.FC<Props> = ({
                         : 'descending'
                       : 'none'
                   }
-                  className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] select-none"
+                  className="py-3.5 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs select-none whitespace-nowrap"
                 >
                   <button
                     type="button"
@@ -133,23 +108,16 @@ export const InventoryTable: React.FC<Props> = ({
                     className="flex items-center gap-1.5 w-full text-left rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 hover:text-slate-900 dark:hover:text-white transition-colors"
                   >
                     <span>{col.label}</span>
-                    {sortField === col.id ? (
-                      sortDirection === 'asc' ? (
-                        <ChevronUp size={13} className="text-amber-700 dark:text-amber-400" />
-                      ) : (
-                        <ChevronDown size={13} className="text-amber-700 dark:text-amber-400" />
-                      )
-                    ) : (
-                      <ArrowUpDown
-                        size={11}
-                        className="text-slate-400 dark:text-slate-500 opacity-40 hover:opacity-100"
-                      />
+                    {sortField === col.id && (
+                      <span className="text-amber-700 dark:text-amber-400 font-bold text-xs" aria-hidden="true">
+                        {sortDirection === 'asc' ? '▲' : '▼'}
+                      </span>
                     )}
                   </button>
                 </th>
               ))}
 
-              <th className="py-3 px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-[11px] text-right">
+              <th className="py-3.5 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs text-right whitespace-nowrap">
                 Actions
               </th>
             </tr>
@@ -169,7 +137,7 @@ export const InventoryTable: React.FC<Props> = ({
                       : 'hover:bg-amber-50/40 dark:hover:bg-slate-800/50'
                   }`}
                 >
-                  <td className="py-3 pl-4 pr-1">
+                  <td className="py-2.5 sm:py-3.5 pl-3 sm:pl-4 pr-1">
                     <input
                       type="checkbox"
                       checked={isSelected}
@@ -180,13 +148,12 @@ export const InventoryTable: React.FC<Props> = ({
                   </td>
 
                   {selectedRoomId === 'ALL' && (
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap">
                       <button
                         onClick={() => onSelectRoom(item.roomId)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer transition-colors"
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer transition-colors"
                         title="Jump to this room"
                       >
-                        <Building size={12} className="text-amber-700 dark:text-amber-400" />
                         {itemRoom?.name || 'Unassigned'}
                       </button>
                     </td>
@@ -197,7 +164,7 @@ export const InventoryTable: React.FC<Props> = ({
 
                     if (col.id === 'condition' || col.id === 'status') {
                       return (
-                        <td key={col.id} className="py-3 px-4 whitespace-nowrap">
+                        <td key={col.id} className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap">
                           <ConditionBadge
                             condition={val || item.status || item.condition || 'Working'}
                           />
@@ -208,16 +175,16 @@ export const InventoryTable: React.FC<Props> = ({
                     if (col.id === 'quantity') {
                       const numVal = Number(val) || 0;
                       return (
-                        <td key={col.id} className="py-3 px-4 whitespace-nowrap">
-                          <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
+                        <td key={col.id} className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap">
+                          <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1">
                             <button
                               onClick={() => onQuantityChange(item.id, -1)}
                               aria-label={`Decrease quantity for ${item.name}`}
-                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40 font-bold select-none text-xs sm:text-sm"
                               disabled={numVal <= 0}
                               title="Decrease quantity by 1"
                             >
-                              <Minus size={12} />
+                              −
                             </button>
 
                             <input
@@ -236,16 +203,16 @@ export const InventoryTable: React.FC<Props> = ({
                               }}
                               aria-label={`Manual quantity input for ${item.name}`}
                               title="Click to type or edit quantity directly"
-                              className="w-12 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-11 sm:w-14 px-1 py-0.5 text-center font-bold tabular-nums text-xs sm:text-sm text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
                               onClick={() => onQuantityChange(item.id, 1)}
                               aria-label={`Increase quantity for ${item.name}`}
-                              className="w-6 h-6 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-bold select-none text-xs sm:text-sm"
                               title="Increase quantity by 1"
                             >
-                              <Plus size={12} />
+                              +
                             </button>
                           </div>
                         </td>
@@ -253,15 +220,15 @@ export const InventoryTable: React.FC<Props> = ({
                     }
 
                     return (
-                      <td key={col.id} className="py-3 px-4">
+                      <td key={col.id} className="py-2.5 sm:py-3.5 px-3 sm:px-4">
                         {col.id === 'name' ? (
-                          <span className="font-semibold text-slate-900 dark:text-slate-100">{val || '—'}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block min-w-[120px]">{val || '—'}</span>
                         ) : col.id === 'category' ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold whitespace-nowrap">
                             {val || '—'}
                           </span>
                         ) : (
-                          <span className="text-slate-600 dark:text-slate-300">
+                          <span className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium whitespace-nowrap">
                             {val !== undefined && val !== null && val !== ''
                               ? String(val)
                               : '—'}
@@ -271,31 +238,23 @@ export const InventoryTable: React.FC<Props> = ({
                     );
                   })}
 
-                  <td className="py-3 px-4 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => onPrintAssetTag(item)}
-                        aria-label={`Print asset tag for ${item.name}`}
-                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
-                        title="Print Asset Tag Sticker"
-                      >
-                        <Tag size={14} />
-                      </button>
+                  <td className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold">
                       <button
                         onClick={() => onEditItem(item)}
                         aria-label={`Edit ${item.name}`}
-                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors"
+                        className="px-2 py-1 text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                         title="Edit Item"
                       >
-                        <Edit size={15} />
+                        Edit
                       </button>
                       <button
                         onClick={() => onDeleteItem(item)}
                         aria-label={`Delete ${item.name}`}
-                        className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                        className="px-2 py-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
                         title="Delete Item"
                       >
-                        <Trash2 size={15} />
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -306,58 +265,8 @@ export const InventoryTable: React.FC<Props> = ({
         </table>
       </div>
 
-      {totalFilteredCount > 0 && (
-        <div className="py-2.5 px-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-2.5">
-            <span>
-              Showing{' '}
-              <strong className="text-slate-900 dark:text-white font-mono">
-                {rangeStart}–{rangeEnd}
-              </strong>{' '}
-              of <strong className="text-slate-900 dark:text-white font-mono">{totalFilteredCount}</strong> items
-              <span className="text-slate-500 dark:text-slate-400">
-                {' '}
-                (catalog: <span className="font-mono">{totalItemsInCatalog}</span>)
-              </span>
-            </span>
-
-            {totalPages > 1 && (
-              <div className="flex items-center gap-1 ml-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => onPageChange(Math.max(1, page - 1))}
-                  aria-label="Previous page"
-                  className="p-1 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <ChevronLeft size={13} />
-                </button>
-                <span className="font-mono text-xs px-1">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-                  aria-label="Next page"
-                  className="p-1 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <ChevronRight size={13} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="font-mono">
-            Filtered Subtotal:{' '}
-            <strong className="text-emerald-600 dark:text-emerald-400">{totalFilteredUnits}</strong> units
-          </div>
-        </div>
-      )}
-
-      {totalFilteredCount === 0 && (
+      {items.length === 0 && (
         <div className="py-16 px-4 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-3">
-            <Package size={28} />
-          </div>
           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Inventory Items Found</h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
             {isFiltered
@@ -367,7 +276,7 @@ export const InventoryTable: React.FC<Props> = ({
           {isFiltered ? (
             <button
               onClick={onResetFilters}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
             >
               Clear Search &amp; Filters
             </button>

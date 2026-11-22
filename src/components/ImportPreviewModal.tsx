@@ -1,8 +1,8 @@
-import React from 'react';
-import { FileSpreadsheet, X, Plus, Folder, Trash2 } from 'lucide-react';
-import { Room } from '../types/inventory';
-import type { ImportAnalysis } from '../utils/importParse';
-import { ConditionBadge } from './ConditionBadge';
+import React from "react";
+import { FileSpreadsheet, X, Plus, Folder, Trash2 } from "lucide-react";
+import { Room } from "../types/inventory";
+import type { ImportAnalysis } from "../utils/importParse";
+import { ConditionBadge } from "./ConditionBadge";
 
 interface Props {
   analysis: ImportAnalysis;
@@ -19,14 +19,14 @@ export const ImportPreviewModal: React.FC<Props> = ({
   onCancel,
   onImportDirect,
   onImportCurrentRoom,
-  onReplaceAll
+  onReplaceAll,
 }) => {
   const roomChipCount = analysis.roomsList.length;
   const targetLabel = currentRoom
     ? currentRoom.name.length > 18
       ? `${currentRoom.name.slice(0, 16)}...`
       : currentRoom.name
-    : 'First Room';
+    : "First Room";
 
   return (
     <div
@@ -35,32 +35,32 @@ export const ImportPreviewModal: React.FC<Props> = ({
       aria-modal="true"
       aria-labelledby="import-modal-title"
     >
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-5 max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 shrink-0">
+      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[calc(100dvh-2rem)] flex flex-col">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-emerald-100 text-emerald-600">
+            <div className="p-2.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
               <FileSpreadsheet size={22} />
             </div>
             <div>
               <h3
                 id="import-modal-title"
-                className="text-base font-bold text-slate-900 flex items-center gap-2"
+                className="text-base font-heading font-bold text-slate-900 dark:text-white flex items-center gap-2"
               >
                 <span>Spreadsheet Converted</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
                   {analysis.totalItems} items ready
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                 {analysis.fileName}
-                {analysis.fileSize ? ` — ${analysis.fileSize}` : ''}
+                {analysis.fileSize ? ` — ${analysis.fileSize}` : ""}
               </p>
             </div>
           </div>
           <button
             onClick={onCancel}
             aria-label="Close import preview"
-            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400"
+            className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500"
           >
             <X size={18} />
           </button>
@@ -96,9 +96,12 @@ export const ImportPreviewModal: React.FC<Props> = ({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-700">Sample Converted Items:</span>
+              <span className="font-semibold text-slate-700">
+                Sample Converted Items:
+              </span>
               <span className="text-[11px] text-slate-500">
-                Showing top {analysis.samplePreview.length} of {analysis.totalItems}
+                Showing top {analysis.samplePreview.length} of{" "}
+                {analysis.totalItems}
               </span>
             </div>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
@@ -119,14 +122,14 @@ export const ImportPreviewModal: React.FC<Props> = ({
                         {item.name}
                       </td>
                       <td className="p-2 text-slate-500">{item.category}</td>
-                      <td className="p-2 font-mono font-semibold">
+                      <td className="p-2 font-semibold tabular-nums">
                         {item.quantity} {item.units}
                       </td>
                       <td className="p-2">
                         <ConditionBadge condition={item.status} />
                       </td>
                       <td className="p-2 text-slate-600 truncate max-w-[150px]">
-                        {item.room || 'Target room'}
+                        {item.room || "Target room"}
                       </td>
                     </tr>
                   ))}

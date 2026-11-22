@@ -14,7 +14,8 @@ export const DEFAULT_COLUMNS: ColumnDefinition[] = [
       'Diagnostic and Testing',
       'Cables and Connectors',
       'Networking Equipment',
-      'Operating System and Software'
+      'Operating System and Software',
+      'Books and References'
     ],
     required: true,
     order: 2
@@ -68,7 +69,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
     {
         "id":  "km100-002",
         "roomId":  "room-ccs",
-        "name":  "191ml WD-40",
+        "name":  "WD-40 191ml",
         "category":  "Consumables and Maintenance",
         "quantity":  1,
         "units":  "pcs",
@@ -236,7 +237,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
     {
         "id":  "km100-016",
         "roomId":  "room-ccs",
-        "name":  "Analog Multimeter Sanwa",
+        "name":  "Sanwa Analog Multimeter",
         "category":  "Diagnostic and Testing",
         "quantity":  10,
         "units":  "pcs",
@@ -382,19 +383,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
         "roomId":  "room-ccs",
         "name":  "Crimping Tools Non-Pass through",
         "category":  "Tools",
-        "quantity":  18,
-        "units":  "pcs",
-        "status":  "Working",
-        "condition":  "Working",
-        "createdAt":  "2026-11-19T02:16:11Z",
-        "updatedAt":  "2026-11-19T02:16:11Z"
-    },
-    {
-        "id":  "km100-029",
-        "roomId":  "room-ccs",
-        "name":  "Crimping Tools Non-Pass through",
-        "category":  "Tools",
-        "quantity":  10,
+        "quantity":  28,
         "units":  "pcs",
         "status":  "Working",
         "condition":  "Working",
@@ -405,7 +394,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
         "id":  "km100-030",
         "roomId":  "room-ccs",
         "name":  "CSS Books",
-        "category":  "Peripherals and Storage",
+        "category":  "Books and References",
         "quantity":  6,
         "units":  "pcs",
         "status":  "Working",
@@ -1064,7 +1053,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
     {
         "id":  "km100-085",
         "roomId":  "room-ccs",
-        "name":  "Switch Catalyst 2960G",
+        "name":  "Catalyst 2960G Switch",
         "category":  "Networking Equipment",
         "quantity":  1,
         "units":  "pcs",
@@ -1076,7 +1065,7 @@ export const DEFAULT_ITEMS: InventoryItem[] = [    {
     {
         "id":  "km100-086",
         "roomId":  "room-ccs",
-        "name":  "Switch Catalyst 3560G",
+        "name":  "Catalyst 3560G Switch",
         "category":  "Networking Equipment",
         "quantity":  2,
         "units":  "pcs",

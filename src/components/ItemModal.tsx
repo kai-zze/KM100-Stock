@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { ColumnDefinition, InventoryItem, Room } from '../types/inventory';
-import { Plus, Edit2, X } from 'lucide-react';
+import React, { useState } from "react";
+import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
+import { Plus, Edit2, X } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -19,9 +19,10 @@ export const ItemModal: React.FC<Props> = ({
   columns,
   rooms,
   selectedRoomId,
-  onSave
+  onSave,
 }) => {
-  const defaultRoom = selectedRoomId !== 'ALL' ? selectedRoomId : (rooms[0]?.id || '');
+  const defaultRoom =
+    selectedRoomId !== "ALL" ? selectedRoomId : rooms[0]?.id || "";
 
   const [formData, setFormData] = useState<Record<string, any>>(() => {
     if (editingItem) {
@@ -29,17 +30,17 @@ export const ItemModal: React.FC<Props> = ({
     }
     const initial: Record<string, any> = {
       roomId: defaultRoom,
-      name: '',
+      name: "",
       quantity: 1,
-      units: 'pcs',
-      status: 'Working',
-      condition: 'Working',
-      category: 'Tools',
-      remarks: ''
+      units: "pcs",
+      status: "Working",
+      condition: "Working",
+      category: "Tools",
+      remarks: "",
     };
-    columns.forEach(col => {
+    columns.forEach((col) => {
       if (initial[col.id] === undefined) {
-        initial[col.id] = col.type === 'number' ? 0 : '';
+        initial[col.id] = col.type === "number" ? 0 : "";
       }
     });
     return initial;
@@ -50,11 +51,11 @@ export const ItemModal: React.FC<Props> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name?.trim()) {
-      alert('Item Name is required.');
+      alert("Item Name is required.");
       return;
     }
     if (!formData.roomId) {
-      alert('Please select a facility room.');
+      alert("Please select a facility room.");
       return;
     }
 
@@ -64,11 +65,11 @@ export const ItemModal: React.FC<Props> = ({
       id: editingItem ? editingItem.id : `item-${Date.now()}`,
       name: formData.name.trim(),
       roomId: formData.roomId,
-      category: formData.category || 'General',
-      condition: formData.condition || 'Good',
+      category: formData.category || "General",
+      condition: formData.condition || "Good",
       quantity: Number(formData.quantity) || 0,
       updatedAt: now,
-      createdAt: editingItem?.createdAt || now
+      createdAt: editingItem?.createdAt || now,
     };
 
     onSave(payload);
@@ -88,14 +89,19 @@ export const ItemModal: React.FC<Props> = ({
             <img
               src="./logo.png"
               alt="KM100 Logo"
-              className="w-9 h-9 object-contain rounded-full bg-white dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+              className="w-9 h-9 object-contain select-none"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "./favicon.png";
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "/favicon.png";
               }}
             />
             <div>
-              <h3 id="item-modal-title" className="text-sm font-bold text-slate-900 dark:text-white">
-                {editingItem ? 'Edit Inventory Item' : 'Add New Inventory Item'}
+              <h3
+                id="item-modal-title"
+                className="text-sm font-heading font-bold text-slate-900 dark:text-white"
+              >
+                {editingItem ? "Edit Inventory Item" : "Add New Inventory Item"}
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 KM100 Skills and Training Center, Inc.
@@ -112,18 +118,23 @@ export const ItemModal: React.FC<Props> = ({
         </div>
 
         {/* Dynamic Form */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 text-xs">
+        <form
+          onSubmit={handleSubmit}
+          className="p-5 overflow-y-auto space-y-4 text-xs"
+        >
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Target Facility Room <span className="text-rose-500">*</span>
             </label>
             <select
               value={formData.roomId}
-              onChange={e => setFormData({ ...formData, roomId: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, roomId: e.target.value })
+              }
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
               required
             >
-              {rooms.map(room => (
+              {rooms.map((room) => (
                 <option key={room.id} value={room.id}>
                   {room.name}
                 </option>
@@ -131,30 +142,41 @@ export const ItemModal: React.FC<Props> = ({
             </select>
           </div>
 
-          {columns.map(col => {
-            const val = formData[col.id] !== undefined ? formData[col.id] : '';
+          {columns.map((col) => {
+            const val = formData[col.id] !== undefined ? formData[col.id] : "";
 
-            if (col.type === 'dropdown') {
+            if (col.type === "dropdown") {
               const options =
                 col.options && col.options.length > 0
                   ? col.options
-                  : (col.id === 'status' || col.id === 'condition'
-                      ? ['Working', 'Used', 'Defective', 'Empty', 'Incomplete']
-                      : col.id === 'units'
-                        ? ['pcs', 'set', 'box', 'roll', 'pack']
-                        : ['Tools', 'PC Hardware', 'Peripheral', 'Cables and Wires', 'Consumables', 'Diagnostic', 'Networking']);
+                  : col.id === "status" || col.id === "condition"
+                    ? ["Working", "Used", "Defective", "Empty", "Incomplete"]
+                    : col.id === "units"
+                      ? ["pcs", "set", "box", "roll", "pack"]
+                      : [
+                          "Tools",
+                          "PC Hardware",
+                          "Peripheral",
+                          "Cables and Wires",
+                          "Consumables",
+                          "Diagnostic",
+                          "Networking",
+                        ];
               return (
                 <div key={col.id}>
                   <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {col.label} {col.required && <span className="text-rose-500">*</span>}
+                    {col.label}{" "}
+                    {col.required && <span className="text-rose-500">*</span>}
                   </label>
                   <select
                     value={val}
-                    onChange={e => setFormData({ ...formData, [col.id]: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [col.id]: e.target.value })
+                    }
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
                     required={col.required}
                   >
-                    {options.map(opt => (
+                    {options.map((opt) => (
                       <option key={opt} value={opt}>
                         {opt}
                       </option>
@@ -164,23 +186,25 @@ export const ItemModal: React.FC<Props> = ({
               );
             }
 
-            if (col.type === 'number') {
+            if (col.type === "number") {
               return (
                 <div key={col.id}>
                   <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {col.label} {col.required && <span className="text-rose-500">*</span>}
+                    {col.label}{" "}
+                    {col.required && <span className="text-rose-500">*</span>}
                   </label>
                   <input
                     type="number"
                     min="0"
                     value={val}
-                    onChange={e =>
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        [col.id]: e.target.value === '' ? '' : Number(e.target.value)
+                        [col.id]:
+                          e.target.value === "" ? "" : Number(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white tabular-nums"
                     required={col.required}
                   />
                 </div>
@@ -190,13 +214,16 @@ export const ItemModal: React.FC<Props> = ({
             return (
               <div key={col.id}>
                 <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {col.label} {col.required && <span className="text-rose-500">*</span>}
+                  {col.label}{" "}
+                  {col.required && <span className="text-rose-500">*</span>}
                 </label>
                 <input
                   type="text"
                   placeholder={`Enter ${col.label.toLowerCase()}...`}
                   value={val}
-                  onChange={e => setFormData({ ...formData, [col.id]: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, [col.id]: e.target.value })
+                  }
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white"
                   required={col.required}
                 />
@@ -216,7 +243,7 @@ export const ItemModal: React.FC<Props> = ({
               type="submit"
               className="px-5 py-2 rounded-xl font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
             >
-              {editingItem ? 'Save Changes' : 'Create Item'}
+              {editingItem ? "Save Changes" : "Create Item"}
             </button>
           </div>
         </form>

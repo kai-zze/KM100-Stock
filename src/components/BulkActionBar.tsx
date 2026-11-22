@@ -13,7 +13,7 @@ interface Props {
   onDelete: () => void;
 }
 
-export const BulkActionBar: React.FC<Props> = ({
+export const BulkActionBar: React.FC<Props> = React.memo(({
   count,
   rooms,
   onClear,
@@ -26,12 +26,12 @@ export const BulkActionBar: React.FC<Props> = ({
 
   return (
     <div
-      className="mb-3 animate-modal bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm px-3.5 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs no-print"
+      className="mb-3 animate-slide-down bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm px-2.5 sm:px-5 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-xs no-print"
       role="toolbar"
       aria-label="Bulk actions for selected inventory items"
     >
       <div className="flex items-center gap-2.5">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-700 text-white font-mono font-bold text-xs shadow-sm">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-700 text-white font-bold text-xs tabular-nums shadow-sm">
           <CheckCircle2 size={13} />
           {count} Selected
         </span>
@@ -45,9 +45,9 @@ export const BulkActionBar: React.FC<Props> = ({
       </div>
 
       <div className="flex items-center flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <ArrowRight size={13} className="text-amber-700 dark:text-amber-400 shrink-0" />
-          <span className="text-[11px] font-semibold text-slate-500">Move to:</span>
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+          <ArrowRight size={14} className="text-amber-700 dark:text-amber-400 shrink-0" />
+          <span className="text-xs font-semibold text-slate-500">Move to:</span>
           <select
             defaultValue=""
             onChange={(e) => {
@@ -55,7 +55,7 @@ export const BulkActionBar: React.FC<Props> = ({
               e.target.value = '';
               if (val) onMove(val);
             }}
-            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[130px] sm:max-w-none truncate"
+            className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
           >
             <option value="">Choose Room...</option>
             {rooms.map((r) => (
@@ -66,9 +66,9 @@ export const BulkActionBar: React.FC<Props> = ({
           </select>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <Tag size={13} className="text-amber-700 dark:text-amber-400 shrink-0" />
-          <span className="text-[11px] font-semibold text-slate-500">Status:</span>
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+          <Tag size={14} className="text-amber-700 dark:text-amber-400 shrink-0" />
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">Status:</span>
           <select
             defaultValue=""
             onChange={(e) => {
@@ -76,7 +76,7 @@ export const BulkActionBar: React.FC<Props> = ({
               e.target.value = '';
               if (val) onSetStatus(val);
             }}
-            className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
+            className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="">Set Status...</option>
             {STATUS_OPTIONS.map((status) => (
@@ -118,4 +118,6 @@ export const BulkActionBar: React.FC<Props> = ({
       </div>
     </div>
   );
-};
+});
+
+BulkActionBar.displayName = 'BulkActionBar';

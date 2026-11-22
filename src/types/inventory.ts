@@ -39,6 +39,15 @@ export interface Room {
   description?: string;
 }
 
+export type UserRole = 'admin' | 'staff';
+
+export interface AppUser {
+  id: string;
+  email: string;
+  role: UserRole;
+  fullName?: string;
+}
+
 export interface AppBackup {
   version: string;
   organization: string;
