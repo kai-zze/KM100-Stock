@@ -11,11 +11,20 @@ export default defineConfig({
     target: 'es2020',
     cssCodeSplit: true,
     sourcemap: false,
-    reportCompressedSize: true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom']
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/@supabase/')) {
+            return 'supabase-vendor';
+          }
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'icons-vendor';
+          }
         }
       }
     }
