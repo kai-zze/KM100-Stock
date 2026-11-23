@@ -141,6 +141,10 @@ export const Header: React.FC<Props> = ({
             <img
               src="/logo.png"
               alt="KM100 Logo"
+              width={40}
+              height={40}
+              fetchpriority="high"
+              decoding="async"
               className="h-8 w-8 sm:h-10 sm:w-10 object-contain rounded-xl select-none shrink-0"
             />
 
