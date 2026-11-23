@@ -230,7 +230,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                                 Operational
                               </span>
                             )}
-                            <span className="text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-500 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                               View
                             </span>
                           </div>
@@ -248,7 +248,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
                           Empty rooms ({emptyRooms.length})
                         </h4>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                           Ready for equipment registration
                         </span>
                       </div>
@@ -266,7 +266,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             <p className="truncate text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">
                               {room.name}
                             </p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">Empty</p>
+                            <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Empty</p>
                           </div>
 
                           <button

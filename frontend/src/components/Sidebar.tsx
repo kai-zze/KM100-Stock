@@ -122,7 +122,7 @@ export const Sidebar: React.FC<Props> = React.memo(({
         </button>
 
         <div className="px-2 pb-1.5 pt-3.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
             Rooms
           </span>
         </div>
@@ -163,7 +163,7 @@ export const Sidebar: React.FC<Props> = React.memo(({
                       {attentionCount}
                     </span>
                   ) : (
-                    <span className="group-hover:hidden shrink-0 text-[11px] font-mono tabular-nums text-slate-400 dark:text-slate-500">
+                    <span className="group-hover:hidden shrink-0 text-[11px] font-mono tabular-nums text-slate-600 dark:text-slate-400">
                       {uniqueCount}
                     </span>
                   )}

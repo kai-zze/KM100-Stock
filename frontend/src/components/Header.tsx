@@ -151,7 +151,7 @@ export const Header: React.FC<Props> = ({
 
             <div className="shrink-0">
               <h1 className="text-sm sm:text-base md:text-lg font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap">
-                <span className="text-[#f78525]">KM</span>100<span className="hidden sm:inline"> Skills and Training Center, Inc.</span>
+                <span className="text-orange-700 dark:text-orange-400">KM</span>100<span className="hidden sm:inline"> Skills and Training Center, Inc.</span>
               </h1>
               <p className="hidden sm:block text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium leading-none mt-1 truncate">
                 Inventory Management System
