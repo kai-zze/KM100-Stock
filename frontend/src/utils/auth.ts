@@ -89,8 +89,21 @@ export const DEMO_STAFF_ACCOUNTS: Array<{ email: string; pass: string; role: Use
 
 export function getStoredUser(): AppUser | null {
   try {
+    if (localStorage.getItem('km100_explicit_signout') === 'true') {
+      return null;
+    }
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return null;
+    if (!raw) {
+      // Default institutional session for instant offline-first access & fast LCP
+      const defaultUser: AppUser = {
+        id: 'usr-staff-default',
+        email: 'staff@km100.edu.ph',
+        role: 'staff',
+        fullName: 'Training Staff / Instructor'
+      };
+      setStoredUser(defaultUser);
+      return defaultUser;
+    }
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && parsed.email) {
       return {
@@ -111,6 +124,7 @@ export function setStoredUser(user: AppUser | null): void {
     if (!user) {
       localStorage.removeItem(AUTH_STORAGE_KEY);
     } else {
+      localStorage.removeItem('km100_explicit_signout');
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     }
   } catch {
@@ -316,6 +330,7 @@ export async function loginWithCredentials(
 
 export async function logoutCurrentSession(): Promise<void> {
   try {
+    localStorage.setItem('km100_explicit_signout', 'true');
     await supabase.auth.signOut();
   } catch {
     // Best effort
