@@ -64,7 +64,6 @@
         localStorage.removeItem('km100_inventory_theme_v1');
       } catch (e) {}
       document.documentElement.classList.remove('dark');
-      document.documentElement.style.colorScheme = 'light';
     })();
   </script>
 
@@ -79,7 +78,7 @@
   <style>
     /* Critical Shell Styles for 0ms First Paint & Zero CLS */
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; }
+    html { color-scheme: light; margin: 0; height: 100%; }
     body { font-family: 'DM Sans', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; color: #0f172a; }
     h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
 
