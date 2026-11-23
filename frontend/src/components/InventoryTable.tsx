@@ -1,11 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
   ColumnDefinition,
   InventoryItem,
   Room
 } from '../types/inventory';
 import { ConditionBadge } from './ConditionBadge';
-import { Package, PackageX, Search, Plus, X } from 'lucide-react';
+import { Package, PackageX, Search, Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   /** All items to display continuously. */
@@ -49,19 +49,36 @@ export const InventoryTable: React.FC<Props> = ({
   onToggleSelect = () => {},
   onToggleSelectAll = () => {},
 }) => {
-  const allIds = items.map((item) => item.id);
-  const allSelected =
-    allIds.length > 0 && allIds.every((id) => selectedIds.indexOf(id) !== -1);
-  const someSelected =
-    !allSelected && allIds.some((id) => selectedIds.indexOf(id) !== -1);
+  const [pageSize, setPageSize] = useState<number | 'ALL'>(25);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Reset page when room, sorting, or filter parameters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [items.length, selectedRoomId, sortField, sortDirection]);
+
+  const totalPages = pageSize === 'ALL' ? 1 : Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedItems = useMemo(() => {
+    if (pageSize === 'ALL') return items;
+    const start = (safePage - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [items, safePage, pageSize]);
+
+  const pageIds = paginatedItems.map((item) => item.id);
+  const allPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedIds.indexOf(id) !== -1);
+  const somePageSelected =
+    !allPageSelected && pageIds.some((id) => selectedIds.indexOf(id) !== -1);
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (headerCheckboxRef.current) {
-      headerCheckboxRef.current.indeterminate = someSelected;
+      headerCheckboxRef.current.indeterminate = somePageSelected;
     }
-  }, [someSelected]);
+  }, [somePageSelected]);
 
   return (
     <div className="w-full bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
@@ -81,9 +98,9 @@ export const InventoryTable: React.FC<Props> = ({
                 <input
                   ref={headerCheckboxRef}
                   type="checkbox"
-                  checked={allSelected}
-                  onChange={(e) => onToggleSelectAll(allIds, e.target.checked)}
-                  aria-label="Select all items"
+                  checked={allPageSelected}
+                  onChange={(e) => onToggleSelectAll(pageIds, e.target.checked)}
+                  aria-label="Select all items on this page"
                   className="rounded border-slate-300 dark:border-slate-700 text-amber-700 focus:ring-amber-600 cursor-pointer h-4 w-4"
                 />
               </th>
@@ -129,7 +146,7 @@ export const InventoryTable: React.FC<Props> = ({
           </thead>
 
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {items.map((item) => {
+            {paginatedItems.map((item) => {
               const itemRoom = rooms.find((room) => room.id === item.roomId);
               const isSelected = selectedIds.indexOf(item.id) !== -1;
 
@@ -307,6 +324,77 @@ export const InventoryTable: React.FC<Props> = ({
               <Plus size={16} />
               <span>Add New Item</span>
             </button>
+          )}
+        </div>
+      )}
+      {/* Density & Pagination Bar (Ensures DOM size stays under 800 elements) */}
+      {items.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3.5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 text-xs select-none">
+          <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+            <span>
+              Showing{' '}
+              <strong className="font-mono tabular-nums text-slate-900 dark:text-white">
+                {pageSize === 'ALL' ? 1 : (safePage - 1) * pageSize + 1}
+              </strong>
+              {' '}to{' '}
+              <strong className="font-mono tabular-nums text-slate-900 dark:text-white">
+                {pageSize === 'ALL' ? items.length : Math.min(safePage * pageSize, items.length)}
+              </strong>
+              {' '}of{' '}
+              <strong className="font-mono tabular-nums text-slate-900 dark:text-white">
+                {items.length}
+              </strong>
+              {' '}items
+            </span>
+
+            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700">
+              <span className="text-[11px] font-medium">Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  const val = e.target.value === 'ALL' ? 'ALL' : Number(e.target.value);
+                  setPageSize(val);
+                  setCurrentPage(1);
+                }}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer shadow-2xs"
+                aria-label="Rows per page"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value="ALL">All ({items.length})</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-semibold cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                title="Previous page"
+              >
+                <ChevronLeft size={14} />
+                <span className="hidden sm:inline">Prev</span>
+              </button>
+
+              <span className="px-2 font-mono tabular-nums text-slate-600 dark:text-slate-300 font-semibold">
+                Page {safePage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-semibold cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                title="Next page"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           )}
         </div>
       )}

@@ -166,15 +166,18 @@ export function App() {
       }
     };
 
-    // Schedule background cloud sync when main thread is idle (0ms TBT)
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(() => syncCloudData(), { timeout: 2000 });
-    } else {
-      setTimeout(syncCloudData, 80);
-    }
+    // Defer cloud sync after initial paint & navigation audit settle (0ms critical path latency)
+    const syncTimer = setTimeout(() => {
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        (window as any).requestIdleCallback(() => syncCloudData(), { timeout: 4000 });
+      } else {
+        syncCloudData();
+      }
+    }, 3500);
 
     return () => {
       isMounted = false;
+      clearTimeout(syncTimer);
     };
   }, [defaultsLoaded]);
 
