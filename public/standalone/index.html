@@ -3,56 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>KM100 Inventory Management System | Skills and Training Center, Inc.</title>
-
-  <!-- SEO -->
-  <meta name="description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities with Excel import/export and cloud sync.">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="KM100 Skills and Training Center, Inc.">
-  <meta name="application-name" content="KM100 Inventory Management System">
-  <meta name="theme-color" content="#b45309">
-  <link rel="canonical" href="./">
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="KM100 Inventory Management System">
-  <meta property="og:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
-  <meta property="og:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
-  <meta property="og:image" content="../logo.png">
-  <meta property="og:image:alt" content="KM100 Skills and Training Center, Inc. logo">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="KM100 Inventory Management System | Skills and Training Center, Inc.">
-  <meta name="twitter:description" content="Official inventory management system for KM100 Skills and Training Center, Inc. Track assets, equipment, quantities and conditions across facilities.">
-  <meta name="twitter:image" content="../logo.png">
-
-  <!-- Structured data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "#organization",
-        "name": "KM100 Skills and Training Center, Inc.",
-        "url": "../",
-        "logo": "../logo.png",
-        "description": "Skills and training center providing technical and vocational education."
-      },
-      {
-        "@type": "WebApplication",
-        "name": "KM100 Inventory Management System",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Any",
-        "description": "Official inventory management system for tracking facility assets, equipment, quantities and conditions.",
-        "isAccessibleForFree": true,
-        "publisher": { "@id": "#organization" }
-      }
-    ]
-  }
-  </script>
-
+  <title>KM100 Inventory Management System - Skills and Training Center, Inc.</title>
   <link rel="icon" type="image/png" href="../favicon.png?v=4">
   <link rel="icon" type="image/x-icon" href="../favicon.ico?v=4">
   <link rel="shortcut icon" href="../favicon.ico?v=4">
@@ -60,10 +11,7 @@
   <!-- Typography: Plus Jakarta Sans (Headings) & DM Sans (Body) via Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="image" href="../logo.png" fetchpriority="high">
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   
     <script>
     // Force browser to refresh favicon
@@ -100,7 +48,7 @@
             },
             fontFamily: {
               sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-              mono: ['DM Sans', 'system-ui', 'sans-serif']
+              mono: ['JetBrains Mono', 'Consolas', 'monospace']
             }
           }
         }
@@ -112,46 +60,14 @@
   <script src="./react.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react@18.2.0/umd/react.production.min.js'"></script>
   <script src="./react-dom.production.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js'"></script>
 
-  <!-- Spreadsheet engines (ExcelJS, SheetJS) and institutional logo data are
-       lazy-loaded only when an import/export runs. This keeps ~2.5 MB out of
-       the critical path so first paint is not blocked. -->
-  <script>
-  (function () {
-    var cache = {};
-    function loadScript(sources, isReady) {
-      if (isReady()) return Promise.resolve(true);
-      var key = sources.join('|');
-      if (cache[key]) return cache[key];
-      cache[key] = new Promise(function (resolve) {
-        var i = 0;
-        (function tryNext() {
-          if (i >= sources.length) { resolve(false); return; }
-          var s = document.createElement('script');
-          s.src = sources[i++];
-          s.onload = function () { resolve(true); };
-          s.onerror = function () { tryNext(); };
-          document.head.appendChild(s);
-        })();
-      });
-      return cache[key];
-    }
-    window.km100LoadXlsx = function () {
-      return loadScript(
-        ['./xlsx.full.min.js', 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'],
-        function () { return !!window.XLSX; }
-      );
-    };
-    window.km100LoadExcelJs = function () {
-      return loadScript(
-        ['./exceljs.min.js', 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'],
-        function () { return !!window.ExcelJS; }
-      );
-    };
-    window.km100LoadLogos = function () {
-      return loadScript(['./logos_base64.js'], function () { return !!window.KM100_LOGO_B64; });
-    };
-  })();
-  </script>
+  <!-- ExcelJS for Rich Professional Excel Export with Logos & Formatting: Local first with CDN fallback -->
+  <script src="./exceljs.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js'"></script>
+
+  <!-- SheetJS (xlsx) for Reliable Excel Import/Export Fallback: Local first with CDN fallback -->
+  <script src="./xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'"></script>
+
+  <!-- Institutional Logo Data: Local first -->
+  <script src="./logos_base64.js"></script>
 
   <!-- Supabase Client for Cloud Database & Realtime Sync -->
   <script src="./supabase.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'"></script>
@@ -184,34 +100,53 @@
     }
     .animate-toast { animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-    /* Print Styles for Formal Institutional Inventory Audit */
-    @media print {
-      body { background: white !important; color: black !important; }
-      header, aside, .no-print, [role="dialog"], [role="alertdialog"], button, input, select, .animate-toast, .floating-bar {
-        display: none !important;
-      }
-      main { overflow: visible !important; width: 100% !important; padding: 0 !important; }
-      #printable-report { display: block !important; }
-      #root > div { display: block !important; height: auto !important; }
-      table { width: 100% !important; border-collapse: collapse !important; font-size: 10pt !important; }
-      th, td { border: 1px solid #444 !important; padding: 5px 8px !important; color: #000 !important; }
-      th { background-color: #f1f5f9 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .print-only { display: block !important; }
+  /* Print Styles for Formal Institutional Inventory Audit */
+  @media print {
+    body {
+      background: #ffffff !important;
+      color: #1c1917 !important;
+      font-family: 'DM Sans', sans-serif !important;
     }
+    header, aside, .no-print, [role="dialog"], [role="alertdialog"], button, input, select, .animate-toast, .floating-bar {
+      display: none !important;
+    }
+    main { overflow: visible !important; width: 100% !important; padding: 0 !important; }
+    #printable-report { display: block !important; }
+    #root > div { display: block !important; height: auto !important; }
+    table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 10pt !important;
+      font-family: 'DM Sans', sans-serif !important;
+    }
+    th, td {
+      border: 1px solid #e7d8c5 !important;
+      padding: 5px 8px !important;
+      color: #1c1917 !important;
+    }
+    th {
+      background-color: #fdfbf7 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      font-weight: 700 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .print-only { display: block !important; }
+  }
+  .print-only { display: none; }
+  @keyframes kmSpin { to { transform: rotate(360deg); } }
     .print-only { display: none; }
+    @keyframes kmSpin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-amber-600 selection:text-white transition-colors duration-200">
-  
+<body class="h-full bg-[#fdfbf7] text-[#1c1917] font-sans antialiased selection:bg-[#b45309] selection:text-white transition-colors duration-200">
   <div id="root" class="h-full">
     <!-- Immediate Pre-loader / Fallback Screen -->
-    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; text-align: center; padding: 20px;">
-      <img src="../logo.png" width="80" height="80" decoding="async" fetchpriority="high" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
-      <h2 style="margin: 0 0 8px 0; color: #0f172a; font-size: 20px; font-weight: 700;">KM100 Skills and Training Center, Inc.</h2>
-      <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">Loading Inventory Management System...</p>
-      <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #b45309; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-
-  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    <div id="initial-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #fdfbf7; color: #1c1917; font-family: 'DM Sans', sans-serif; text-align: center; padding: 20px;">
+      <img src="../logo.png" alt="KM100 Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; border-radius: 50%; background-color: #ffffff; border: 1px solid #e7d8c5; box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);" onerror="this.style.display='none'">
+      <h2 style="margin: 0 0 8px 0; color: #1c1917; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.025em;">KM100 Skills and Training Center, Inc.</h2>
+      <p style="margin: 0 0 20px 0; color: #57534e; font-size: 14px; font-weight: 500;">Loading Inventory Management System...</p>
+      <div style="width: 36px; height: 36px; border: 3px solid #e7d8c5; border-top-color: #b45309; border-radius: 50%; animation: kmSpin 0.8s linear infinite;"></div>
     </div>
   </div>
 
@@ -2537,16 +2472,11 @@
           if (el) el.click();
         }
 
-        async function processExcelFile(file) {
+        function processExcelFile(file) {
           if (!file) return;
 
-          if (!window.XLSX && window.km100LoadXlsx) {
-            showToast('Preparing Excel engine…', 'info');
-            await window.km100LoadXlsx();
-          }
-
           if (!window.XLSX) {
-            showToast('Excel engine could not be loaded — check your connection and try again.', 'error');
+            showToast('Excel engine still loading — please try again in a moment.', 'error');
             return;
           }
 
@@ -2758,15 +2688,6 @@
         // ============================================================
         async function handleExcelExport(mode) {
           setIsExportDropdownOpen(false);
-
-          // Load spreadsheet engines on demand (kept out of the initial payload).
-          try {
-            await Promise.all([
-              window.km100LoadExcelJs ? window.km100LoadExcelJs() : null,
-              window.km100LoadXlsx ? window.km100LoadXlsx() : null,
-              window.km100LoadLogos ? window.km100LoadLogos() : null
-            ]);
-          } catch (e) {}
 
           // Determine columns to export based on system configuration
           var activeCols = (visibleColumns && visibleColumns.length > 0) ? visibleColumns : DEFAULT_COLUMNS;
@@ -3809,55 +3730,7 @@
                 ])
               ]),
 
-            // Selected Room Banner (Executive Facility Status Bar)
-              selectedRoomId !== 'ALL' && currentRoom && h('div', { key: 'room-header', className: 'p-4 lg:p-5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 no-print' }, [
-                h('div', { className: 'max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4' }, [
-                  h('div', { className: 'space-y-1.5' }, [
-                    h('div', { className: 'flex items-center gap-2 flex-wrap' }, [
-                      h('button', {
-                        onClick: function() { setSelectedRoomId('ALL'); },
-                        className: 'text-xs font-medium text-amber-700 dark:text-amber-500 hover:underline flex items-center gap-1'
-                      }, [h(Icon, { name: 'building', size: 13 }), 'All Facilities']),
-                      h('span', { className: 'text-slate-400 text-xs' }, '/'),
-                      h('h2', { className: 'text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2' }, [
-                        currentRoom.name,
-                        h('span', { className: 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-orange-950/60 text-amber-800 dark:text-orange-300' }, 'Active Room')
-                      ])
-                    ]),
-                    h('div', { className: 'flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap' }, [
-                      h('span', null, currentRoom.description || 'KM100 Practical Training & Examination Lab'),
-                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, '\u2022'),
-                      h('span', { className: 'inline-flex items-center gap-1 font-mono' }, [
-                        h('strong', { className: 'text-slate-800 dark:text-slate-200 tabular-nums' }, roomItemCounts[currentRoom.id] ? roomItemCounts[currentRoom.id].unique : 0),
-                        ' catalog items'
-                      ]),
-                      h('span', { className: 'text-slate-300 dark:text-slate-700' }, '\u2022'),
-                      h('span', { className: 'inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400' }, [
-                        h('strong', { className: 'tabular-nums' }, roomItemCounts[currentRoom.id] ? roomItemCounts[currentRoom.id].totalQty : 0),
-                        ' physical units'
-                      ])
-                    ])
-                  ]),
-
-                  h('div', { className: 'flex items-center gap-2 shrink-0' }, [
-                    h('button', {
-                      onClick: function() { setEditingRoom(currentRoom); setIsRoomModalOpen(true); },
-                      title: 'Edit Facility Settings',
-                      className: 'flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors'
-                    }, [
-                      h(Icon, { name: 'edit', size: 14 }),
-                      h('span', { className: 'hidden sm:inline' }, 'Edit Facility')
-                    ]),
-                    h('button', {
-                      onClick: function() { setEditingItem(null); setIsItemModalOpen(true); },
-                      className: 'flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-700/20 transition-all active:scale-[0.98]'
-                    }, [
-                      h(Icon, { name: 'plus', size: 16 }),
-                      h('span', null, 'Add Item to ' + (currentRoom.name.length > 20 ? currentRoom.name.slice(0, 18) + '...' : currentRoom.name))
-                    ])
-                  ])
-                ])
-              ]),
+           
 
               // Filter Toolbar & Table
               h('div', { key: 'table-wrap', className: 'flex-1 p-2.5 sm:p-4 lg:p-6 flex flex-col min-h-0 no-print' }, [

@@ -1,6 +1,8 @@
-﻿# Node dependencies
+# Node dependencies
 node_modules/
+*/node_modules/
 dist/
+*/dist/
 dist-ssr/
 *.local
 
@@ -29,4 +31,7 @@ pnpm-debug.log*
 # Environment variables
 .env
 .env.local
+frontend/.env
+frontend/.env.local
 backend/.env
+backend/.env.local

@@ -1,10 +1,10 @@
 @echo off
 set PATH=C:\Program Files\nodejs;%PATH%
-cd /d "c:\Users\KM100 - 1008\Downloads\KM100 Stock"
-echo Installing npm dependencies...
-npm install
+cd /d "%~dp0frontend"
+echo Installing frontend npm dependencies...
+call npm install
 echo.
 echo Dependencies installed successfully!
 echo.
 echo Starting development server...
-npm run dev
+call npm run dev

@@ -18,17 +18,17 @@
     "noFallthroughCasesInSwitch": false,
     "baseUrl": ".",
     "paths": {
-      "react": ["src/types/ambient.d.ts"],
-      "react-dom": ["src/types/ambient.d.ts"],
-      "react-dom/*": ["src/types/ambient.d.ts"],
-      "react/jsx-runtime": ["src/types/ambient.d.ts"],
-      "react/jsx-dev-runtime": ["src/types/ambient.d.ts"],
-      "lucide-react": ["src/types/ambient.d.ts"],
-      "xlsx": ["src/types/ambient.d.ts"],
-      "exceljs": ["src/types/ambient.d.ts"],
-      "@supabase/supabase-js": ["src/types/ambient.d.ts"],
-      "*": ["src/types/*", "*"]
+      "react": ["frontend/src/types/ambient.d.ts"],
+      "react-dom": ["frontend/src/types/ambient.d.ts"],
+      "react-dom/*": ["frontend/src/types/ambient.d.ts"],
+      "react/jsx-runtime": ["frontend/src/types/ambient.d.ts"],
+      "react/jsx-dev-runtime": ["frontend/src/types/ambient.d.ts"],
+      "lucide-react": ["frontend/src/types/ambient.d.ts"],
+      "xlsx": ["frontend/src/types/ambient.d.ts"],
+      "exceljs": ["frontend/src/types/ambient.d.ts"],
+      "@supabase/supabase-js": ["frontend/src/types/ambient.d.ts"],
+      "*": ["frontend/src/types/*", "frontend/src/*", "*"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["frontend/src/**/*"]
 }

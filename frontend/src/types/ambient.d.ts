@@ -109,73 +109,68 @@ declare namespace ReactDOM {
   export function render(element: React.ReactElement, container: Element | null): void;
 }
 
-declare global {
-  namespace JSX {
-    interface Element extends React.ReactElement<any, any> {}
-    interface ElementClass {
-      render(): React.ReactNode;
-    }
-    interface ElementAttributesProperty {
-      props: {};
-    }
-    interface ElementChildrenAttribute {
-      children: {};
-    }
-    interface IntrinsicElements {
-      div: any;
-      span: any;
-      p: any;
-      h1: any;
-      h2: any;
-      h3: any;
-      h4: any;
-      h5: any;
-      h6: any;
-      button: any;
-      input: any;
-      select: any;
-      option: any;
-      textarea: any;
-      form: any;
-      label: any;
-      table: any;
-      thead: any;
-      tbody: any;
-      tr: any;
-      th: any;
-      td: any;
-      img: any;
-      svg: any;
-      path: any;
-      header: any;
-      footer: any;
-      nav: any;
-      aside: any;
-      section: any;
-      main: any;
-      dialog: any;
-      a: any;
-      ul: any;
-      ol: any;
-      li: any;
-      [elemName: string]: any;
-    }
+declare namespace JSX {
+  interface Element extends React.ReactElement<any, any> {}
+  interface ElementClass {
+    render(): React.ReactNode;
+  }
+  interface ElementAttributesProperty {
+    props: {};
+  }
+  interface ElementChildrenAttribute {
+    children: {};
+  }
+  interface IntrinsicElements {
+    div: any;
+    span: any;
+    p: any;
+    h1: any;
+    h2: any;
+    h3: any;
+    h4: any;
+    h5: any;
+    h6: any;
+    button: any;
+    input: any;
+    select: any;
+    option: any;
+    textarea: any;
+    form: any;
+    label: any;
+    table: any;
+    thead: any;
+    tbody: any;
+    tr: any;
+    th: any;
+    td: any;
+    img: any;
+    svg: any;
+    path: any;
+    header: any;
+    footer: any;
+    nav: any;
+    aside: any;
+    section: any;
+    main: any;
+    dialog: any;
+    a: any;
+    ul: any;
+    ol: any;
+    li: any;
+    [elemName: string]: any;
   }
 }
 
 declare module 'react' {
   export = React;
-  export default React;
 }
 
 declare module 'react-dom' {
   export = ReactDOM;
-  export default ReactDOM;
 }
 
 declare module 'react-dom/client' {
   export = ReactDOM;
-  export default ReactDOM;
 }
 
 declare module 'react/jsx-runtime' {

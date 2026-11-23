@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "baseUrl": ".",
+    "paths": {
+      "react": ["src/types/ambient.d.ts"],
+      "react-dom": ["src/types/ambient.d.ts"],
+      "react-dom/*": ["src/types/ambient.d.ts"],
+      "react/jsx-runtime": ["src/types/ambient.d.ts"],
+      "react/jsx-dev-runtime": ["src/types/ambient.d.ts"],
+      "lucide-react": ["src/types/ambient.d.ts"],
+      "xlsx": ["src/types/ambient.d.ts"],
+      "exceljs": ["src/types/ambient.d.ts"],
+      "@supabase/supabase-js": ["src/types/ambient.d.ts"],
+      "*": ["src/types/*", "*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
