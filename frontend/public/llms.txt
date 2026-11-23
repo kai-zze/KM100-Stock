@@ -1,0 +1,16 @@
+# KM100 Inventory Management System
+
+> Official asset registry, equipment tracking, and facilities inventory management system for KM100 Skills and Training Center, Inc.
+
+The KM100 Inventory Management System provides real-time tracking of vocational equipment, tools, training facilities, and condition registers across all training rooms.
+
+## Core Resources
+
+- [Inventory Dashboard](/): Main catalog interface for asset audits, equipment status, and condition records.
+- [Facility Rooms Register](/): Directory of laboratories, training rooms, and specialized workshop facilities.
+- [Excel Multi-Sheet Workbook Export](/): Formatted reporting system for institutional inventory reconciliation.
+- [System Architecture and Schema](/): Column attributes, data schemas, and item classification models.
+
+## Institutional Identity
+
+- [KM100 Skills and Training Center, Inc.](/): Technical-vocational training center providing accredited skills education and assessment.

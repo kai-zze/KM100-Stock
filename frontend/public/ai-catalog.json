@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.agentic.org/ai-catalog.v1.json",
+  "name": "KM100 Inventory Management System",
+  "description": "Official equipment tracking and facilities inventory management system for KM100 Skills and Training Center, Inc.",
+  "url": "/",
+  "version": "1.0.0",
+  "publisher": {
+    "name": "KM100 Skills and Training Center, Inc.",
+    "url": "/"
+  },
+  "capabilities": [
+    "inventory-management",
+    "equipment-tracking",
+    "facility-audits",
+    "excel-export"
+  ],
+  "endpoints": [
+    {
+      "name": "Inventory Management Portal",
+      "path": "/",
+      "type": "web",
+      "description": "Interactive inventory register and facility equipment controls"
+    }
+  ]
+}
