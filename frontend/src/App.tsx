@@ -207,6 +207,18 @@ export function App() {
     null,
   );
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  useEffect(() => {
+    const handleBeforePrint = () => setIsPrinting(true);
+    const handleAfterPrint = () => setIsPrinting(false);
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, []);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem("km100_sidebar_collapsed") === "true";
@@ -1429,14 +1441,16 @@ export function App() {
         </Suspense>
       )}
 
-      {/* ── Formal Printable Audit Report (Revealed on window.print) ── */}
-      <Suspense fallback={null}>
-        <PrintReport
-          items={filteredItems}
-          rooms={rooms}
-          facilityName={currentRoom ? currentRoom.name : "All Facilities"}
-        />
-      </Suspense>
+      {/* ── Formal Printable Audit Report (Only loaded when printing is triggered) ── */}
+      {isPrinting && (
+        <Suspense fallback={null}>
+          <PrintReport
+            items={filteredItems}
+            rooms={rooms}
+            facilityName={currentRoom ? currentRoom.name : "All Facilities"}
+          />
+        </Suspense>
+      )}
 
       {/* ── Action Confirmation Dialog ──────────────────────────────── */}
       {confirmDialog && (
