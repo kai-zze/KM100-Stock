@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   ColumnDefinition,
   InventoryItem,
@@ -55,9 +55,13 @@ export const InventoryTable: React.FC<Props> = ({
   const someSelected =
     !allSelected && allIds.some((id) => selectedIds.indexOf(id) !== -1);
 
-  const setHeaderCheckbox = (node: HTMLInputElement | null) => {
-    if (node) node.indeterminate = someSelected;
-  };
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected]);
 
   return (
     <div className="w-full bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
@@ -75,7 +79,7 @@ export const InventoryTable: React.FC<Props> = ({
             <tr>
               <th className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap">
                 <input
-                  ref={setHeaderCheckbox}
+                  ref={headerCheckboxRef}
                   type="checkbox"
                   checked={allSelected}
                   onChange={(e) => onToggleSelectAll(allIds, e.target.checked)}

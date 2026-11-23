@@ -115,7 +115,8 @@ export const Header: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => {
-                if (window.innerWidth < 768) {
+                const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+                if (isMobile) {
                   onOpenMobileMenu?.();
                 } else {
                   onToggleSidebar?.();
