@@ -31,8 +31,8 @@ export const Sidebar: React.FC<Props> = React.memo(({
   onEditRoom,
   onDeleteRoom,
   totalItemsCount,
-  roomItemCounts: _roomItemCounts,
-  roomAttentionCounts: _roomAttentionCounts,
+  roomItemCounts,
+  roomAttentionCounts,
   userRole,
 }) => {
   const [query, setQuery] = useState('');
@@ -130,18 +130,21 @@ export const Sidebar: React.FC<Props> = React.memo(({
         <div className="space-y-0.5">
           {filteredRooms.map((room) => {
             const isSelected = selectedRoomId === room.id;
+            const uniqueCount = roomItemCounts?.[room.id]?.unique || 0;
+            const attentionCount = roomAttentionCounts?.[room.id] || 0;
+
             return (
               <div
                 key={room.id}
                 className={`group relative flex items-center rounded-lg transition-colors ${
                   isSelected
-                    ? 'bg-amber-50/80 dark:bg-amber-950/40'
+                    ? 'bg-amber-50/80 dark:bg-amber-950/40 border-l-2 border-amber-600 dark:border-amber-500'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <button
                   onClick={() => onSelectRoom(room.id)}
-                  className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-2 px-2.5 py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500"
                   title={room.name}
                 >
                   <span
@@ -151,6 +154,19 @@ export const Sidebar: React.FC<Props> = React.memo(({
                   >
                     {room.name}
                   </span>
+
+                  {attentionCount > 0 ? (
+                    <span
+                      className="group-hover:hidden shrink-0 inline-flex items-center justify-center h-4 min-w-[16px] px-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 tabular-nums"
+                      title={`${attentionCount} item(s) need attention`}
+                    >
+                      {attentionCount}
+                    </span>
+                  ) : (
+                    <span className="group-hover:hidden shrink-0 text-[11px] font-mono tabular-nums text-slate-400 dark:text-slate-500">
+                      {uniqueCount}
+                    </span>
+                  )}
                 </button>
 
                 <div className="flex shrink-0 items-center gap-1 pr-2">

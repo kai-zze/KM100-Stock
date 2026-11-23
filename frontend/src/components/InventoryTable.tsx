@@ -5,6 +5,7 @@ import {
   Room
 } from '../types/inventory';
 import { ConditionBadge } from './ConditionBadge';
+import { Package, PackageX, Search, Plus, X } from 'lucide-react';
 
 interface Props {
   /** All items to display continuously. */
@@ -70,7 +71,7 @@ export const InventoryTable: React.FC<Props> = ({
 
       <div className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
         <table className="w-full text-left border-collapse text-sm min-w-[720px] lg:min-w-full">
-          <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-10">
+          <thead className="sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-10 shadow-[0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[0_1px_0_rgba(255,255,255,0.05)]">
             <tr>
               <th className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap">
                 <input
@@ -79,7 +80,7 @@ export const InventoryTable: React.FC<Props> = ({
                   checked={allSelected}
                   onChange={(e) => onToggleSelectAll(allIds, e.target.checked)}
                   aria-label="Select all items"
-                  className="rounded border-slate-300 text-amber-700 focus:ring-amber-600 cursor-pointer"
+                  className="rounded border-slate-300 dark:border-slate-700 text-amber-700 focus:ring-amber-600 cursor-pointer h-4 w-4"
                 />
               </th>
 
@@ -176,11 +177,12 @@ export const InventoryTable: React.FC<Props> = ({
                       const numVal = Number(val) || 0;
                       return (
                         <td key={col.id} className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap">
-                          <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1">
+                          <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1 shadow-2xs">
                             <button
+                              type="button"
                               onClick={() => onQuantityChange(item.id, -1)}
                               aria-label={`Decrease quantity for ${item.name}`}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40 font-bold select-none text-xs sm:text-sm"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 active:scale-90 active:bg-rose-100 dark:active:bg-rose-900/50 transition-all disabled:opacity-40 font-bold select-none text-xs sm:text-sm cursor-pointer"
                               disabled={numVal <= 0}
                               title="Decrease quantity by 1"
                             >
@@ -203,13 +205,14 @@ export const InventoryTable: React.FC<Props> = ({
                               }}
                               aria-label={`Manual quantity input for ${item.name}`}
                               title="Click to type or edit quantity directly"
-                              className="w-11 sm:w-14 px-1 py-0.5 text-center font-bold tabular-nums text-xs sm:text-sm text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-11 sm:w-14 px-1 py-0.5 text-center font-mono font-bold tabular-nums text-xs sm:text-sm text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
+                              type="button"
                               onClick={() => onQuantityChange(item.id, 1)}
                               aria-label={`Increase quantity for ${item.name}`}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-bold select-none text-xs sm:text-sm"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 active:scale-90 active:bg-emerald-100 dark:active:bg-emerald-900/50 transition-all font-bold select-none text-xs sm:text-sm cursor-pointer"
                               title="Increase quantity by 1"
                             >
                               +
@@ -266,26 +269,39 @@ export const InventoryTable: React.FC<Props> = ({
       </div>
 
       {items.length === 0 && (
-        <div className="py-16 px-4 text-center">
-          <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">No Inventory Items Found</h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
+        <div className="py-16 sm:py-20 px-4 text-center flex flex-col items-center justify-center">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-4 ring-8 ring-slate-50 dark:ring-slate-900/40">
+            {isFiltered ? (
+              <PackageX size={28} className="text-amber-600 dark:text-amber-400" />
+            ) : (
+              <Package size={28} className="text-slate-400 dark:text-slate-500" />
+            )}
+          </div>
+          <h4 className="text-base font-heading font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+            {isFiltered ? 'No matching inventory found' : 'No items registered in this room'}
+          </h4>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-5 leading-relaxed">
             {isFiltered
-              ? 'No items match your active search and filter parameters. Try clearing your filters.'
+              ? 'None of the inventory items match your active search and filter parameters. Try clearing your filters.'
               : 'This room has no items registered yet. Click below to add your first training inventory item.'}
           </p>
           {isFiltered ? (
             <button
+              type="button"
               onClick={onResetFilters}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
             >
-              Clear Search &amp; Filters
+              <X size={14} className="text-amber-600 dark:text-amber-400" />
+              <span>Reset Search &amp; Filters</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={onAddItem}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-600/20 transition-all active:scale-[0.98] cursor-pointer"
             >
-              Add New Item
+              <Plus size={16} />
+              <span>Add New Item</span>
             </button>
           )}
         </div>

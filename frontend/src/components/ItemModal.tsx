@@ -87,8 +87,10 @@ export const ItemModal: React.FC<Props> = ({
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
-              src="./logo.png"
+              src="/logo.png"
               alt="KM100 Logo"
+              width={36}
+              height={36}
               className="w-9 h-9 object-contain select-none"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;

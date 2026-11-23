@@ -277,14 +277,14 @@ export function App() {
   // ── Keyboard Shortcuts (Standard Pro Operator Shortcuts) ────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Focus search: press '/' when not typing in form fields
-      if (e.key === "/" && !e.isComposing) {
+      // Focus search: press '/' or 'Ctrl+K'/'Cmd+K'
+      if (((e.key === "/" && !e.isComposing) || ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")))) {
         const target = e.target as HTMLElement;
         const inInput =
           target.tagName === "INPUT" ||
           target.tagName === "TEXTAREA" ||
           target.tagName === "SELECT";
-        if (!inInput) {
+        if (!inInput || ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K"))) {
           e.preventDefault();
           searchInputRef.current?.focus();
         }
@@ -1161,19 +1161,27 @@ export function App() {
                   <input
                     ref={searchInputRef}
                     type="text"
-                    placeholder="Search items, category, or serial no."
+                    placeholder="Search items, category, or serial no..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors"
+                    className="w-full pl-10 pr-20 sm:pr-24 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors"
                   />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                    >
-                      <X size={15} />
-                    </button>
-                  )}
+                  <div className="absolute inset-y-0 right-2.5 flex items-center gap-1.5">
+                    {searchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        aria-label="Clear search"
+                        className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                      >
+                        <X size={15} />
+                      </button>
+                    ) : (
+                      <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 pointer-events-none select-none">
+                        <span>/</span>
+                      </kbd>
+                    )}
+                  </div>
                 </div>
 
                 {/* Filter Dropdowns & Column Visibility: Adaptive Grid on Mobile, Inline on Desktop */}

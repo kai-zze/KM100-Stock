@@ -172,7 +172,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                           key={room.id}
                           onClick={() => onSelectRoom(room.id)}
                           title={displayDesc || room.name}
-                          className="group flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 text-left shadow-sm transition-all hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          className="group flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 text-left shadow-2xs hover:shadow-md hover:-translate-y-0.5 hover:border-amber-400 dark:hover:border-amber-600 transition-all duration-150 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
                         >
                           <div>
                             <div className="flex items-start justify-between gap-2 mb-3">
