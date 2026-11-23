@@ -54,7 +54,7 @@ export const RoomModal: React.FC<Props> = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="/assets/logo.png"
               alt="KM100 Logo"
               width={36}
               height={36}
@@ -62,7 +62,7 @@ export const RoomModal: React.FC<Props> = ({
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.onerror = null;
-                target.src = "/favicon.png";
+                target.src = "/assets/favicon.png";
               }}
             />
             <div>

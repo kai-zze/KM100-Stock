@@ -49,10 +49,7 @@ const ImportPreviewModal = lazyNamed(
   () => import("./components/ImportPreviewModal"),
   "ImportPreviewModal",
 );
-const PrintReport = lazyNamed(
-  () => import("./components/PrintReport"),
-  "PrintReport",
-);
+import { PrintReport } from "./components/PrintReport";
 const UserProfileModal = lazyNamed(
   () => import("./components/UserProfileModal"),
   "UserProfileModal",
@@ -207,18 +204,6 @@ export function App() {
     null,
   );
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
-
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrinting(true);
-    const handleAfterPrint = () => setIsPrinting(false);
-    window.addEventListener("beforeprint", handleBeforePrint);
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", handleBeforePrint);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, []);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem("km100_sidebar_collapsed") === "true";
@@ -1353,6 +1338,32 @@ export function App() {
             rooms={rooms}
             selectedRoomId={selectedRoomId}
             onSave={async (savedItem) => {
+              // Automatically register new custom category in columns schema if not present
+              if (savedItem.category) {
+                const catCol = columns.find((c) => c.id === "category");
+                if (
+                  catCol &&
+                  catCol.options &&
+                  !catCol.options.some(
+                    (opt) => opt.toLowerCase() === savedItem.category.toLowerCase(),
+                  )
+                ) {
+                  const updatedCols = columns.map((c) =>
+                    c.id === "category"
+                      ? { ...c, options: [...(c.options || []), savedItem.category] }
+                      : c,
+                  );
+                  setColumns(updatedCols);
+                  try {
+                    localStorage.setItem(
+                      STORAGE_KEY_COLUMNS,
+                      JSON.stringify(updatedCols),
+                    );
+                  } catch {}
+                  inventoryService.saveColumns(updatedCols);
+                }
+              }
+
               inventoryService.upsertItem(savedItem);
               if (editingItem) {
                 setItems((prev) =>
@@ -1379,8 +1390,14 @@ export function App() {
             onSave={async (newCols) => {
               inventoryService.saveColumns(newCols);
               setColumns(newCols);
+              try {
+                localStorage.setItem(
+                  STORAGE_KEY_COLUMNS,
+                  JSON.stringify(newCols),
+                );
+              } catch {}
               showToast(
-                "Inventory column schema updated successfully!",
+                "Inventory column schema and categories updated successfully!",
                 "success",
               );
               setIsColumnsModalOpen(false);
@@ -1441,16 +1458,12 @@ export function App() {
         </Suspense>
       )}
 
-      {/* ── Formal Printable Audit Report (Only loaded when printing is triggered) ── */}
-      {isPrinting && (
-        <Suspense fallback={null}>
-          <PrintReport
-            items={filteredItems}
-            rooms={rooms}
-            facilityName={currentRoom ? currentRoom.name : "All Facilities"}
-          />
-        </Suspense>
-      )}
+      {/* ── Formal Printable Audit Report (Hidden on screen via .print-only, rendered on print) ── */}
+      <PrintReport
+        items={filteredItems}
+        rooms={rooms}
+        facilityName={currentRoom ? currentRoom.name : "All Facilities"}
+      />
 
       {/* ── Action Confirmation Dialog ──────────────────────────────── */}
       {confirmDialog && (

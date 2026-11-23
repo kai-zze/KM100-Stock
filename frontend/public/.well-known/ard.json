@@ -1,0 +1,23 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "KM100 Skills and Training Center, Inc.",
+    "documentationUrl": "http://localhost:3000",
+    "logoUrl": "http://localhost:3000/assets/logo.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:localhost:tools:inventory-management",
+      "displayName": "KM100 Inventory Management System",
+      "description": "Official equipment tracking and facilities inventory management register for KM100 Skills and Training Center, Inc.",
+      "type": "application/agent-card+json",
+      "url": "http://localhost:3000",
+      "representativeQueries": [
+        "check inventory quantities",
+        "search training equipment",
+        "view facility rooms",
+        "export inventory spreadsheet"
+      ]
+    }
+  ]
+}

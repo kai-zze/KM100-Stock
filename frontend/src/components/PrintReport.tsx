@@ -107,7 +107,7 @@ export const PrintReport: React.FC<Props> = ({
           <div className="flex items-stretch gap-3">
             <div className="flex items-center shrink-0">
               <img
-                src="/logo.png"
+                src="/assets/logo.png"
                 alt="KM100 Logo"
                 className="h-full max-h-[54px] w-auto aspect-square object-contain rounded-full"
               />

@@ -49,7 +49,7 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
         {/* Physical sticker */}
         <div className="asset-tag-sticker border-2 border-dashed border-slate-300 p-4 rounded-2xl bg-white text-black space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-black">
-            <img src="/logo.png" alt="KM100 Logo" className="w-8 h-8 object-contain" />
+            <img src="/assets/logo.png" alt="KM100 Logo" className="w-8 h-8 object-contain" />
             <div>
               <h4 className="text-[11px] font-black uppercase text-black leading-tight">
                 KM100 Skills &amp; Training Center

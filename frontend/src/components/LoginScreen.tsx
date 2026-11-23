@@ -202,18 +202,18 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess }) => {
             {/* Institution Logos & Accreditation Header */}
             <div className="flex items-center gap-3">
               <img
-                src="/logo.png"
+                src="/assets/logo.png"
                 alt="KM100 Logo"
                 className="h-12 w-12 object-contain select-none"
               />
               <img
-                src="/tesda_logo.png"
+                src="/assets/tesda_logo.png"
                 alt="TESDA Logo"
                 className="h-11 w-11 object-contain select-none"
               />
               <div className="pl-1">
                 <p className="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-                  <span className="text-[#f78525]">KM</span>100 Skills &amp; Training Center, Inc.
+                  <span className="text-orange-700 dark:text-orange-400">KM</span>100 Skills &amp; Training Center, Inc.
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
@@ -277,13 +277,13 @@ export const LoginScreen: React.FC<Props> = ({ onLoginSuccess }) => {
             {/* Mobile-only Branding Header */}
             <div className="mb-6 flex items-center gap-3 lg:hidden">
               <img
-                src="/logo.png"
+                src="/assets/logo.png"
                 alt="KM100 Logo"
                 className="h-10 w-10 object-contain select-none shrink-0"
               />
               <div className="min-w-0">
                 <p className="text-sm font-heading font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
-                  <span className="text-[#f78525]">KM</span>100 Skills &amp; Training Center
+                  <span className="text-orange-700 dark:text-orange-400">KM</span>100 Skills &amp; Training Center
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Inventory Management System</p>
               </div>

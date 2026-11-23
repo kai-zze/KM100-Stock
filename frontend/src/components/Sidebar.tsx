@@ -138,7 +138,7 @@ export const Sidebar: React.FC<Props> = React.memo(({
                 key={room.id}
                 className={`group relative flex items-center rounded-lg transition-colors ${
                   isSelected
-                    ? 'bg-amber-50/80 dark:bg-amber-950/40 border-l-2 border-amber-600 dark:border-amber-500'
+                    ? 'bg-amber-50/80 dark:bg-amber-950/40'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >

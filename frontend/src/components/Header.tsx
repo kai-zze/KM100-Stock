@@ -140,7 +140,7 @@ export const Header: React.FC<Props> = ({
 
           <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
             <img
-              src="/logo.png"
+              src="/assets/logo.png"
               alt="KM100 Logo"
               width={40}
               height={40}

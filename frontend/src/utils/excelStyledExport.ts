@@ -113,7 +113,10 @@ function cellText(column: ExportColumn, item: InventoryItem, roomName: string): 
 
 async function loadLogoBase64(): Promise<string | null> {
   try {
-    const response = await fetch('/logo.png');
+    let response = await fetch('/assets/logo.png');
+    if (!response.ok) {
+      response = await fetch('/logo.png');
+    }
     if (!response.ok) return null;
     const blob = await response.blob();
     return await new Promise<string>((resolve, reject) => {

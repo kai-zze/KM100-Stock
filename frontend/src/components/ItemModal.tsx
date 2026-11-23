@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
-import { Plus, Edit2, X } from "lucide-react";
+import { Plus, Edit2, X, Tag } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -24,6 +24,11 @@ export const ItemModal: React.FC<Props> = ({
   const defaultRoom =
     selectedRoomId !== "ALL" ? selectedRoomId : rooms[0]?.id || "";
 
+  // Find initial default category from column options if available
+  const catCol = columns.find((c) => c.id === "category");
+  const defaultCategory =
+    catCol?.options && catCol.options.length > 0 ? catCol.options[0] : "Tools";
+
   const [formData, setFormData] = useState<Record<string, any>>(() => {
     if (editingItem) {
       return { ...editingItem };
@@ -35,16 +40,25 @@ export const ItemModal: React.FC<Props> = ({
       units: "pcs",
       status: "Working",
       condition: "Working",
-      category: "Tools",
+      category: defaultCategory,
       remarks: "",
     };
     columns.forEach((col) => {
       if (initial[col.id] === undefined) {
-        initial[col.id] = col.type === "number" ? 0 : "";
+        if (col.type === "number") {
+          initial[col.id] = 0;
+        } else if (col.type === "dropdown") {
+          initial[col.id] = col.options?.[0] || "";
+        } else {
+          initial[col.id] = "";
+        }
       }
     });
     return initial;
   });
+
+  // Track which dropdown fields are in "Custom / Type New" mode
+  const [customModes, setCustomModes] = useState<Record<string, boolean>>({});
 
   if (!isOpen) return null;
 
@@ -65,7 +79,7 @@ export const ItemModal: React.FC<Props> = ({
       id: editingItem ? editingItem.id : `item-${Date.now()}`,
       name: formData.name.trim(),
       roomId: formData.roomId,
-      category: formData.category || "General",
+      category: String(formData.category || "General").trim(),
       condition: formData.condition || "Good",
       quantity: Number(formData.quantity) || 0,
       updatedAt: now,
@@ -87,7 +101,7 @@ export const ItemModal: React.FC<Props> = ({
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="/assets/logo.png"
               alt="KM100 Logo"
               width={36}
               height={36}
@@ -95,7 +109,7 @@ export const ItemModal: React.FC<Props> = ({
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.onerror = null;
-                target.src = "/favicon.png";
+                target.src = "/assets/favicon.png";
               }}
             />
             <div>
@@ -126,7 +140,7 @@ export const ItemModal: React.FC<Props> = ({
         >
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Target Facility Room <span className="text-rose-500">*</span>
+              Target Facility Room / Department <span className="text-rose-500">*</span>
             </label>
             <select
               value={formData.roomId}
@@ -148,9 +162,12 @@ export const ItemModal: React.FC<Props> = ({
             const val = formData[col.id] !== undefined ? formData[col.id] : "";
 
             if (col.type === "dropdown") {
-              const options =
+              const isCustom = Boolean(customModes[col.id]);
+
+              // Derive options list and ensure current value is represented
+              let options =
                 col.options && col.options.length > 0
-                  ? col.options
+                  ? [...col.options]
                   : col.id === "status" || col.id === "condition"
                     ? ["Working", "Used", "Defective", "Empty", "Incomplete"]
                     : col.id === "units"
@@ -158,32 +175,66 @@ export const ItemModal: React.FC<Props> = ({
                       : [
                           "Tools",
                           "PC Hardware",
-                          "Peripheral",
-                          "Cables and Wires",
-                          "Consumables",
-                          "Diagnostic",
-                          "Networking",
+                          "Peripherals and Storage",
+                          "Consumables and Maintenance",
                         ];
+
+              // If the item has a value not in the options array, include it
+              if (val && !options.includes(val)) {
+                options = [val, ...options];
+              }
+
               return (
                 <div key={col.id}>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {col.label}{" "}
-                    {col.required && <span className="text-rose-500">*</span>}
-                  </label>
-                  <select
-                    value={val}
-                    onChange={(e) =>
-                      setFormData({ ...formData, [col.id]: e.target.value })
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
-                    required={col.required}
-                  >
-                    {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-slate-700 dark:text-slate-300">
+                      {col.label}{" "}
+                      {col.required && <span className="text-rose-500">*</span>}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomModes((prev) => ({
+                          ...prev,
+                          [col.id]: !isCustom,
+                        }))
+                      }
+                      className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+                    >
+                      {isCustom
+                        ? "← Choose from existing list"
+                        : `+ Type new ${col.label.toLowerCase()}`}
+                    </button>
+                  </div>
+
+                  {isCustom ? (
+                    <input
+                      type="text"
+                      placeholder={`Enter new ${col.label.toLowerCase()} (e.g. Baking Ingredients, Linens)...`}
+                      value={val}
+                      onChange={(e) =>
+                        setFormData({ ...formData, [col.id]: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-300 dark:border-amber-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
+                      required={col.required}
+                      autoFocus
+                    />
+                  ) : (
+                    <select
+                      value={val}
+                      onChange={(e) =>
+                        setFormData({ ...formData, [col.id]: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
+                      required={col.required}
+                    >
+                      {options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               );
             }

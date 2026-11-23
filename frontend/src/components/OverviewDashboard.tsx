@@ -254,33 +254,37 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                       {emptyRooms.map((room) => (
                         <div
                           key={room.id}
                           onClick={() => onSelectRoom(room.id)}
-                          className="group flex items-center justify-between gap-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 px-3.5 py-2.5 text-left transition-colors hover:border-amber-300 dark:hover:border-amber-600 hover:bg-white dark:hover:bg-slate-800 cursor-pointer"
+                          className="group flex flex-col justify-between rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-3 text-left transition-all hover:border-amber-300 dark:hover:border-amber-600 hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xs cursor-pointer min-h-[76px]"
                           title={`Open ${room.name}`}
                         >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">
-                              {room.name}
-                            </p>
-                            <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Empty</p>
-                          </div>
+                          <div className="flex items-start justify-between gap-2.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors leading-snug break-words">
+                                {room.name}
+                              </p>
+                              <span className="inline-block mt-0.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                                Empty room
+                              </span>
+                            </div>
 
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onAddItem(room.id);
-                            }}
-                            className="flex shrink-0 items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-colors hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300"
-                            title={`Add equipment to ${room.name}`}
-                          >
-                            <Plus size={13} className="text-amber-600 dark:text-amber-400" />
-                            <span>Add item</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAddItem(room.id);
+                              }}
+                              className="flex shrink-0 items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-colors hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300"
+                              title={`Add equipment to ${room.name}`}
+                            >
+                              <Plus size={12} className="text-amber-600 dark:text-amber-400" />
+                              <span>Add item</span>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

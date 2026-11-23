@@ -1,25 +1,23 @@
 {
-  "$schema": "https://schemas.agentic.org/ai-catalog.v1.json",
-  "name": "KM100 Inventory Management System",
-  "description": "Official equipment tracking and facilities inventory management system for KM100 Skills and Training Center, Inc.",
-  "url": "/",
-  "version": "1.0.0",
-  "publisher": {
-    "name": "KM100 Skills and Training Center, Inc.",
-    "url": "/"
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "KM100 Skills and Training Center, Inc.",
+    "documentationUrl": "http://localhost:3000",
+    "logoUrl": "http://localhost:3000/assets/logo.png"
   },
-  "capabilities": [
-    "inventory-management",
-    "equipment-tracking",
-    "facility-audits",
-    "excel-export"
-  ],
-  "endpoints": [
+  "entries": [
     {
-      "name": "Inventory Management Portal",
-      "path": "/",
-      "type": "web",
-      "description": "Interactive inventory register and facility equipment controls"
+      "identifier": "urn:air:localhost:tools:inventory-management",
+      "displayName": "KM100 Inventory Management System",
+      "description": "Official equipment tracking and facilities inventory management register for KM100 Skills and Training Center, Inc.",
+      "type": "application/agent-card+json",
+      "url": "http://localhost:3000",
+      "representativeQueries": [
+        "check inventory quantities",
+        "search training equipment",
+        "view facility rooms",
+        "export inventory spreadsheet"
+      ]
     }
   ]
 }
