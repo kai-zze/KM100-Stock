@@ -71,6 +71,16 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "bottom",
     },
     {
+      id: "add-item",
+      targetId: "tour-add-item",
+      fallbackTargetId: "tour-add-item-overview",
+      section: "ENROLLMENT",
+      title: "Registering New Equipment",
+      description:
+        "Click '+ Add item' to enroll new tools, machinery, computers, or consumables with model names, initial quantities, and condition grades.",
+      preferredPlacement: "bottom",
+    },
+    {
       id: "search-filters",
       targetId: "tour-search-filters",
       section: "SEARCH",
@@ -102,13 +112,14 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "top",
     },
     {
-      id: "add-item",
-      targetId: "tour-add-item",
-      fallbackTargetId: "tour-add-item-overview",
-      section: "ENROLLMENT",
-      title: "Registering New Equipment",
+      id: "schema-columns",
+      targetId: "tour-schema-columns-btn",
+      fallbackTargetId: "tour-header-tools",
+      section: "SCHEMA MANAGEMENT",
+      title: "Customize Columns & Fields",
       description:
-        "Click '+ Add item' to enroll new tools, machinery, computers, or consumables with model names, initial quantities, and condition grades.",
+        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
+      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
       preferredPlacement: "bottom",
     },
     {
@@ -119,17 +130,6 @@ export const OnboardingModal: React.FC<Props> = ({
       description:
         "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
       tip: "Physical inventory sheets automatically format for letter-size print.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "schema-columns",
-      targetId: "tour-schema-columns-btn",
-      fallbackTargetId: "tour-header-tools",
-      section: "SCHEMA MANAGEMENT",
-      title: "Customize Columns & Fields",
-      description:
-        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
-      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
       preferredPlacement: "bottom",
     },
     {
