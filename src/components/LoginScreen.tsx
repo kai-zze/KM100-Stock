@@ -29,7 +29,6 @@ import {
   registerAccount,
   sendPasswordResetEmail,
   completePasswordRecovery,
-  getInstitutionalPasskeys,
   logoutCurrentSession,
 } from "../utils/auth";
 import { supabase } from "../utils/supabaseClient";
@@ -1011,7 +1010,7 @@ export const LoginScreen: React.FC<Props> = ({
 
                   {/* Institutional Security Passkey */}
                   <div>
-                    <div className="mb-1.5 flex items-center justify-between">
+                    <div className="mb-1.5">
                       <label
                         htmlFor="signup-passkey"
                         className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5"
@@ -1024,21 +1023,6 @@ export const LoginScreen: React.FC<Props> = ({
                           ? "Custodian Authorization Passkey"
                           : "Staff Authorization Passkey"}
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const keys = getInstitutionalPasskeys();
-                          setPasskey(
-                            role === "admin"
-                              ? keys.adminPasskey
-                              : keys.staffPasskey,
-                          );
-                        }}
-                        className="text-[11px] font-medium text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
-                        title="Click to insert official authorization passkey"
-                      >
-                        Autofill Demo Passkey
-                      </button>
                     </div>
                     <div className="relative">
                       <Key
