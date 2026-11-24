@@ -26,17 +26,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       <div className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500" />
 
       {/* Institutional Brand Header with KM100 and TESDA Logos flanking the Company Name */}
-      <div className="flex items-center justify-center gap-3 sm:gap-5 px-3 max-w-xl">
+      <div className="flex items-center justify-center gap-3 sm:gap-6 px-4 max-w-2xl">
         <img
           src="/logo-sm.png"
           alt="KM100 Logo"
-          width={52}
-          height={52}
-          className="h-11 w-11 sm:h-14 sm:w-14 shrink-0 rounded-full object-contain"
+          width={64}
+          height={64}
+          className="h-12 w-12 sm:h-16 sm:w-16 shrink-0 rounded-full object-contain filter drop-shadow-sm"
         />
 
         <div className="space-y-1 text-center">
-          <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
             KM100 SKILLS AND TRAINING CENTER, INC.
           </h1>
           <p className="font-sans text-xs sm:text-sm font-medium text-slate-500">
@@ -47,15 +47,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         <img
           src="/tesda_logo.png"
           alt="TESDA Logo"
-          width={52}
-          height={52}
-          className="h-11 w-11 sm:h-14 sm:w-14 shrink-0 rounded-full object-contain"
+          width={64}
+          height={64}
+          className="h-12 w-12 sm:h-16 sm:w-16 shrink-0 rounded-full object-contain filter drop-shadow-sm"
         />
       </div>
 
-      {/* Uiverse.io Scrolling Loader (Enlarged) */}
-      <div className="mt-10 sm:mt-12 flex justify-center w-full overflow-hidden px-4">
-        <ScrollingLoader size="clamp(2.8rem, 8vw, 3.6rem)" text="Loading" />
+      {/* Uiverse.io Scrolling Loader (Adaptive Across All Screen Sizes & Devices) */}
+      <div className="mt-12 sm:mt-16 flex justify-center w-full overflow-hidden px-4">
+        <ScrollingLoader text="Loading" />
       </div>
 
       {/* Regulatory Institutional Anchor */}

@@ -190,7 +190,7 @@
       MIT License, Copyright (c) andrew-manzyk (Andrew Manzyk)
       */
       .uiverse-scrolling-loader {
-        --main-size: clamp(2.8rem, 8vw, 3.6rem);
+        --loader-font-size: var(--main-size, clamp(1.4rem, 4.2vw, 2.75rem));
         --text-color: #0f172a;
         --shine-color: rgba(15, 23, 42, 0.08);
         --shadow-color: #94a3b8;
@@ -202,19 +202,20 @@
         user-select: none;
         -webkit-user-select: none;
         position: relative;
-        font-size: var(--main-size);
+        font-size: var(--loader-font-size);
         font-weight: 900;
         text-transform: uppercase;
         color: var(--text-color);
-        width: 7.3em;
-        max-width: 100%;
-        height: 1em;
+        width: 7.5em;
+        max-width: 92vw;
+        height: 2.2em;
         filter: drop-shadow(0 0 0.05em var(--shine-color));
         font-family:
           "Plus Jakarta Sans",
           system-ui,
           -apple-system,
           sans-serif;
+        letter-spacing: 0.04em;
       }
 
       .uiverse-scrolling-loader .uiverse-text {
@@ -229,63 +230,63 @@
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(1) {
         clip-path: polygon(0% 0%, 11.11% 0%, 11.11% 100%, 0% 100%);
-        font-size: calc(var(--main-size) / 20);
+        font-size: calc(var(--loader-font-size) * 0.5);
         margin-left: -2.1em;
         opacity: 0.6;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(2) {
         clip-path: polygon(11.11% 0%, 22.22% 0%, 22.22% 100%, 11.11% 100%);
-        font-size: calc(var(--main-size) / 16);
+        font-size: calc(var(--loader-font-size) * 0.625);
         margin-left: -0.98em;
         opacity: 0.7;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(3) {
         clip-path: polygon(22.22% 0%, 33.33% 0%, 33.33% 100%, 22.22% 100%);
-        font-size: calc(var(--main-size) / 13);
+        font-size: calc(var(--loader-font-size) * 0.77);
         margin-left: -0.33em;
         opacity: 0.8;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(4) {
         clip-path: polygon(33.33% 0%, 44.44% 0%, 44.44% 100%, 33.33% 100%);
-        font-size: calc(var(--main-size) / 11);
+        font-size: calc(var(--loader-font-size) * 0.91);
         margin-left: -0.05em;
         opacity: 0.9;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(5) {
         clip-path: polygon(44.44% 0%, 55.55% 0%, 55.55% 100%, 44.44% 100%);
-        font-size: calc(var(--main-size) / 10);
+        font-size: var(--loader-font-size);
         margin-left: 0em;
         opacity: 1;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(6) {
         clip-path: polygon(55.55% 0%, 66.66% 0%, 66.66% 100%, 55.55% 100%);
-        font-size: calc(var(--main-size) / 11);
+        font-size: calc(var(--loader-font-size) * 0.91);
         margin-left: 0.05em;
         opacity: 0.9;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(7) {
         clip-path: polygon(66.66% 0%, 77.77% 0%, 77.77% 100%, 66.66% 100%);
-        font-size: calc(var(--main-size) / 13);
+        font-size: calc(var(--loader-font-size) * 0.77);
         margin-left: 0.33em;
         opacity: 0.8;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(8) {
         clip-path: polygon(77.77% 0%, 88.88% 0%, 88.88% 100%, 77.77% 100%);
-        font-size: calc(var(--main-size) / 16);
+        font-size: calc(var(--loader-font-size) * 0.625);
         margin-left: 0.98em;
         opacity: 0.7;
       }
 
       .uiverse-scrolling-loader .uiverse-text:nth-child(9) {
         clip-path: polygon(88.88% 0%, 100% 0%, 100% 100%, 88.88% 100%);
-        font-size: calc(var(--main-size) / 20);
+        font-size: calc(var(--loader-font-size) * 0.5);
         margin-left: 2.1em;
         opacity: 0.6;
       }
@@ -405,15 +406,16 @@
       }
 
       .uiverse-scrolling-loader .uiverse-line {
-        position: relative;
+        position: absolute;
+        bottom: 0.15em;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        height: 0.05em;
-        width: calc(var(--main-size) / 2);
-        margin-top: 0.9em;
-        border-radius: 0.05em;
+        height: clamp(3px, 0.45vw, 5px);
+        width: 5.5em;
+        max-width: 85%;
+        border-radius: 9999px;
       }
 
       .uiverse-scrolling-loader .uiverse-line::before {
@@ -423,6 +425,7 @@
         width: 100%;
         background-color: var(--text-color);
         opacity: 0.15;
+        border-radius: 9999px;
       }
 
       .uiverse-scrolling-loader .uiverse-line::after {
@@ -431,7 +434,7 @@
         height: 100%;
         width: 100%;
         background-color: var(--accent-color, #b45309);
-        border-radius: 0.05em;
+        border-radius: 9999px;
         transform: translateX(-90%);
         animation: uiverse-wobble 2s cubic-bezier(0.5, 0.8, 0.5, 0.2) infinite;
       }
@@ -651,19 +654,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            max-width: 600px;
+            gap: clamp(12px, 3vw, 24px);
+            max-width: 680px;
             padding: 0 16px;
           "
         >
           <img
             src="/logo-sm.png"
-            width="52"
-            height="52"
+            width="64"
+            height="64"
             alt="KM100 Logo"
             style="
-              width: 52px;
-              height: 52px;
+              width: clamp(48px, 6vw, 64px);
+              height: clamp(48px, 6vw, 64px);
               border-radius: 50%;
               object-fit: contain;
               flex-shrink: 0;
@@ -675,7 +678,7 @@
               style="
                 margin: 0;
                 color: #0f172a;
-                font-size: 20px;
+                font-size: clamp(18px, 2.5vw, 28px);
                 font-weight: 800;
                 letter-spacing: -0.025em;
                 line-height: 1.25;
@@ -687,7 +690,7 @@
               style="
                 margin: 6px 0 0 0;
                 color: #64748b;
-                font-size: 13px;
+                font-size: clamp(12px, 1.4vw, 15px);
                 font-weight: 500;
                 font-family: &quot;DM Sans&quot;, system-ui, sans-serif;
                 letter-spacing: -0.01em;
@@ -699,12 +702,12 @@
 
           <img
             src="/tesda_logo.png"
-            width="52"
-            height="52"
+            width="64"
+            height="64"
             alt="TESDA Logo"
             style="
-              width: 52px;
-              height: 52px;
+              width: clamp(48px, 6vw, 64px);
+              height: clamp(48px, 6vw, 64px);
               border-radius: 50%;
               object-fit: contain;
               flex-shrink: 0;
@@ -712,8 +715,11 @@
           />
         </div>
 
-        <!-- Uiverse.io Scrolling Loader (Enlarged) -->
-        <div class="uiverse-scrolling-loader" style="margin-top: 44px">
+        <!-- Uiverse.io Scrolling Loader (Adaptive Across All Devices) -->
+        <div
+          class="uiverse-scrolling-loader"
+          style="margin-top: clamp(32px, 5vh, 52px)"
+        >
           <div class="uiverse-text"><span>Loading</span></div>
           <div class="uiverse-text"><span>Loading</span></div>
           <div class="uiverse-text"><span>Loading</span></div>

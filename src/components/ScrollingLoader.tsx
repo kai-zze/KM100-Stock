@@ -17,22 +17,26 @@ export interface ScrollingLoaderProps {
 export const ScrollingLoader: React.FC<ScrollingLoaderProps> = ({
   text = "Loading",
   className = "",
-  size = "clamp(2.8rem, 8vw, 3.6rem)",
+  size,
   textColor = "#0f172a",
   shadowColor = "#94a3b8",
   accentColor = "#b45309",
 }) => {
+  const customStyles: Record<string, string> = {
+    "--text-color": textColor,
+    "--shadow-color": shadowColor,
+    "--accent-color": accentColor,
+  };
+
+  if (size) {
+    customStyles["--main-size"] = size;
+    customStyles["--loader-font-size"] = size;
+  }
+
   return (
     <div
       className={`uiverse-scrolling-loader ${className}`}
-      style={
-        {
-          "--main-size": size,
-          "--text-color": textColor,
-          "--shadow-color": shadowColor,
-          "--accent-color": accentColor,
-        } as React.CSSProperties
-      }
+      style={customStyles as React.CSSProperties}
       role="status"
       aria-label={`${text}...`}
     >
