@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "KM100 Inventory Management System",
   "short_name": "KM100 Stock",
   "description": "Official asset & property custody management system for KM100 Skills and Training Center, Inc.",
@@ -8,6 +9,7 @@
   "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
