@@ -91,6 +91,17 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "bottom",
     },
     {
+      id: "row-actions",
+      targetId: "tour-row-actions",
+      fallbackTargetId: "tour-table",
+      section: "TABLE ACTIONS",
+      title: "Edit & Delete Equipment",
+      description:
+        "Click 'Edit' to update item specifications, change room assignments, or record remarks. Click 'Delete' to permanently remove depleted or decommissioned equipment.",
+      tip: "Destructive deletions always prompt a confirmation dialog to prevent accidental data loss.",
+      preferredPlacement: "top",
+    },
+    {
       id: "add-item",
       targetId: "tour-add-item",
       fallbackTargetId: "tour-add-item-overview",
@@ -108,6 +119,17 @@ export const OnboardingModal: React.FC<Props> = ({
       description:
         "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
       tip: "Physical inventory sheets automatically format for letter-size print.",
+      preferredPlacement: "bottom",
+    },
+    {
+      id: "schema-columns",
+      targetId: "tour-schema-columns-btn",
+      fallbackTargetId: "tour-header-tools",
+      section: "SCHEMA MANAGEMENT",
+      title: "Customize Columns & Fields",
+      description:
+        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
+      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
       preferredPlacement: "bottom",
     },
     {

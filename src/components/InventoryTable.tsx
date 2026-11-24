@@ -299,7 +299,10 @@ export const InventoryTable: React.FC<Props> = ({
                   })}
 
                   <td className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold">
+                    <div
+                      id={itemIdx === 0 ? "tour-row-actions" : undefined}
+                      className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold"
+                    >
                       <button
                         onClick={() => onEditItem(item)}
                         aria-label={`Edit ${item.name}`}

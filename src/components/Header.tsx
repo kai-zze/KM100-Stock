@@ -377,6 +377,7 @@ export const Header: React.FC<Props> = ({
           {/* Schema Columns Config (Admin Only, Desktop only; on mobile accessible via dropdown) */}
           {currentUser?.role === "admin" && (
             <button
+              id="tour-schema-columns-btn"
               onClick={onOpenColumnsModal}
               aria-label="Configure inventory schema columns"
               className="hidden sm:flex p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors shrink-0"
