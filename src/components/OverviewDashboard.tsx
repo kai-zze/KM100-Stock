@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { AlertTriangle, ArrowRight, Layers, Plus } from "lucide-react";
+import { AlertTriangle, Layers, Plus } from "lucide-react";
 import { Room, InventoryItem } from "../types/inventory";
 import { isNeedsAttention, isOutOfStockOrEmpty } from "../utils/status";
 
@@ -240,15 +240,11 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             <button
                               type="button"
                               onClick={() => onSelectRoom(room.id)}
-                              className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:border-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-300 cursor-pointer shadow-2xs active:scale-95 sm:text-xs"
+                              className="cursor-pointer text-xs font-bold text-slate-700 transition-colors hover:text-amber-700 hover:underline focus:outline-none focus-visible:underline dark:text-slate-300 dark:hover:text-amber-400"
                               title={`View ${room.name} items`}
                               aria-label={`View ${room.name} items`}
                             >
-                              <span>View</span>
-                              <ArrowRight
-                                size={13}
-                                className="transition-transform group-hover/btn:translate-x-0.5 text-amber-600 dark:text-amber-400"
-                              />
+                              View
                             </button>
                           </div>
                         </div>
@@ -290,11 +286,11 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             <button
                               type="button"
                               onClick={() => onSelectRoom(room.id)}
-                              className="shadow-2xs flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
+                              className="cursor-pointer px-1 py-1 text-xs font-bold text-slate-700 transition-colors hover:text-amber-700 hover:underline focus:outline-none focus-visible:underline dark:text-slate-300 dark:hover:text-amber-400"
                               title={`View ${room.name}`}
                               aria-label={`View ${room.name}`}
                             >
-                              <span>View</span>
+                              View
                             </button>
                             <button
                               type="button"
