@@ -433,12 +433,8 @@ export const LoginScreen: React.FC<Props> = ({
                   <span className="text-amber-700 dark:text-amber-500">KM</span>
                   100 Skills &amp; Training Center, Inc.
                 </h2>
-                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
-                  <span>Property Custody</span>
-                  <span className="text-slate-300 dark:text-slate-600">
-                    &bull;
-                  </span>
-                  <span>Inventory System</span>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  Staff &amp; Custodian Portal
                 </p>
               </div>
             </div>
@@ -523,7 +519,7 @@ export const LoginScreen: React.FC<Props> = ({
                 100 Skills &amp; Training Center
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Inventory Management System
+                Staff &amp; Custodian Portal
               </p>
             </div>
           </div>
