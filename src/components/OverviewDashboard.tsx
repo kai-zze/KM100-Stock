@@ -196,19 +196,19 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             </div>
 
                             <div className="mb-3 grid grid-cols-2 gap-2">
-                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/70">
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 text-center dark:border-slate-800 dark:bg-slate-800/80 shadow-2xs">
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                   Items
                                 </p>
-                                <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+                                <p className="mt-1.5 text-3xl sm:text-4xl font-black font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                                   {counts.unique}
                                 </p>
                               </div>
-                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/70">
-                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 text-center dark:border-slate-800 dark:bg-slate-800/80 shadow-2xs">
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                   Units
                                 </p>
-                                <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+                                <p className="mt-1.5 text-3xl sm:text-4xl font-black font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                                   {counts.totalQty.toLocaleString()}
                                 </p>
                               </div>

@@ -91,13 +91,13 @@ export const DashboardSkeleton: React.FC = () => {
 
                   {/* 2-Column Stats Grid */}
                   <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70 space-y-1.5 text-center">
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-2xs">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
-                      <SkeletonBone className="h-7 w-10 mx-auto" />
+                      <SkeletonBone className="h-9 w-12 mx-auto" />
                     </div>
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70 space-y-1.5 text-center">
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-2xs">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
-                      <SkeletonBone className="h-7 w-14 mx-auto" />
+                      <SkeletonBone className="h-9 w-16 mx-auto" />
                     </div>
                   </div>
                 </div>
