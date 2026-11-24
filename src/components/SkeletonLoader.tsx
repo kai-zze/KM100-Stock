@@ -93,11 +93,11 @@ export const DashboardSkeleton: React.FC = () => {
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70 space-y-1.5 text-center">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
-                      <SkeletonBone className="h-6 w-8 mx-auto" />
+                      <SkeletonBone className="h-7 w-10 mx-auto" />
                     </div>
                     <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70 space-y-1.5 text-center">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
-                      <SkeletonBone className="h-6 w-12 mx-auto" />
+                      <SkeletonBone className="h-7 w-14 mx-auto" />
                     </div>
                   </div>
                 </div>

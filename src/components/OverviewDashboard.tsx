@@ -200,7 +200,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Items
                                 </p>
-                                <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-slate-900 dark:text-white sm:text-xl">
+                                <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                                   {counts.unique}
                                 </p>
                               </div>
@@ -208,7 +208,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Units
                                 </p>
-                                <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-slate-900 dark:text-white sm:text-xl">
+                                <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                                   {counts.totalQty.toLocaleString()}
                                 </p>
                               </div>
