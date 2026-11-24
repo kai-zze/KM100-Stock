@@ -81,6 +81,7 @@ import {
   ArrowUpDown,
   Building,
   Trash2,
+  LogOut,
 } from "lucide-react";
 
 const STORAGE_KEY_ROOMS = "km100_inventory_rooms_v1";
@@ -274,6 +275,8 @@ export function App() {
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
     message: string;
+    confirmLabel?: string;
+    icon?: React.ReactNode;
     isDestructive?: boolean;
     onConfirm: () => void;
   } | null>(null);
@@ -944,6 +947,21 @@ export function App() {
     showToast("Signed out of KM100 System", "info");
   };
 
+  const handleRequestSignOut = () => {
+    setConfirmDialog({
+      title: "Sign Out of Workspace",
+      message:
+        "Are you sure you want to sign out? You will need to sign back in with your employee credentials or authorized passkey to access the property register.",
+      confirmLabel: "Sign Out",
+      icon: <LogOut size={22} />,
+      isDestructive: false,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        await handleSignOut();
+      },
+    });
+  };
+
   // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
   if (!currentUser || isPasswordRecovery) {
     return (
@@ -1001,7 +1019,7 @@ export function App() {
         selectedRoomId={selectedRoomId}
         currentRoom={currentRoom}
         currentUser={currentUser}
-        onSignOut={handleSignOut}
+        onSignOut={handleRequestSignOut}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -1515,11 +1533,11 @@ export function App() {
               <div
                 className={`p-2 rounded-xl ${
                   confirmDialog.isDestructive
-                    ? "bg-rose-100 dark:bg-rose-950/60 text-rose-600"
-                    : "bg-amber-100 dark:bg-amber-950/60 text-amber-700"
+                    ? "bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400"
+                    : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400"
                 }`}
               >
-                <AlertTriangle size={22} />
+                {confirmDialog.icon || <AlertTriangle size={22} />}
               </div>
               <h3 className="text-base font-heading font-bold text-slate-900 dark:text-white">
                 {confirmDialog.title}
@@ -1543,7 +1561,7 @@ export function App() {
                     : "bg-amber-700 hover:bg-amber-800"
                 }`}
               >
-                Confirm Action
+                {confirmDialog.confirmLabel || "Confirm Action"}
               </button>
             </div>
           </div>
