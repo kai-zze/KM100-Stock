@@ -704,7 +704,7 @@ export const LoginScreen: React.FC<Props> = ({
               <div id="signin-panel" role="tabpanel">
                 <form
                   onSubmit={handleSignIn}
-                  className="space-y-3.5"
+                  className="space-y-4"
                   noValidate
                   autoComplete="off"
                 >
@@ -773,7 +773,7 @@ export const LoginScreen: React.FC<Props> = ({
                     </div>
 
                     {/* Remember me & Forgot Password Row */}
-                    <div className="mt-2.5 flex items-center justify-between text-xs">
+                    <div className="mt-3 flex items-center justify-between text-xs">
                       <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
                         <input
                           type="checkbox"
@@ -793,7 +793,7 @@ export const LoginScreen: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="pt-1">
+                  <div className="pt-4 sm:pt-5">
                     <button
                       type="submit"
                       disabled={isLoading}
