@@ -26,20 +26,20 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       <div className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500" />
 
       {/* Institutional Brand Header (Centered, Adaptive & Balanced) */}
-      <div className="flex flex-col items-center justify-center max-w-2xl px-4 text-center">
+      <div className="flex w-full flex-col items-center justify-center max-w-4xl px-4 text-center">
         <img
           src="/logo-sm.png"
           alt="KM100 Official Emblem"
           width={72}
           height={72}
-          className="h-14 w-14 sm:h-18 sm:w-18 md:h-20 md:w-20 shrink-0 rounded-full object-contain mb-3 sm:mb-4 filter drop-shadow-md"
+          className="h-[clamp(52px,8vw,72px)] w-[clamp(52px,8vw,72px)] shrink-0 rounded-full object-contain mb-3 sm:mb-4 filter drop-shadow-md"
         />
 
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight [text-wrap:balance]">
+        <h1 className="splash-title text-[clamp(1.15rem,2.2vw,1.75rem)] font-extrabold tracking-tight text-slate-900 leading-tight">
           KM100 SKILLS AND TRAINING CENTER, INC.
         </h1>
 
-        <p className="mt-1.5 sm:mt-2 font-sans text-xs sm:text-sm md:text-base font-medium text-slate-500 leading-relaxed max-w-md">
+        <p className="mt-1.5 sm:mt-2 font-sans text-[clamp(0.8rem,1.4vw,0.95rem)] font-medium text-slate-500 leading-relaxed max-w-md">
           Property Custody &amp; Inventory Management System
         </p>
       </div>

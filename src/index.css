@@ -464,3 +464,14 @@ MIT License, Copyright (c) andrew-manzyk (Andrew Manzyk)
     background-position: 102% 0;
   }
 }
+
+/* Institutional Splash Screen Title Uniform Alignment */
+.splash-title {
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .splash-title {
+    white-space: nowrap;
+  }
+}
