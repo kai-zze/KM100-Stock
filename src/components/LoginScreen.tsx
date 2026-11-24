@@ -30,6 +30,7 @@ import {
   sendPasswordResetEmail,
   completePasswordRecovery,
   getInstitutionalPasskeys,
+  logoutCurrentSession,
 } from "../utils/auth";
 import { supabase } from "../utils/supabaseClient";
 
@@ -157,6 +158,23 @@ export const LoginScreen: React.FC<Props> = ({
   useEffect(() => {
     setPassword("");
     setConfirmPassword("");
+
+    // Check for pending notice or prefilled email (e.g. after password change)
+    try {
+      const notice = sessionStorage.getItem("km100_auth_success_notice");
+      if (notice) {
+        setSuccessMessage(notice);
+        sessionStorage.removeItem("km100_auth_success_notice");
+      }
+      const prefillEmail = sessionStorage.getItem("km100_auth_prefill_email");
+      if (prefillEmail) {
+        setEmail(prefillEmail);
+        setMode("signin");
+        sessionStorage.removeItem("km100_auth_prefill_email");
+      }
+    } catch {
+      // ignore
+    }
 
     // Counteract aggressive browser autofill cycles
     const clearTimer = setTimeout(() => {
@@ -326,7 +344,16 @@ export const LoginScreen: React.FC<Props> = ({
         if (window.history && window.history.replaceState) {
           window.history.replaceState(null, "", window.location.pathname);
         }
-        onLoginSuccess(res.user);
+        await logoutCurrentSession();
+        setMode("signin");
+        if (res.user.email) {
+          setEmail(res.user.email);
+        }
+        setPassword("");
+        setConfirmPassword("");
+        setSuccessMessage(
+          "Password updated successfully! Please sign in with your new password to verify.",
+        );
       } else {
         setErrorMessage(
           res.error ||

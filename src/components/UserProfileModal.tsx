@@ -25,6 +25,7 @@ interface Props {
   currentUser: AppUser;
   onClose: () => void;
   onUserUpdated: (updatedUser: AppUser) => void;
+  onPasswordChanged?: () => void;
 }
 
 export const UserProfileModal: React.FC<Props> = ({
@@ -32,6 +33,7 @@ export const UserProfileModal: React.FC<Props> = ({
   currentUser,
   onClose,
   onUserUpdated,
+  onPasswordChanged,
 }) => {
   const [activeTab, setActiveTab] = useState<"profile" | "passkeys">("profile");
   const [fullName, setFullName] = useState(currentUser.fullName || "");
@@ -105,19 +107,33 @@ export const UserProfileModal: React.FC<Props> = ({
       }
     }
 
+    const isChangingPassword = Boolean(newPassword && newPassword.trim());
+
     setIsLoading(true);
     try {
       const res = await updateUserProfile({
         fullName: fullName.trim(),
-        newPassword: newPassword ? newPassword.trim() : undefined,
+        newPassword: isChangingPassword ? newPassword.trim() : undefined,
       });
 
       if (res.success && res.user) {
-        setSuccessMsg("Account updated successfully!");
-        onUserUpdated(res.user);
-        setTimeout(() => {
-          onClose();
-        }, 900);
+        if (isChangingPassword) {
+          setSuccessMsg(
+            "Password updated successfully! Signing you out to verify your new password...",
+          );
+          setTimeout(() => {
+            onClose();
+            if (onPasswordChanged) {
+              onPasswordChanged();
+            }
+          }, 1100);
+        } else {
+          setSuccessMsg("Account updated successfully!");
+          onUserUpdated(res.user);
+          setTimeout(() => {
+            onClose();
+          }, 900);
+        }
       } else {
         setErrorMsg(res.error || "Failed to update account.");
       }
@@ -322,8 +338,9 @@ export const UserProfileModal: React.FC<Props> = ({
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mb-3">
-                  Leave blank to keep your current password, or create a new
-                  password below.
+                  Leave blank to keep your current password. For security,
+                  changing your password will automatically sign you out so you
+                  can sign in with your new password.
                 </p>
 
                 {/* New Password Field */}

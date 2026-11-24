@@ -1560,6 +1560,27 @@ export function App() {
             setCurrentUser(updatedUser);
             showToast("Account settings updated successfully!", "success");
           }}
+          onPasswordChanged={async () => {
+            const userEmail = currentUser.email;
+            setIsProfileModalOpen(false);
+            try {
+              sessionStorage.setItem(
+                "km100_auth_success_notice",
+                "Password updated successfully! Please sign in with your new password to verify.",
+              );
+              if (userEmail) {
+                sessionStorage.setItem("km100_auth_prefill_email", userEmail);
+              }
+            } catch {
+              // ignore
+            }
+            await logoutCurrentSession();
+            setCurrentUser(null);
+            showToast(
+              "Password updated. Please sign in with your new password.",
+              "success",
+            );
+          }}
         />
       )}
 
