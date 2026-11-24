@@ -196,7 +196,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             </div>
 
                             <div className="mb-3 grid grid-cols-2 gap-2">
-                              <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70">
+                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/70">
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Items
                                 </p>
@@ -204,7 +204,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                                   {counts.unique}
                                 </p>
                               </div>
-                              <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70">
+                              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/70">
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Units
                                 </p>
