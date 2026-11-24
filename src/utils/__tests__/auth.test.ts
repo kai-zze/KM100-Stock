@@ -70,6 +70,18 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
       expect(validAdmin.success).toBe(true);
       expect(validAdmin.user?.role).toBe("admin");
     });
+
+    it("prevents duplicate registration of institutional demo accounts", async () => {
+      const demoDup = await registerAccount({
+        fullName: "Demo Admin Attempt",
+        email: "admin@km100.edu.ph",
+        password: "Password123",
+        role: "admin",
+        passkey: "KM100-ADMIN-2026",
+      });
+      expect(demoDup.success).toBe(false);
+      expect(demoDup.error).toContain("already exists");
+    });
   });
 
   describe("Sign In (loginWithCredentials & Strict Rejection)", () => {

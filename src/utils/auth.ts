@@ -335,10 +335,44 @@ export async function registerAccount(input: {
   const isDemoAccount = DEMO_STAFF_ACCOUNTS.some(
     (account) => account.email.toLowerCase() === email,
   );
-  const accounts = readRegisteredAccounts();
-  const isRegistered = accounts.some((account) => account.email === email);
+  if (isDemoAccount) {
+    return {
+      success: false,
+      error:
+        "An account with this email already exists. Please sign in instead.",
+    };
+  }
 
-  if (isDemoAccount || isRegistered) {
+  let accounts = readRegisteredAccounts();
+  let isRegistered = accounts.some(
+    (account) => account.email.toLowerCase() === email,
+  );
+
+  // If flagged as registered in local cache, verify against Supabase cloud:
+  // If the account was deleted in Supabase, reconcile and prune the stale local cache.
+  if (isRegistered) {
+    try {
+      const { data: profileCheck, error: profileErr } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .ilike("email", email)
+        .maybeSingle();
+
+      if (!profileErr && !profileCheck) {
+        // Account does not exist in Supabase profiles! It was deleted on the database.
+        // Prune the deleted account from localStorage so re-registration is unblocked.
+        accounts = accounts.filter(
+          (account) => account.email.toLowerCase() !== email,
+        );
+        writeRegisteredAccounts(accounts);
+        isRegistered = false;
+      }
+    } catch {
+      // Offline fallback: keep protecting local registration if network is unavailable
+    }
+  }
+
+  if (isRegistered) {
     return {
       success: false,
       error:
@@ -358,9 +392,7 @@ export async function registerAccount(input: {
     createdAt: new Date().toISOString(),
   };
 
-  writeRegisteredAccounts([...accounts, account]);
-
-  // Sync to Supabase Auth (non-blocking for offline-first support)
+  // Sync to Supabase Auth
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -401,6 +433,9 @@ export async function registerAccount(input: {
   } catch (err) {
     console.warn("[KM100 Auth] Supabase registration offline fallback:", err);
   }
+
+  // Save to local storage after registration
+  writeRegisteredAccounts([...accounts, account]);
 
   const appUser: AppUser = {
     id: account.id,
