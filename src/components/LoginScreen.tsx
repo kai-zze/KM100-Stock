@@ -71,7 +71,20 @@ export const LoginScreen: React.FC<Props> = ({
 }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode || "signin");
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      return Boolean(localStorage.getItem("km100_remembered_email"));
+    } catch {
+      return false;
+    }
+  });
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem("km100_remembered_email") || "";
+    } catch {
+      return "";
+    }
+  });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole>("staff");
@@ -317,6 +330,13 @@ export const LoginScreen: React.FC<Props> = ({
     try {
       const res = await loginWithCredentials(email, password);
       if (res.success && res.user) {
+        try {
+          if (rememberMe) {
+            localStorage.setItem("km100_remembered_email", email.trim());
+          } else {
+            localStorage.removeItem("km100_remembered_email");
+          }
+        } catch {}
         onLoginSuccess(res.user);
       } else {
         setErrorMessage(res.error || "Invalid employee email or password.");
@@ -659,21 +679,12 @@ export const LoginScreen: React.FC<Props> = ({
                   </div>
 
                   <div>
-                    <div className="mb-1.5 flex items-center justify-between gap-3">
-                      <label
-                        htmlFor="signin-password"
-                        className="text-xs font-semibold text-slate-700 dark:text-slate-300"
-                      >
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 transition-colors hover:text-amber-800 dark:hover:text-amber-300 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
+                    <label
+                      htmlFor="signin-password"
+                      className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                    >
+                      Password
+                    </label>
                     <div className="relative">
                       <Lock
                         size={16}
@@ -705,6 +716,26 @@ export const LoginScreen: React.FC<Props> = ({
                         ) : (
                           <Eye size={16} />
                         )}
+                      </button>
+                    </div>
+
+                    {/* Remember me & Forgot Password Row */}
+                    <div className="mt-2.5 flex items-center justify-between text-xs">
+                      <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-amber-700 focus:ring-amber-500/25 dark:bg-slate-800 cursor-pointer"
+                        />
+                        <span className="font-medium">Remember me</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:underline transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
+                      >
+                        Forgot password?
                       </button>
                     </div>
                   </div>
