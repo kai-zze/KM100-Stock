@@ -364,9 +364,9 @@ export const UserProfileModal: React.FC<Props> = ({
                         title={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -446,9 +446,9 @@ export const UserProfileModal: React.FC<Props> = ({
                         }
                       >
                         {showConfirmPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -563,7 +563,7 @@ export const UserProfileModal: React.FC<Props> = ({
                       : "Show admin passkey"
                   }
                 >
-                  {showAdminPasskey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showAdminPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
@@ -605,7 +605,7 @@ export const UserProfileModal: React.FC<Props> = ({
                       : "Show staff passkey"
                   }
                 >
-                  {showStaffPasskey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showStaffPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">

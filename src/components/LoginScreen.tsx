@@ -765,9 +765,9 @@ export const LoginScreen: React.FC<Props> = ({
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
                         {showPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -1052,7 +1052,7 @@ export const LoginScreen: React.FC<Props> = ({
                         aria-pressed={showPasskey}
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
-                        {showPasskey ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {showPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
                       </button>
                     </div>
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
@@ -1102,9 +1102,9 @@ export const LoginScreen: React.FC<Props> = ({
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
                         {showPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -1209,9 +1209,9 @@ export const LoginScreen: React.FC<Props> = ({
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
                         {showConfirmPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -1475,9 +1475,9 @@ export const LoginScreen: React.FC<Props> = ({
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
                         {showPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
@@ -1572,9 +1572,9 @@ export const LoginScreen: React.FC<Props> = ({
                         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500 cursor-pointer"
                       >
                         {showConfirmPassword ? (
-                          <EyeOff size={16} />
-                        ) : (
                           <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
                         )}
                       </button>
                     </div>
