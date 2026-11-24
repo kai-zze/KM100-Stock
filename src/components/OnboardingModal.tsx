@@ -90,25 +90,25 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "bottom",
     },
     {
-      id: "steppers",
-      targetId: "tour-quantity-stepper",
-      fallbackTargetId: "tour-table",
-      section: "INLINE CONTROLS",
-      title: "Direct Quantity Steppers (+ / −)",
+      id: "schema-columns",
+      targetId: "tour-schema-columns-btn",
+      fallbackTargetId: "tour-header-tools",
+      section: "SCHEMA MANAGEMENT",
+      title: "Customize Columns & Fields",
       description:
-        "Click '+' or '−' to adjust physical stock counts on the spot, or click the number to enter exact counts. Changes synchronize instantly to the cloud.",
-      tip: "Clicking any item row opens full equipment specs and asset tag printing.",
+        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
+      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
       preferredPlacement: "bottom",
     },
     {
-      id: "row-actions",
-      targetId: "tour-row-actions",
-      fallbackTargetId: "tour-table",
-      section: "TABLE ACTIONS",
-      title: "Edit & Delete Equipment",
+      id: "row-controls",
+      targetId: "tour-table-row",
+      fallbackTargetId: "tour-quantity-stepper",
+      section: "TABLE CONTROLS",
+      title: "Stock Steppers & Row Actions",
       description:
-        "Click 'Edit' to update item specifications, change room assignments, or record remarks. Click 'Delete' to permanently remove depleted or decommissioned equipment.",
-      tip: "Destructive deletions always prompt a confirmation dialog to prevent accidental data loss.",
+        "Adjust stock on the spot using '+' and '−' steppers (or click the number to type exact counts). Use 'Edit' to update item specs or room assignments, and 'Delete' to remove decommissioned equipment.",
+      tip: "Quantity edits sync instantly to the cloud. Deletions always require explicit confirmation.",
       preferredPlacement: "top",
     },
     {
@@ -119,17 +119,6 @@ export const OnboardingModal: React.FC<Props> = ({
       description:
         "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
       tip: "Physical inventory sheets automatically format for letter-size print.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "schema-columns",
-      targetId: "tour-schema-columns-btn",
-      fallbackTargetId: "tour-header-tools",
-      section: "SCHEMA MANAGEMENT",
-      title: "Customize Columns & Fields",
-      description:
-        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
-      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
       preferredPlacement: "bottom",
     },
     {

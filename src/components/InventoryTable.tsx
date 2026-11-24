@@ -168,6 +168,7 @@ export const InventoryTable: React.FC<Props> = ({
               return (
                 <tr
                   key={item.id}
+                  id={itemIdx === 0 ? "tour-table-row" : undefined}
                   className={`transition-colors group ${
                     isSelected
                       ? "bg-amber-50/70 dark:bg-amber-950/30"
