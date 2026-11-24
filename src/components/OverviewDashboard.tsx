@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { AlertTriangle, ArrowRight, Layers, Plus } from "lucide-react";
 import { Room, InventoryItem } from "../types/inventory";
-import { isNeedsAttention } from "../utils/status";
+import { isNeedsAttention, isOutOfStockOrEmpty } from "../utils/status";
 
 interface Props {
   rooms: Room[];
@@ -165,9 +165,8 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                         (i) =>
                           Number(i.quantity) > 0 && Number(i.quantity) <= 5,
                       ).length;
-                      const outOfStockCount = roomItems.filter(
-                        (i) => Number(i.quantity) === 0,
-                      ).length;
+                      const outOfStockCount =
+                        roomItems.filter(isOutOfStockOrEmpty).length;
                       const displayDesc = cleanRoomDescription(
                         room.description,
                       );

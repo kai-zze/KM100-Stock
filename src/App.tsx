@@ -59,7 +59,11 @@ import { PrintReport } from "./components/PrintReport";
 import { UserProfileModal } from "./components/UserProfileModal";
 import { downloadInventoryCsv } from "./utils/csvExport";
 import type { ImportAnalysis } from "./utils/importParse";
-import { isNeedsAttention } from "./utils/status";
+import {
+  isNeedsAttention,
+  isOutOfStockOrEmpty,
+  normalizeStatus,
+} from "./utils/status";
 import { generateItemId, generateRoomId } from "./utils/ids";
 import {
   Search,
@@ -216,6 +220,14 @@ export function App() {
 
   // ── Filtering, Search & Sorting ──────────────────────────────────
   const [selectedRoomId, setSelectedRoomId] = useState<string>("ALL");
+  const mainContentRef = useRef<HTMLElement>(null);
+
+  // Smoothly reset scroll position to top on room/view switch
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [selectedRoomId]);
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [categoryFilter, setCategoryFilter] = useState("ALL");
@@ -441,8 +453,7 @@ export function App() {
   }, [roomScopedItems]);
 
   const outOfStockCount = useMemo(() => {
-    return roomScopedItems.filter((it) => (Number(it.quantity) || 0) <= 0)
-      .length;
+    return roomScopedItems.filter((it) => isOutOfStockOrEmpty(it)).length;
   }, [roomScopedItems]);
 
   // Visible columns based on show/hide checklist
@@ -461,12 +472,13 @@ export function App() {
         if (
           conditionFilter !== "ALL" &&
           item.condition !== conditionFilter &&
-          item.status !== conditionFilter
+          item.status !== conditionFilter &&
+          normalizeStatus(item.status ?? item.condition) !== conditionFilter
         ) {
           return false;
         }
         if (needsAttentionFilter && !isNeedsAttention(item)) return false;
-        if (outOfStockFilter && (Number(item.quantity) || 0) > 0) return false;
+        if (outOfStockFilter && !isOutOfStockOrEmpty(item)) return false;
 
         if (deferredSearchQuery.trim() !== "") {
           const q = deferredSearchQuery.toLowerCase();
@@ -1010,333 +1022,352 @@ export function App() {
         )}
 
         {/* ── Main Content Area ────────────────────────────────────── */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-200 dark:[&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-amber-500 dark:[&::-webkit-scrollbar-thumb]:bg-amber-400 [&::-webkit-scrollbar-thumb:hover]:bg-amber-600 dark:[&::-webkit-scrollbar-thumb:hover]:bg-amber-300">
-          {/* Overview Dashboard (When "All Rooms" is selected) */}
-          {selectedRoomId === "ALL" && (
-            <OverviewDashboard
-              rooms={rooms}
-              items={items}
-              roomItemCounts={roomItemCounts}
-              onSelectRoom={setSelectedRoomId}
-              onAddItem={handleAddItem}
-            />
-          )}
+        <main
+          ref={mainContentRef}
+          className="flex-1 flex flex-col min-w-0 overflow-y-auto scroll-smooth [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-200 dark:[&::-webkit-scrollbar-track]:bg-slate-800 [&::-webkit-scrollbar-thumb]:bg-amber-500 dark:[&::-webkit-scrollbar-thumb]:bg-amber-400 [&::-webkit-scrollbar-thumb:hover]:bg-amber-600 dark:[&::-webkit-scrollbar-thumb:hover]:bg-amber-300"
+        >
+          <div
+            key={selectedRoomId}
+            className="animate-view-transition flex flex-col flex-1 min-h-full"
+          >
+            {/* Overview Dashboard (When "All Rooms" is selected) */}
+            {selectedRoomId === "ALL" && (
+              <OverviewDashboard
+                rooms={rooms}
+                items={items}
+                roomItemCounts={roomItemCounts}
+                onSelectRoom={setSelectedRoomId}
+                onAddItem={handleAddItem}
+              />
+            )}
 
-          {/* Individual Room Header */}
-          {selectedRoomId !== "ALL" && currentRoom && (
-            <div className="p-3 sm:p-4 lg:p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-              <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setSelectedRoomId("ALL")}
-                      className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold"
-                    >
-                      Rooms
-                    </button>
-                    <span className="text-slate-400 text-xs">/</span>
-                    <h2 className="text-lg sm:text-xl font-heading font-bold tracking-tight text-slate-900 dark:text-white">
-                      {currentRoom.name}
-                    </h2>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {currentRoom.description || "Room inventory"} &bull;{" "}
-                    {roomItemCounts[currentRoom.id]?.unique || 0} items,{" "}
-                    {(
-                      roomItemCounts[currentRoom.id]?.totalQty || 0
-                    ).toLocaleString()}{" "}
-                    units
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                  <button
-                    onClick={() => {
-                      setEditingRoom(currentRoom);
-                      setIsRoomModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-                    title="Rename room"
-                    aria-label="Rename room"
-                  >
-                    <Edit size={14} />
-                    <span className="hidden sm:inline">Rename</span>
-                  </button>
-
-                  <button
-                    onClick={() => confirmDeleteRoom(currentRoom)}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                    title="Delete room"
-                    aria-label="Delete room"
-                  >
-                    <Trash2 size={14} />
-                    <span className="hidden sm:inline">Delete</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setEditingItem(null);
-                      setIsItemModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-600/20 transition-all active:scale-[0.98] cursor-pointer"
-                  >
-                    <Plus size={16} /> Add item
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Table & Interactive Control Area ───────────────────── */}
-          <div className="flex-1 p-2.5 sm:p-4 lg:p-6 flex flex-col min-h-0">
-            <div className="w-full flex-1 flex flex-col">
-              {/* Quick Status KPI Strip */}
-              <div className="mb-3 grid grid-cols-2 gap-2 sm:gap-2.5 rounded-xl border border-slate-200 bg-white p-2 sm:p-2.5 no-print animate-enter sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
-                <button
-                  onClick={() => {
-                    setNeedsAttentionFilter(false);
-                    setOutOfStockFilter(false);
-                    setConditionFilter("ALL");
-                  }}
-                  aria-pressed={
-                    !needsAttentionFilter &&
-                    !outOfStockFilter &&
-                    conditionFilter === "ALL"
-                  }
-                  className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 ${
-                    !needsAttentionFilter &&
-                    !outOfStockFilter &&
-                    conditionFilter === "ALL"
-                      ? "bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800"
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                  }`}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                    <Package size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Items
-                    </span>
-                    <span className="mt-0.5 flex items-baseline gap-1">
-                      <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-slate-900 dark:text-white">
-                        {roomScopedItems.length}
-                      </span>
-                    </span>
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setNeedsAttentionFilter(false);
-                    setOutOfStockFilter(false);
-                  }}
-                  className="group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                    <Layers size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Units in stock
-                    </span>
-                    <span className="mt-0.5 flex items-baseline gap-1">
-                      <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-emerald-600 dark:text-emerald-400">
-                        {roomScopedItems
-                          .reduce(
-                            (acc, it) => acc + (Number(it.quantity) || 0),
-                            0,
-                          )
-                          .toLocaleString()}
-                      </span>
-                    </span>
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setNeedsAttentionFilter((prev) => !prev)}
-                  aria-pressed={needsAttentionFilter}
-                  className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 ${
-                    needsAttentionFilter
-                      ? "bg-rose-50 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:ring-rose-800"
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                  }`}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300">
-                    <AlertTriangle size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Need attention
-                    </span>
-                    <span className="mt-0.5 flex items-baseline gap-1">
-                      <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-rose-600 dark:text-rose-400">
-                        {attentionCount}
-                      </span>
-                    </span>
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setOutOfStockFilter((prev) => !prev)}
-                  aria-pressed={outOfStockFilter}
-                  className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 ${
-                    outOfStockFilter
-                      ? "bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800"
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                  }`}
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                    <PackageX size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Out of stock
-                    </span>
-                    <span className="mt-0.5 flex items-baseline gap-1">
-                      <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-amber-700 dark:text-amber-400">
-                        {outOfStockCount}
-                      </span>
-                    </span>
-                  </span>
-                </button>
-              </div>
-
-              {/* ── Toolbar: Search, Filters, Column Toggle ────────────── */}
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print animate-enter relative z-20">
-                {/* Search box with keyboard shortcut indicator */}
-                <div className="relative flex-1 min-w-[220px]">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Search size={16} />
-                  </div>
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search items, category, or serial no."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                    >
-                      <X size={15} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Filter Dropdowns & Column Visibility: Adaptive Grid on Mobile, Inline on Desktop */}
-                <div className="w-full md:w-auto flex flex-col sm:flex-row md:items-center gap-2">
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full md:w-auto md:flex md:items-center">
-                    {/* Category Filter */}
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
-                      <Filter size={14} className="text-slate-400 shrink-0" />
-                      <select
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
-                        title="Filter by Category"
-                        aria-label="Filter by Category"
+            {/* Individual Room Header */}
+            {selectedRoomId !== "ALL" && currentRoom && (
+              <div className="p-3 sm:p-4 lg:p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedRoomId("ALL")}
+                        className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold"
                       >
-                        <option value="ALL">Category: All</option>
-                        {availableCategories.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
+                        Rooms
+                      </button>
+                      <span className="text-slate-400 text-xs">/</span>
+                      <h2 className="text-lg sm:text-xl font-heading font-bold tracking-tight text-slate-900 dark:text-white">
+                        {currentRoom.name}
+                      </h2>
                     </div>
-
-                    {/* Condition / Status Filter */}
-                    <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">
-                        Status:
-                      </span>
-                      <select
-                        value={conditionFilter}
-                        onChange={(e) => setConditionFilter(e.target.value)}
-                        className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
-                        title="Filter by Status"
-                        aria-label="Filter by Status"
-                      >
-                        <option value="ALL">All</option>
-                        {ITEM_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Column Visibility Menu */}
-                    <div className="min-w-0 w-full md:w-auto">
-                      <ColumnsVisibilityMenu
-                        columns={columns}
-                        hiddenColumnIds={hiddenColumnIds}
-                        onToggleColumn={handleToggleColumn}
-                        onOpenSchemaBuilder={() => setIsColumnsModalOpen(true)}
-                      />
-                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {currentRoom.description || "Room inventory"} &bull;{" "}
+                      {roomItemCounts[currentRoom.id]?.unique || 0} items,{" "}
+                      {(
+                        roomItemCounts[currentRoom.id]?.totalQty || 0
+                      ).toLocaleString()}{" "}
+                      units
+                    </p>
                   </div>
 
-                  {/* Reset Filters Button */}
-                  {(searchQuery ||
-                    categoryFilter !== "ALL" ||
-                    conditionFilter !== "ALL" ||
-                    needsAttentionFilter ||
-                    outOfStockFilter) && (
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button
                       onClick={() => {
-                        setSearchQuery("");
-                        setCategoryFilter("ALL");
-                        setConditionFilter("ALL");
-                        setNeedsAttentionFilter(false);
-                        setOutOfStockFilter(false);
+                        setEditingRoom(currentRoom);
+                        setIsRoomModalOpen(true);
                       }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors font-semibold border border-rose-200 dark:border-rose-900/50"
-                      title="Clear active filters"
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                      title="Rename room"
+                      aria-label="Rename room"
                     >
-                      <X size={13} />
-                      <span>Reset Filters</span>
+                      <Edit size={14} />
+                      <span className="hidden sm:inline">Rename</span>
                     </button>
-                  )}
+
+                    <button
+                      onClick={() => confirmDeleteRoom(currentRoom)}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Delete room"
+                      aria-label="Delete room"
+                    >
+                      <Trash2 size={14} />
+                      <span className="hidden sm:inline">Delete</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEditingItem(null);
+                        setIsItemModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm shadow-amber-600/20 transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                      <Plus size={16} /> Add item
+                    </button>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* ── Contextual Inline Bulk Action Bar ───────────────── */}
-              <BulkActionBar
-                count={selectedIds.length}
-                rooms={rooms}
-                onClear={() => setSelectedIds([])}
-                onMove={handleBulkMove}
-                onSetStatus={handleBulkSetStatus}
-                onExportExcel={handleBulkExportExcel}
-                onDelete={handleBulkDelete}
-              />
+            {/* ── Table & Interactive Control Area ───────────────────── */}
+            <div className="flex-1 p-2.5 sm:p-4 lg:p-6 flex flex-col min-h-0">
+              <div className="w-full flex-1 flex flex-col">
+                {/* Quick Status KPI Strip */}
+                <div className="mb-3 grid grid-cols-2 gap-2 sm:gap-2.5 rounded-xl border border-slate-200 bg-white p-2 sm:p-2.5 no-print animate-enter sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+                  <button
+                    onClick={() => {
+                      setNeedsAttentionFilter(false);
+                      setOutOfStockFilter(false);
+                      setConditionFilter("ALL");
+                    }}
+                    aria-pressed={
+                      !needsAttentionFilter &&
+                      !outOfStockFilter &&
+                      conditionFilter === "ALL"
+                    }
+                    className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 ${
+                      !needsAttentionFilter &&
+                      !outOfStockFilter &&
+                      conditionFilter === "ALL"
+                        ? "bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                      <Package size={16} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Items
+                      </span>
+                      <span className="mt-0.5 flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-slate-900 dark:text-white">
+                          {roomScopedItems.length}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
 
-              {/* ── Main Data Table ─────────────────────────────────── */}
-              <InventoryTable
-                items={filteredItems}
-                columns={visibleColumns}
-                rooms={rooms}
-                selectedRoomId={selectedRoomId}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                onSelectRoom={setSelectedRoomId}
-                onQuantityChange={handleQuantityChange}
-                onSetQuantity={handleSetQuantity}
-                onEditItem={handleEditItem}
-                onDeleteItem={confirmDeleteItem}
-                onAddItem={handleAddItem}
-                onResetFilters={handleResetFilters}
-                isFiltered={isFiltered}
-                selectedIds={selectedIds}
-                onToggleSelect={handleToggleSelect}
-                onToggleSelectAll={handleToggleSelectPage}
-              />
+                  <button
+                    onClick={() => {
+                      setNeedsAttentionFilter(false);
+                      setOutOfStockFilter(false);
+                      setConditionFilter("ALL");
+                    }}
+                    className="group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      <Layers size={16} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Units in stock
+                      </span>
+                      <span className="mt-0.5 flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-emerald-600 dark:text-emerald-400">
+                          {roomScopedItems
+                            .reduce(
+                              (acc, it) => acc + (Number(it.quantity) || 0),
+                              0,
+                            )
+                            .toLocaleString()}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setOutOfStockFilter(false);
+                      setConditionFilter("ALL");
+                      setNeedsAttentionFilter((prev) => !prev);
+                    }}
+                    aria-pressed={needsAttentionFilter}
+                    className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 cursor-pointer ${
+                      needsAttentionFilter
+                        ? "bg-rose-50 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:ring-rose-800"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300">
+                      <AlertTriangle size={16} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Need attention
+                      </span>
+                      <span className="mt-0.5 flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-rose-600 dark:text-rose-400">
+                          {attentionCount}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setNeedsAttentionFilter(false);
+                      setConditionFilter("ALL");
+                      setOutOfStockFilter((prev) => !prev);
+                    }}
+                    aria-pressed={outOfStockFilter}
+                    className={`group flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition-all duration-200 cursor-pointer ${
+                      outOfStockFilter
+                        ? "bg-amber-50 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800"
+                        : "hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                      <PackageX size={16} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Out of stock
+                      </span>
+                      <span className="mt-0.5 flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-amber-700 dark:text-amber-400">
+                          {outOfStockCount}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+
+                {/* ── Toolbar: Search, Filters, Column Toggle ────────────── */}
+                <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print animate-enter relative z-20">
+                  {/* Search box with keyboard shortcut indicator */}
+                  <div className="relative flex-1 min-w-[220px]">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Search size={16} />
+                    </div>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search items, category, or serial no."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={15} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter Dropdowns & Column Visibility: Adaptive Grid on Mobile, Inline on Desktop */}
+                  <div className="w-full md:w-auto flex flex-col sm:flex-row md:items-center gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full md:w-auto md:flex md:items-center">
+                      {/* Category Filter */}
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
+                        <Filter size={14} className="text-slate-400 shrink-0" />
+                        <select
+                          value={categoryFilter}
+                          onChange={(e) => setCategoryFilter(e.target.value)}
+                          className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
+                          title="Filter by Category"
+                          aria-label="Filter by Category"
+                        >
+                          <option value="ALL">Category: All</option>
+                          {availableCategories.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Condition / Status Filter */}
+                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+                          Status:
+                        </span>
+                        <select
+                          value={conditionFilter}
+                          onChange={(e) => setConditionFilter(e.target.value)}
+                          className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
+                          title="Filter by Status"
+                          aria-label="Filter by Status"
+                        >
+                          <option value="ALL">All</option>
+                          {ITEM_STATUSES.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Column Visibility Menu */}
+                      <div className="min-w-0 w-full md:w-auto">
+                        <ColumnsVisibilityMenu
+                          columns={columns}
+                          hiddenColumnIds={hiddenColumnIds}
+                          onToggleColumn={handleToggleColumn}
+                          onOpenSchemaBuilder={() =>
+                            setIsColumnsModalOpen(true)
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Reset Filters Button */}
+                    {(searchQuery ||
+                      categoryFilter !== "ALL" ||
+                      conditionFilter !== "ALL" ||
+                      needsAttentionFilter ||
+                      outOfStockFilter) && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery("");
+                          setCategoryFilter("ALL");
+                          setConditionFilter("ALL");
+                          setNeedsAttentionFilter(false);
+                          setOutOfStockFilter(false);
+                        }}
+                        className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors font-semibold border border-rose-200 dark:border-rose-900/50"
+                        title="Clear active filters"
+                      >
+                        <X size={13} />
+                        <span>Reset Filters</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Contextual Inline Bulk Action Bar ───────────────── */}
+                <BulkActionBar
+                  count={selectedIds.length}
+                  rooms={rooms}
+                  onClear={() => setSelectedIds([])}
+                  onMove={handleBulkMove}
+                  onSetStatus={handleBulkSetStatus}
+                  onExportExcel={handleBulkExportExcel}
+                  onDelete={handleBulkDelete}
+                />
+
+                {/* ── Main Data Table ─────────────────────────────────── */}
+                <InventoryTable
+                  items={filteredItems}
+                  columns={visibleColumns}
+                  rooms={rooms}
+                  selectedRoomId={selectedRoomId}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  onSelectRoom={setSelectedRoomId}
+                  onQuantityChange={handleQuantityChange}
+                  onSetQuantity={handleSetQuantity}
+                  onEditItem={handleEditItem}
+                  onDeleteItem={confirmDeleteItem}
+                  onAddItem={handleAddItem}
+                  onResetFilters={handleResetFilters}
+                  isFiltered={isFiltered}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={handleToggleSelectPage}
+                />
+              </div>
             </div>
           </div>
         </main>

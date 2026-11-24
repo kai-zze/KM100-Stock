@@ -85,6 +85,13 @@ export function isNeedsAttention(item: Partial<InventoryItem>): boolean {
   return Number(item.quantity ?? 0) <= 0;
 }
 
+/** Items that are out of stock (quantity <= 0) or explicitly marked Empty. */
+export function isOutOfStockOrEmpty(item: Partial<InventoryItem>): boolean {
+  const status = normalizeStatus(item.status ?? item.condition);
+  if (status === "Empty") return true;
+  return Number(item.quantity ?? 0) <= 0;
+}
+
 /** Working / Used units, expressed as a share of all tracked units. */
 export function operationalPercent(items: InventoryItem[]): number {
   let total = 0;

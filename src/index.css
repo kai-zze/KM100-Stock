@@ -133,6 +133,22 @@
   animation: enterUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Fluid view transition when switching between rooms or dashboard */
+@keyframes viewFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-view-transition {
+  animation: viewFadeSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
