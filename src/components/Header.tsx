@@ -190,186 +190,189 @@ export const Header: React.FC<Props> = ({
         </div>
 
         {/* Global Actions Toolbar */}
-        <div
-          id="tour-header-tools"
-          className="flex items-center gap-1 sm:gap-2 shrink-0"
-        >
-          {/* Import Excel Spreadsheet Button (Desktop only; on mobile accessible via Export & Actions menu) */}
-          {onTriggerUploadExcel && currentUser?.role === "admin" && (
-            <button
-              onClick={onTriggerUploadExcel}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] shrink-0"
-              title="Import Inventory from Excel (.xlsx, .xls, .csv)"
-            >
-              <FileSpreadsheet size={15} />
-              <span className="hidden lg:inline">Import Excel</span>
-            </button>
-          )}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Audit Export & Reporting Tools (Targeted by Product Tour) */}
+          <div
+            id="tour-header-tools"
+            className="flex items-center gap-1 sm:gap-1.5 shrink-0"
+          >
+            {/* Import Excel Spreadsheet Button (Desktop only; on mobile accessible via Export & Actions menu) */}
+            {onTriggerUploadExcel && currentUser?.role === "admin" && (
+              <button
+                onClick={onTriggerUploadExcel}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] shrink-0"
+                title="Import Inventory from Excel (.xlsx, .xls, .csv)"
+              >
+                <FileSpreadsheet size={15} />
+                <span className="hidden lg:inline">Import Excel</span>
+              </button>
+            )}
 
-          {/* Excel Spreadsheet Export Dropdown */}
-          <div className="relative shrink-0" ref={exportRef}>
-            <button
-              onClick={() => setIsExportDropdownOpen((open) => !open)}
-              aria-haspopup="menu"
-              aria-expanded={isExportDropdownOpen}
-              aria-label="Export inventory spreadsheet menu"
-              className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors shrink-0"
-              title="Export Inventory to Excel Spreadsheet"
-            >
-              <FileSpreadsheet
-                size={15}
-                className="text-emerald-600 dark:text-emerald-400"
-              />
-              <span className="hidden sm:inline">Export</span>
-              <ChevronDown size={12} className="text-slate-400" />
-            </button>
-
-            {isExportDropdownOpen && (
-              <>
-                <div
-                  onClick={() => setIsExportDropdownOpen(false)}
-                  className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px] sm:hidden"
-                  aria-hidden="true"
+            {/* Excel Spreadsheet Export Dropdown */}
+            <div className="relative shrink-0" ref={exportRef}>
+              <button
+                onClick={() => setIsExportDropdownOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={isExportDropdownOpen}
+                aria-label="Export inventory spreadsheet menu"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors shrink-0"
+                title="Export Inventory to Excel Spreadsheet"
+              >
+                <FileSpreadsheet
+                  size={15}
+                  className="text-emerald-600 dark:text-emerald-400"
                 />
-                <div
-                  role="menu"
-                  aria-label="Spreadsheet export options"
-                  className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/50 border border-slate-200/90 dark:border-slate-800 ring-1 ring-slate-900/5 dark:ring-white/5 p-1.5 z-50 animate-modal text-xs"
-                >
-                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">
-                    Export Options
-                  </div>
+                <span className="hidden sm:inline">Export</span>
+                <ChevronDown size={12} className="text-slate-400" />
+              </button>
 
-                  {/* Multi-Tab Master Excel */}
-                  <button
-                    onClick={() => {
-                      setIsExportDropdownOpen(false);
-                      onExportExcel("multi");
-                    }}
-                    role="menuitem"
-                    className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer"
+              {isExportDropdownOpen && (
+                <>
+                  <div
+                    onClick={() => setIsExportDropdownOpen(false)}
+                    className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[1px] sm:hidden"
+                    aria-hidden="true"
+                  />
+                  <div
+                    role="menu"
+                    aria-label="Spreadsheet export options"
+                    className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-sm mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/50 border border-slate-200/90 dark:border-slate-800 ring-1 ring-slate-900/5 dark:ring-white/5 p-1.5 z-50 animate-modal text-xs"
                   >
-                    <Layers
-                      size={15}
-                      className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5"
-                    />
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        Master Inventory Workbook
-                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded">
-                          .xlsx
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Multi-sheet: Overview dashboard tab + dedicated sheet
-                        per room
-                      </div>
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      Export Options
                     </div>
-                  </button>
 
-                  {/* Current Room / Filtered View Excel */}
-                  <button
-                    onClick={() => {
-                      setIsExportDropdownOpen(false);
-                      onExportExcel("current");
-                    }}
-                    role="menuitem"
-                    className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer mt-0.5"
-                  >
-                    <Building
-                      size={15}
-                      className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
-                    />
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        {selectedRoomId === "ALL"
-                          ? "Current View Catalog"
-                          : `${currentRoom?.name || "Current Room"} Only`}
-                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:blue-950/60 px-1 rounded">
-                          .xlsx
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Single sheet with active filters &amp; current room
-                        items
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Mobile Admin Options: Import & Schema */}
-                  {onTriggerUploadExcel && currentUser?.role === "admin" && (
+                    {/* Multi-Tab Master Excel */}
                     <button
                       onClick={() => {
                         setIsExportDropdownOpen(false);
-                        onTriggerUploadExcel();
+                        onExportExcel("multi");
                       }}
                       role="menuitem"
-                      className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer sm:hidden border-t border-slate-100 dark:border-slate-800 mt-1 pt-1.5"
+                      className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer"
                     >
-                      <FileSpreadsheet
+                      <Layers
                         size={15}
                         className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5"
                       />
                       <div>
                         <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          Import Spreadsheet
+                          Master Inventory Workbook
                           <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded">
-                            .xlsx / .csv
+                            .xlsx
                           </span>
                         </div>
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Upload or replace inventory data
+                          Multi-sheet: Overview dashboard tab + dedicated sheet
+                          per room
                         </div>
                       </div>
                     </button>
-                  )}
 
-                  {currentUser?.role === "admin" && (
+                    {/* Current Room / Filtered View Excel */}
                     <button
                       onClick={() => {
                         setIsExportDropdownOpen(false);
-                        onOpenColumnsModal();
+                        onExportExcel("current");
                       }}
                       role="menuitem"
-                      className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer sm:hidden mt-0.5"
+                      className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer mt-0.5"
                     >
-                      <Sliders
+                      <Building
                         size={15}
-                        className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5"
+                        className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
                       />
                       <div>
                         <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          Customize Columns (Schema)
-                          <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded">
-                            Admin
+                          {selectedRoomId === "ALL"
+                            ? "Current View Catalog"
+                            : `${currentRoom?.name || "Current Room"} Only`}
+                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:blue-950/60 px-1 rounded">
+                            .xlsx
                           </span>
                         </div>
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Add, reorder, or rename table columns
+                          Single sheet with active filters &amp; current room
+                          items
                         </div>
                       </div>
                     </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
 
-          {/* Print Official Physical Inventory Sheet */}
-          <button
-            onClick={() => {
-              window.dispatchEvent(new Event("beforeprint"));
-              setTimeout(() => {
-                window.print();
-              }, 50);
-            }}
-            className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors shrink-0 cursor-pointer"
-            title="Print Official Physical Inventory Sheet (Letter/A4)"
-            aria-label="Print Official Physical Inventory Sheet"
-          >
-            <Printer size={15} />
-            <span className="hidden lg:inline">Print Sheet</span>
-          </button>
+                    {/* Mobile Admin Options: Import & Schema */}
+                    {onTriggerUploadExcel && currentUser?.role === "admin" && (
+                      <button
+                        onClick={() => {
+                          setIsExportDropdownOpen(false);
+                          onTriggerUploadExcel();
+                        }}
+                        role="menuitem"
+                        className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer sm:hidden border-t border-slate-100 dark:border-slate-800 mt-1 pt-1.5"
+                      >
+                        <FileSpreadsheet
+                          size={15}
+                          className="text-amber-700 dark:text-amber-400 shrink-0 mt-0.5"
+                        />
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            Import Spreadsheet
+                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded">
+                              .xlsx / .csv
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Upload or replace inventory data
+                          </div>
+                        </div>
+                      </button>
+                    )}
+
+                    {currentUser?.role === "admin" && (
+                      <button
+                        onClick={() => {
+                          setIsExportDropdownOpen(false);
+                          onOpenColumnsModal();
+                        }}
+                        role="menuitem"
+                        className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer sm:hidden mt-0.5"
+                      >
+                        <Sliders
+                          size={15}
+                          className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5"
+                        />
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            Customize Columns (Schema)
+                            <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded">
+                              Admin
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Add, reorder, or rename table columns
+                          </div>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Print Official Physical Inventory Sheet */}
+            <button
+              onClick={() => {
+                window.dispatchEvent(new Event("beforeprint"));
+                setTimeout(() => {
+                  window.print();
+                }, 50);
+              }}
+              className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors shrink-0 cursor-pointer"
+              title="Print Official Physical Inventory Sheet (Letter/A4)"
+              aria-label="Print Official Physical Inventory Sheet"
+            >
+              <Printer size={15} />
+              <span className="hidden lg:inline">Print Sheet</span>
+            </button>
+          </div>
 
           {/* Schema Columns Config (Admin Only, Desktop only; on mobile accessible via dropdown) */}
           {currentUser?.role === "admin" && (
