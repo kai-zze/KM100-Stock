@@ -57,6 +57,7 @@ const ImportPreviewModal = lazyNamed(
 );
 import { PrintReport } from "./components/PrintReport";
 import { UserProfileModal } from "./components/UserProfileModal";
+import { OnboardingModal } from "./components/OnboardingModal";
 import { downloadInventoryCsv } from "./utils/csvExport";
 import type { ImportAnalysis } from "./utils/importParse";
 import {
@@ -88,6 +89,7 @@ const STORAGE_KEY_ROOMS = "km100_inventory_rooms_v1";
 const STORAGE_KEY_ITEMS = "km100_inventory_items_v1";
 const STORAGE_KEY_COLUMNS = "km100_inventory_columns_v1";
 const STORAGE_KEY_HIDDEN_COLS = "km100_hidden_columns_v1";
+const STORAGE_KEY_TUTORIAL_COMPLETED = "km100_tutorial_completed_v1";
 
 // Module-level deduplication for initial cloud data fetch (prevents duplicate requests in React StrictMode)
 let initialCloudFetchPromise: Promise<[any, any, any]> | null = null;
@@ -104,6 +106,7 @@ export function App() {
     getStoredUser(),
   );
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // ── Institutional Splash Screen Delay & Graceful Fade ──────────────────
   const [isSplashVisible, setIsSplashVisible] = useState(true);
@@ -360,6 +363,8 @@ export function App() {
           setSelectedIds([]);
         } else if (confirmDialog) {
           setConfirmDialog(null);
+        } else if (isOnboardingOpen) {
+          handleCloseOnboarding();
         } else if (assetTagItem) {
           setAssetTagItem(null);
         } else if (importAnalysis) {
@@ -962,6 +967,34 @@ export function App() {
     });
   };
 
+  // ── First-Time User Interactive Guided Tutorial ───────────────────
+  useEffect(() => {
+    if (currentUser && !isSplashVisible) {
+      try {
+        const hasCompleted = localStorage.getItem(
+          STORAGE_KEY_TUTORIAL_COMPLETED,
+        );
+        if (!hasCompleted) {
+          const timer = setTimeout(() => {
+            setIsOnboardingOpen(true);
+          }, 450);
+          return () => clearTimeout(timer);
+        }
+      } catch {
+        // LocalStorage access issues
+      }
+    }
+  }, [currentUser, isSplashVisible]);
+
+  const handleCloseOnboarding = useCallback(() => {
+    setIsOnboardingOpen(false);
+    try {
+      localStorage.setItem(STORAGE_KEY_TUTORIAL_COMPLETED, "true");
+    } catch {
+      // LocalStorage access issues
+    }
+  }, []);
+
   // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
   if (!currentUser || isPasswordRecovery) {
     return (
@@ -1020,6 +1053,7 @@ export function App() {
         currentRoom={currentRoom}
         currentUser={currentUser}
         onSignOut={handleRequestSignOut}
+        onOpenTutorial={() => setIsOnboardingOpen(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -1599,6 +1633,15 @@ export function App() {
               "success",
             );
           }}
+        />
+      )}
+
+      {/* ── First-Time Onboarding & System Guide Modal ───────────────── */}
+      {isOnboardingOpen && currentUser && (
+        <OnboardingModal
+          isOpen={isOnboardingOpen}
+          onClose={handleCloseOnboarding}
+          userRole={currentUser.role}
         />
       )}
 
