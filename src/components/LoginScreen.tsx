@@ -45,24 +45,27 @@ type AuthMode = "signin" | "signup" | "forgot" | "reset";
 const FEATURES = [
   {
     icon: Package,
-    title: "Live Asset Register",
-    detail: "Quantities, conditions, and remarks stay up to date continuously.",
+    title: "Real-Time Equipment Register",
+    detail:
+      "Monitor active stock, working conditions, and remarks with instant cloud synchronization.",
   },
   {
     icon: Building,
-    title: "Facility & Room Mapping",
-    detail: "Browse equipment and tools categorized room by room.",
+    title: "Workshop & Facility Mapping",
+    detail:
+      "Organize machinery, tools, and computer units room-by-room with fast facility switching.",
   },
   {
     icon: FileSpreadsheet,
-    title: "Audit-Ready Exports",
-    detail: "Multi-sheet Excel workbooks and physical sign-off audit sheets.",
+    title: "Official Audit & Excel Reports",
+    detail:
+      "Generate institutional multi-sheet workbooks and printable physical custody sign-off sheets.",
   },
   {
     icon: Shield,
-    title: "Role-Based Property Custody",
+    title: "Role-Based Custodian Governance",
     detail:
-      "Admin schema control for Custodians and quick operate modes for Staff.",
+      "Passkey-authorized schema controls for Custodians and fast auditing tools for Instructors.",
   },
 ];
 
@@ -516,11 +519,11 @@ export const LoginScreen: React.FC<Props> = ({
             {/* Institutional Hero Copy */}
             <div className="mt-8 max-w-sm">
               <h1 className="text-2xl sm:text-[28px] font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.2] text-balance">
-                Every tool &amp; asset accounted for
+                Complete equipment custody across all workshops &amp; labs
               </h1>
               <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                Institutional asset registration, room-by-room custody
-                verification, and physical audit reporting across all training
+                Room-by-room property tracking, real-time equipment condition
+                auditing, and official physical custody reporting for KM100
                 facilities.
               </p>
             </div>
