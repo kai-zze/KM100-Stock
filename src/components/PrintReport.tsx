@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect } from "react";
-import ReactDOM from "react-dom";
+import React, { useMemo } from "react";
 import { InventoryItem, Room } from "../types/inventory";
 import { normalizeStatus } from "../utils/status";
+import { KM100_LOGO_BASE64 } from "../data/logoBase64";
 
 // ── 1. Type Definitions & Interfaces ─────────────────────────────────────────
 
@@ -90,32 +90,6 @@ export const PrintReport: React.FC<Props> = ({
   rooms,
   facilityName,
 }) => {
-  const [isPrinting, setIsPrinting] = useState(false);
-
-  useEffect(() => {
-    const handleBeforePrint = () => {
-      const rDom = ReactDOM as any;
-      if (typeof rDom.flushSync === "function") {
-        rDom.flushSync(() => {
-          setIsPrinting(true);
-        });
-      } else {
-        setIsPrinting(true);
-      }
-    };
-    const handleAfterPrint = () => {
-      setIsPrinting(false);
-    };
-
-    window.addEventListener("beforeprint", handleBeforePrint);
-    window.addEventListener("afterprint", handleAfterPrint);
-
-    return () => {
-      window.removeEventListener("beforeprint", handleBeforePrint);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, []);
-
   // Clean, normalized items for the audit table
   const reportItems = useMemo(() => normalizeReportInventory(items), [items]);
 
@@ -159,19 +133,23 @@ export const PrintReport: React.FC<Props> = ({
       ? "All Facilities"
       : facilityName;
 
-  if (!isPrinting) {
-    return null;
-  }
-
   return (
     <div id="printable-report" className="print-only bg-white p-7 text-black">
       {/* ── Document Header & Institutional Brand ───────────────────── */}
       <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
         <div className="flex items-center gap-4">
           <img
-            src="/logo-sm.png"
+            src={KM100_LOGO_BASE64}
             alt="KM100 Logo"
-            className="w-14 h-14 object-contain rounded-full"
+            width={56}
+            height={56}
+            className="w-14 h-14 object-contain rounded-full shrink-0"
+            style={{
+              width: "56px",
+              height: "56px",
+              objectFit: "contain",
+              borderRadius: "9999px",
+            }}
           />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-black">
