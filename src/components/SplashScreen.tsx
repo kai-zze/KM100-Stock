@@ -48,13 +48,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       <div className="mt-8 sm:mt-12 md:mt-14 flex justify-center w-full overflow-hidden px-4">
         <ScrollingLoader text="Loading" />
       </div>
-
-      {/* Regulatory Institutional Anchor */}
-      <div className="absolute bottom-6 left-0 right-0 px-4 text-center">
-        <span className="font-sans text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Institutional Property Register &bull; Official Custody System
-        </span>
-      </div>
     </div>
   );
 };
