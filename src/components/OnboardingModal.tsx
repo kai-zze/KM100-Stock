@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { X, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -361,9 +361,7 @@ export const OnboardingModal: React.FC<Props> = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      } else if (e.key === "ArrowRight") {
+      if (e.key === "ArrowRight") {
         setCurrentStep((prev) => Math.min(prev + 1, TOUR_STEPS.length - 1));
       } else if (e.key === "ArrowLeft") {
         setCurrentStep((prev) => Math.max(prev - 1, 0));
@@ -372,7 +370,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleClose, TOUR_STEPS.length]);
+  }, [isOpen, TOUR_STEPS.length]);
 
   if (!isOpen) return null;
 
@@ -395,10 +393,9 @@ export const OnboardingModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-[60] overflow-hidden no-print">
-      {/* Background Dim Backdrop */}
+      {/* Background Dim Backdrop (backdrop clicks disabled: only Skip Tour dismisses) */}
       <div
-        onClick={handleClose}
-        className="fixed inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity"
+        className="fixed inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity cursor-default"
         aria-hidden="true"
       />
 
@@ -463,24 +460,13 @@ export const OnboardingModal: React.FC<Props> = ({
           )}
 
         {/* Header Row */}
-        <div className="flex items-center justify-between gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-2.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200">
-              {activeStep.section}
-            </span>
-            <span className="text-[11px] font-mono font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
-              {currentStep + 1} / {TOUR_STEPS.length}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Close walkthrough"
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
-          >
-            <X size={15} />
-          </button>
+        <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-2.5">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200">
+            {activeStep.section}
+          </span>
+          <span className="text-[11px] font-mono font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+            {currentStep + 1} / {TOUR_STEPS.length}
+          </span>
         </div>
 
         {/* Title & Description */}
