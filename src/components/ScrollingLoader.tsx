@@ -17,7 +17,7 @@ export interface ScrollingLoaderProps {
 export const ScrollingLoader: React.FC<ScrollingLoaderProps> = ({
   text = "Loading",
   className = "",
-  size = "2.2rem",
+  size = "clamp(2.8rem, 8vw, 3.6rem)",
   textColor = "#0f172a",
   shadowColor = "#94a3b8",
   accentColor = "#b45309",
