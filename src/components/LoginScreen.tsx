@@ -20,7 +20,6 @@ import {
   Shield,
   ShieldCheck,
   User,
-  UserCheck,
   UserPlus,
   X,
 } from "lucide-react";
@@ -76,6 +75,25 @@ export const LoginScreen: React.FC<Props> = ({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole>("staff");
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        roleDropdownRef.current &&
+        !roleDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsRoleDropdownOpen(false);
+      }
+    };
+    if (isRoleDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isRoleDropdownOpen]);
   const [passkey, setPasskey] = useState("");
   const [showPasskey, setShowPasskey] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -792,108 +810,141 @@ export const LoginScreen: React.FC<Props> = ({
 
                   <div>
                     <label id="signup-role-label" className={labelBase}>
-                      Account Role / Personnel Type
+                      Institutional Account Role
                     </label>
-                    <div
-                      role="radiogroup"
-                      aria-labelledby="signup-role-label"
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1"
-                    >
-                      {/* Training Instructor / Staff */}
+                    <div className="relative" ref={roleDropdownRef}>
                       <button
                         type="button"
-                        role="radio"
-                        aria-checked={role === "staff"}
-                        onClick={() => setRole("staff")}
-                        className={`group relative flex items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                          role === "staff"
-                            ? "border-amber-600 bg-amber-50/80 dark:bg-amber-500/10 dark:border-amber-500 ring-2 ring-amber-500/20 shadow-xs"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }`}
+                        id="signup-role"
+                        aria-haspopup="listbox"
+                        aria-expanded={isRoleDropdownOpen}
+                        aria-labelledby="signup-role-label"
+                        onClick={() => setIsRoleDropdownOpen((prev) => !prev)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setIsRoleDropdownOpen(false);
+                          } else if (
+                            e.key === "ArrowDown" ||
+                            e.key === "ArrowUp"
+                          ) {
+                            e.preventDefault();
+                            if (!isRoleDropdownOpen) {
+                              setIsRoleDropdownOpen(true);
+                            } else {
+                              setRole((prev) =>
+                                prev === "staff" ? "admin" : "staff",
+                              );
+                            }
+                          }
+                        }}
+                        className={`${inputWithIcon} flex items-center justify-between cursor-pointer pr-3 text-left`}
                       >
-                        <div
-                          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                            role === "staff"
-                              ? "bg-amber-600 text-white shadow-xs"
-                              : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200"
-                          }`}
-                        >
-                          <User size={15} />
-                        </div>
-                        <div className="flex-1 min-w-0 pr-4">
-                          <p
-                            className={`text-xs font-semibold leading-tight ${
-                              role === "staff"
-                                ? "text-amber-950 dark:text-amber-200"
-                                : "text-slate-800 dark:text-slate-200"
-                            }`}
-                          >
-                            Training Instructor
-                          </p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                            Staff audit &amp; count updates
-                          </p>
-                        </div>
-                        <div
-                          className={`absolute top-2.5 right-2.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
-                            role === "staff"
-                              ? "border-amber-600 bg-amber-600 text-white"
-                              : "border-slate-300 dark:border-slate-600 bg-transparent"
-                          }`}
-                        >
-                          {role === "staff" && (
-                            <Check size={9} strokeWidth={3} />
-                          )}
-                        </div>
+                        <span className="flex items-center gap-2 truncate">
+                          <Shield
+                            size={16}
+                            className="text-slate-400 dark:text-slate-500 shrink-0"
+                          />
+                          <span className="text-slate-900 dark:text-white font-medium">
+                            {role === "admin"
+                              ? "Property Custodian (Admin)"
+                              : "Training Instructor / Staff"}
+                          </span>
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className={`text-slate-400 transition-transform duration-150 shrink-0 ${isRoleDropdownOpen ? "rotate-180 text-amber-600" : ""}`}
+                        />
                       </button>
 
-                      {/* Property Custodian / Admin */}
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={role === "admin"}
-                        onClick={() => setRole("admin")}
-                        className={`group relative flex items-start gap-2.5 rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                          role === "admin"
-                            ? "border-amber-600 bg-amber-50/80 dark:bg-amber-500/10 dark:border-amber-500 ring-2 ring-amber-500/20 shadow-xs"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }`}
-                      >
+                      {isRoleDropdownOpen && (
                         <div
-                          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                            role === "admin"
-                              ? "bg-amber-600 text-white shadow-xs"
-                              : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200"
-                          }`}
+                          role="listbox"
+                          aria-labelledby="signup-role-label"
+                          className="absolute left-0 right-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-xl ring-1 ring-black/5"
                         >
-                          <UserCheck size={15} />
-                        </div>
-                        <div className="flex-1 min-w-0 pr-4">
-                          <p
-                            className={`text-xs font-semibold leading-tight ${
-                              role === "admin"
-                                ? "text-amber-950 dark:text-amber-200"
-                                : "text-slate-800 dark:text-slate-200"
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={role === "staff"}
+                            onClick={() => {
+                              setRole("staff");
+                              setIsRoleDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs transition-colors cursor-pointer ${
+                              role === "staff"
+                                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200 font-semibold"
+                                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60"
                             }`}
                           >
-                            Property Custodian
-                          </p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                            Admin governance &amp; rooms
-                          </p>
+                            <div className="flex items-center gap-2.5">
+                              <Shield
+                                size={15}
+                                className={
+                                  role === "staff"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-slate-400"
+                                }
+                              />
+                              <div className="text-left">
+                                <p className="font-semibold leading-tight">
+                                  Training Instructor / Staff
+                                </p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                                  Standard operational access &amp; quick count
+                                  updates
+                                </p>
+                              </div>
+                            </div>
+                            {role === "staff" && (
+                              <Check
+                                size={14}
+                                className="text-amber-600 dark:text-amber-400 shrink-0"
+                              />
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={role === "admin"}
+                            onClick={() => {
+                              setRole("admin");
+                              setIsRoleDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs transition-colors cursor-pointer mt-1 ${
+                              role === "admin"
+                                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200 font-semibold"
+                                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <ShieldCheck
+                                size={15}
+                                className={
+                                  role === "admin"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-slate-400"
+                                }
+                              />
+                              <div className="text-left">
+                                <p className="font-semibold leading-tight">
+                                  Property Custodian (Admin)
+                                </p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                                  Full governance, schema control, and room
+                                  management
+                                </p>
+                              </div>
+                            </div>
+                            {role === "admin" && (
+                              <Check
+                                size={14}
+                                className="text-amber-600 dark:text-amber-400 shrink-0"
+                              />
+                            )}
+                          </button>
                         </div>
-                        <div
-                          className={`absolute top-2.5 right-2.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
-                            role === "admin"
-                              ? "border-amber-600 bg-amber-600 text-white"
-                              : "border-slate-300 dark:border-slate-600 bg-transparent"
-                          }`}
-                        >
-                          {role === "admin" && (
-                            <Check size={9} strokeWidth={3} />
-                          )}
-                        </div>
-                      </button>
+                      )}
                     </div>
                   </div>
 

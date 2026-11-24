@@ -316,11 +316,7 @@ declare module "lucide-react" {
   export const LogOut: Icon;
   export const Lock: Icon;
   export const User: Icon;
-  export const UserCheck: Icon;
   export const UserPlus: Icon;
-  export const Users: Icon;
-  export const UserCog: Icon;
-  export const GraduationCap: Icon;
   export const Key: Icon;
   export const KeyRound: Icon;
   export const Shield: Icon;
