@@ -440,14 +440,14 @@ export const LoginScreen: React.FC<Props> = ({
             </div>
 
             {/* Institutional Hero Copy */}
-            <div className="mt-8 max-w-sm">
+            <div className="mt-7 max-w-sm">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 mb-3">
                 Property Custody Platform
               </div>
               <h1 className="text-2xl sm:text-[28px] font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.2] text-balance">
                 Every tool &amp; asset accounted for
               </h1>
-              <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+              <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 Institutional asset registration, room-by-room custody
                 verification, and physical audit reporting across all training
                 facilities.
@@ -455,7 +455,7 @@ export const LoginScreen: React.FC<Props> = ({
             </div>
 
             {/* Feature Highlights */}
-            <ul className="mt-7 space-y-4">
+            <ul className="mt-6 space-y-3.5">
               {FEATURES.map((feature) => {
                 const Icon = feature.icon;
                 return (
@@ -463,10 +463,10 @@ export const LoginScreen: React.FC<Props> = ({
                     key={feature.title}
                     className="flex items-start gap-3 group"
                   >
-                    <span className="mt-0.5 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 shadow-2xs group-hover:scale-105 transition-transform">
-                      <Icon size={14} />
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 shadow-2xs group-hover:scale-105 transition-transform">
+                      <Icon size={15} />
                     </span>
-                    <span>
+                    <span className="min-w-0">
                       <span className="block text-xs sm:text-sm font-heading font-bold tracking-tight text-slate-900 dark:text-white">
                         {feature.title}
                       </span>
@@ -481,7 +481,7 @@ export const LoginScreen: React.FC<Props> = ({
           </div>
 
           {/* Footer Security Notice */}
-          <div className="relative mt-8 pt-3.5 flex items-center justify-between border-t border-slate-200/70 dark:border-slate-800/80 text-[11px]">
+          <div className="relative mt-8 pt-3.5 flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800 text-[11px]">
             <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-400">
               <ShieldCheck
                 size={14}
@@ -524,11 +524,11 @@ export const LoginScreen: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Centered Form Wrapper - Stays vertically balanced even when demo access is removed */}
-          <div className="my-auto w-full max-w-sm sm:max-w-md mx-auto py-2">
+          {/* Centered Form Wrapper - Optically balanced with left hero panel on desktop */}
+          <div className="w-full max-w-sm sm:max-w-md mx-auto my-auto lg:my-0 lg:pt-1">
             {/* Title & Subtitle */}
             <div className="mb-5">
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-tight text-slate-900 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-heading font-extrabold tracking-tight text-slate-900 dark:text-white">
                 {mode === "signin" && "Sign in to your workspace"}
                 {mode === "signup" && "Create your staff account"}
                 {mode === "forgot" && "Reset your password"}
@@ -704,7 +704,7 @@ export const LoginScreen: React.FC<Props> = ({
                         required
                         autoComplete="new-password"
                         data-lpignore="true"
-                        placeholder="Enter your account password"
+                        placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className={inputWithAction}
@@ -725,29 +725,27 @@ export const LoginScreen: React.FC<Props> = ({
                         )}
                       </button>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      Sign in with your account password or your authorized
-                      KM100 Passkey.
-                    </p>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className={primaryButton}
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        Sign in to Workspace
-                        <ArrowRight size={16} />
-                      </>
-                    )}
-                  </button>
+                  <div className="pt-1">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={primaryButton}
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                          Signing in...
+                        </>
+                      ) : (
+                        <>
+                          Sign in to Workspace
+                          <ArrowRight size={16} />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </form>
               </div>
             )}
@@ -1524,7 +1522,7 @@ export const LoginScreen: React.FC<Props> = ({
           </div>
 
           {/* Institutional Footer Tag */}
-          <div className="mt-8 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="relative mt-8 pt-3.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
             <Lock
               size={12}
               className="text-slate-400 dark:text-slate-500 shrink-0"
