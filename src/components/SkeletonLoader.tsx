@@ -284,13 +284,25 @@ export const AppShellSkeleton: React.FC = () => {
 
           {/* 2-Box Stat Counters (Rooms & Items) */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 p-2.5 border border-slate-100 dark:border-slate-700/60 space-y-1">
-              <SkeletonBone className="h-3 w-12" />
-              <SkeletonBone className="h-5 w-8" />
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/80 p-2.5 border border-slate-200/80 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <SkeletonBone className="h-5 w-5 rounded-md" />
+                <SkeletonBone className="h-2.5 w-10" />
+              </div>
+              <div className="flex items-baseline justify-between pt-0.5">
+                <SkeletonBone className="h-5 w-8" />
+                <SkeletonBone className="h-2.5 w-8" />
+              </div>
             </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 p-2.5 border border-slate-100 dark:border-slate-700/60 space-y-1">
-              <SkeletonBone className="h-3 w-12" />
-              <SkeletonBone className="h-5 w-8" />
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/80 p-2.5 border border-slate-200/80 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <SkeletonBone className="h-5 w-5 rounded-md" />
+                <SkeletonBone className="h-2.5 w-10" />
+              </div>
+              <div className="flex items-baseline justify-between pt-0.5">
+                <SkeletonBone className="h-5 w-8" />
+                <SkeletonBone className="h-2.5 w-8" />
+              </div>
             </div>
           </div>
 

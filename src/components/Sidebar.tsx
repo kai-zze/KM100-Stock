@@ -3,6 +3,7 @@ import {
   Building,
   Edit,
   LayoutDashboard,
+  Package,
   Plus,
   Search,
   Trash2,
@@ -53,22 +54,47 @@ export const Sidebar: React.FC<Props> = React.memo(
             </h1>
           </div>
 
+          {/* Executive KPI Stat Cards (Rooms & Items) */}
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 px-3 py-2 ring-1 ring-slate-100 dark:ring-slate-700/60">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Rooms
-              </p>
-              <p className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-white">
-                {rooms.length}
-              </p>
+            {/* Rooms Stat Card */}
+            <div className="group relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-2.5 transition-all duration-150 hover:border-amber-500/40 dark:hover:border-amber-500/40 hover:shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20">
+                  <Building size={12} />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Rooms
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="font-mono text-xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+                  {rooms.length}
+                </span>
+                <span className="text-[9px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  Active
+                </span>
+              </div>
             </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/80 px-3 py-2 ring-1 ring-slate-100 dark:ring-slate-700/60">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Items
-              </p>
-              <p className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-white">
-                {totalItemsCount}
-              </p>
+
+            {/* Items Stat Card */}
+            <div className="group relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-2.5 transition-all duration-150 hover:border-blue-500/40 dark:hover:border-blue-500/40 hover:shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20">
+                  <Package size={12} />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Items
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <span className="font-mono text-xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+                  {totalItemsCount}
+                </span>
+                <span className="text-[9px] font-medium text-slate-600 dark:text-slate-300">
+                  Total
+                </span>
+              </div>
             </div>
           </div>
 
