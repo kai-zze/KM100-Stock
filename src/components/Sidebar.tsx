@@ -54,9 +54,9 @@ export const Sidebar: React.FC<Props> = React.memo(
           </div>
 
           {/* Executive KPI Stat Cards (Rooms & Items) */}
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
             {/* Rooms Stat Card */}
-            <div className="group relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-3 transition-all duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-3 transition-all duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs">
               <p className="text-sm font-bold tracking-tight text-slate-600 dark:text-slate-300">
                 Rooms
               </p>
@@ -66,7 +66,7 @@ export const Sidebar: React.FC<Props> = React.memo(
             </div>
 
             {/* Items Stat Card */}
-            <div className="group relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-3 transition-all duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs">
+            <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-gradient-to-b from-white to-slate-50/70 dark:from-slate-800/90 dark:to-slate-800/40 p-3 transition-all duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs">
               <p className="text-sm font-bold tracking-tight text-slate-600 dark:text-slate-300">
                 Items
               </p>
