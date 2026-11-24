@@ -189,7 +189,10 @@ export const Header: React.FC<Props> = ({
         </div>
 
         {/* Global Actions Toolbar */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div
+          id="tour-header-tools"
+          className="flex items-center gap-1 sm:gap-2 shrink-0"
+        >
           {/* Import Excel Spreadsheet Button (Desktop only; on mobile accessible via Export & Actions menu) */}
           {onTriggerUploadExcel && currentUser?.role === "admin" && (
             <button
@@ -381,14 +384,17 @@ export const Header: React.FC<Props> = ({
 
           {/* User Profile & Sign Out */}
           {currentUser && (
-            <div className="flex items-center gap-1 sm:gap-1.5 pl-0.5 sm:pl-2 shrink-0">
+            <div
+              id="tour-header-profile"
+              className="flex items-center gap-1 sm:gap-1.5 pl-0.5 sm:pl-2 shrink-0"
+            >
               {onOpenTutorial && (
                 <button
                   type="button"
                   onClick={onOpenTutorial}
-                  className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-600 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0"
-                  title="System Guide & Tutorial"
-                  aria-label="System Guide & Tutorial"
+                  className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors shrink-0"
+                  title="Product Tour"
+                  aria-label="Product Tour"
                 >
                   <HelpCircle size={15} />
                 </button>

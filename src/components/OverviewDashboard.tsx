@@ -88,6 +88,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
               </div>
 
               <button
+                id="tour-add-item-overview"
                 onClick={() => onAddItem()}
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-700 px-3.5 py-2 text-xs font-semibold text-white shadow-sm shadow-amber-600/20 transition-all hover:bg-amber-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25 active:scale-[0.98] sm:px-4 sm:py-2.5 sm:text-sm"
               >

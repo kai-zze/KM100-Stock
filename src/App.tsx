@@ -1120,7 +1120,10 @@ export function App() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <div
+                    id="tour-add-item"
+                    className="flex items-center gap-1.5 sm:gap-2 shrink-0"
+                  >
                     <button
                       onClick={() => {
                         setEditingRoom(currentRoom);
@@ -1162,7 +1165,10 @@ export function App() {
             <div className="flex-1 p-2.5 sm:p-4 lg:p-6 flex flex-col min-h-0">
               <div className="w-full flex-1 flex flex-col">
                 {/* Quick Status KPI Strip */}
-                <div className="mb-3 grid grid-cols-2 gap-2 sm:gap-2.5 rounded-xl border border-slate-200 bg-white p-2 sm:p-2.5 no-print animate-enter sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+                <div
+                  id="tour-kpis"
+                  className="mb-3 grid grid-cols-2 gap-2 sm:gap-2.5 rounded-xl border border-slate-200 bg-white p-2 sm:p-2.5 no-print animate-enter sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900"
+                >
                   <button
                     onClick={() => {
                       setNeedsAttentionFilter(false);
@@ -1283,7 +1289,10 @@ export function App() {
                 </div>
 
                 {/* ── Toolbar: Search, Filters, Column Toggle ────────────── */}
-                <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print animate-enter relative z-20">
+                <div
+                  id="tour-search-filters"
+                  className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 flex flex-col md:flex-row md:items-center justify-between gap-3 no-print animate-enter relative z-20"
+                >
                   {/* Search box with keyboard shortcut indicator */}
                   <div className="relative flex-1 min-w-[220px]">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -1399,26 +1408,31 @@ export function App() {
                 />
 
                 {/* ── Main Data Table ─────────────────────────────────── */}
-                <InventoryTable
-                  items={filteredItems}
-                  columns={visibleColumns}
-                  rooms={rooms}
-                  selectedRoomId={selectedRoomId}
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                  onSelectRoom={setSelectedRoomId}
-                  onQuantityChange={handleQuantityChange}
-                  onSetQuantity={handleSetQuantity}
-                  onEditItem={handleEditItem}
-                  onDeleteItem={confirmDeleteItem}
-                  onAddItem={handleAddItem}
-                  onResetFilters={handleResetFilters}
-                  isFiltered={isFiltered}
-                  selectedIds={selectedIds}
-                  onToggleSelect={handleToggleSelect}
-                  onToggleSelectAll={handleToggleSelectPage}
-                />
+                <div
+                  id="tour-table"
+                  className="w-full flex-1 flex flex-col min-h-0"
+                >
+                  <InventoryTable
+                    items={filteredItems}
+                    columns={visibleColumns}
+                    rooms={rooms}
+                    selectedRoomId={selectedRoomId}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                    onSelectRoom={setSelectedRoomId}
+                    onQuantityChange={handleQuantityChange}
+                    onSetQuantity={handleSetQuantity}
+                    onEditItem={handleEditItem}
+                    onDeleteItem={confirmDeleteItem}
+                    onAddItem={handleAddItem}
+                    onResetFilters={handleResetFilters}
+                    isFiltered={isFiltered}
+                    selectedIds={selectedIds}
+                    onToggleSelect={handleToggleSelect}
+                    onToggleSelectAll={handleToggleSelectPage}
+                  />
+                </div>
               </div>
             </div>
           </div>
