@@ -3,6 +3,7 @@
 ## Design Mode: OPERATE (High-Craft Institutional Dashboard)
 
 ### Color Tokens
+
 - **Brand Primary**:
   - Blue 600 `#2563eb` (Interactive brand primary)
   - Blue 700 `#1d4ed8` (Hover / focus active)
@@ -19,11 +20,13 @@
   - Text: Slate 900 `#0f172a` (light primary), Slate 500 `#64748b` (light secondary), Slate 100 `#f1f5f9` (dark primary), Slate 400 `#94a3b8` (dark secondary).
 
 ### Typography
+
 - **Headings**: Inter / System Sans, `font-bold tracking-tight`
 - **Body**: System Sans, `text-sm leading-relaxed`
 - **Data & Numeric**: `font-mono tabular-nums` for quantities, counts, and dates
 
 ### Spatial Hierarchy & Layout
+
 - Top institution header with institution branding, live item & room counters, search/filter controls, and theme switch.
 - Split-screen or collapsible sidebar for room navigation with item count badges and "All Rooms" master dashboard.
 - Main area with sticky table header, inline quantity +/- controls, column customization trigger, export triggers, and smooth modal overlays.

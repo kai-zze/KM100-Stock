@@ -1,8 +1,8 @@
-import * as XLSX from 'xlsx';
-import { InventoryItem, ItemStatus } from '../types/inventory';
-import { generateItemId } from './ids';
-import { normalizeStatus } from './status';
-import { parseCsvText } from './csvImport';
+import * as XLSX from "xlsx";
+import { InventoryItem, ItemStatus } from "../types/inventory";
+import { generateItemId } from "./ids";
+import { normalizeStatus } from "./status";
+import { parseCsvText } from "./csvImport";
 
 export interface ParsedImportItem extends InventoryItem {
   /** Facility name discovered in the sheet. Resolved to a room id on import. */
@@ -26,69 +26,63 @@ export interface ImportAnalysis {
 }
 
 type CanonicalField =
-  | 'name'
-  | 'category'
-  | 'quantity'
-  | 'units'
-  | 'status'
-  | 'remarks'
-  | 'room';
+  "name" | "category" | "quantity" | "units" | "status" | "remarks" | "room";
 
 const FIELD_ALIASES: Record<string, CanonicalField> = {
-  itemname: 'name',
-  name: 'name',
-  item: 'name',
-  itemdescription: 'name',
-  description: 'name',
-  article: 'name',
-  equipment: 'name',
-  asset: 'name',
+  itemname: "name",
+  name: "name",
+  item: "name",
+  itemdescription: "name",
+  description: "name",
+  article: "name",
+  equipment: "name",
+  asset: "name",
 
-  category: 'category',
-  type: 'category',
-  classification: 'category',
-  group: 'category',
+  category: "category",
+  type: "category",
+  classification: "category",
+  group: "category",
 
-  quantity: 'quantity',
-  qty: 'quantity',
-  count: 'quantity',
-  stock: 'quantity',
-  onhand: 'quantity',
-  pieces: 'quantity',
+  quantity: "quantity",
+  qty: "quantity",
+  count: "quantity",
+  stock: "quantity",
+  onhand: "quantity",
+  pieces: "quantity",
 
-  units: 'units',
-  unit: 'units',
-  uom: 'units',
-  measure: 'units',
+  units: "units",
+  unit: "units",
+  uom: "units",
+  measure: "units",
 
-  status: 'status',
-  condition: 'status',
-  state: 'status',
-  conditionstatus: 'status',
-  statuscondition: 'status',
+  status: "status",
+  condition: "status",
+  state: "status",
+  conditionstatus: "status",
+  statuscondition: "status",
 
-  remarks: 'remarks',
-  remark: 'remarks',
-  notes: 'remarks',
-  note: 'remarks',
-  comment: 'remarks',
-  comments: 'remarks',
+  remarks: "remarks",
+  remark: "remarks",
+  notes: "remarks",
+  note: "remarks",
+  comment: "remarks",
+  comments: "remarks",
 
-  room: 'room',
-  roomname: 'room',
-  roomlocation: 'room',
-  location: 'room',
-  facility: 'room',
-  facilityroom: 'room',
-  area: 'room',
-  assignedroom: 'room',
-  roomfacility: 'room'
+  room: "room",
+  roomname: "room",
+  roomlocation: "room",
+  location: "room",
+  facility: "room",
+  facilityroom: "room",
+  area: "room",
+  assignedroom: "room",
+  roomfacility: "room",
 };
 
 const normalizeKey = (value: unknown): string =>
-  String(value ?? '')
+  String(value ?? "")
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
+    .replace(/[^a-z0-9]/g, "");
 
 const HEADER_SCAN_ROWS = 25;
 
@@ -97,12 +91,12 @@ function isGenericSheetName(name: string): boolean {
   const s = name.toLowerCase();
   return (
     /^sheet\s*\d*$/.test(s) ||
-    s.includes('master') ||
-    s.includes('inventory') ||
-    s.includes('summary') ||
-    s.includes('template') ||
-    s.includes('report') ||
-    s.includes('catalog')
+    s.includes("master") ||
+    s.includes("inventory") ||
+    s.includes("summary") ||
+    s.includes("template") ||
+    s.includes("report") ||
+    s.includes("catalog")
   );
 }
 
@@ -141,8 +135,8 @@ function findHeaderRow(matrix: unknown[][]): HeaderMap | null {
 }
 
 function parseQuantity(raw: unknown): number {
-  const cleaned = String(raw ?? '')
-    .replace(/[^0-9.-]/g, '')
+  const cleaned = String(raw ?? "")
+    .replace(/[^0-9.-]/g, "")
     .trim();
   if (!cleaned) return 1;
   const parsed = parseFloat(cleaned);
@@ -151,25 +145,27 @@ function parseQuantity(raw: unknown): number {
 }
 
 function cellAt(row: unknown[], index: number | undefined): string {
-  if (index === undefined) return '';
+  if (index === undefined) return "";
   const value = row[index];
-  if (value === undefined || value === null) return '';
+  if (value === undefined || value === null) return "";
   return String(value).trim();
 }
 
 function buildItemsFromMatrix(
   matrix: unknown[][],
-  sheetName: string
+  sheetName: string,
 ): ParsedImportItem[] {
   const header = findHeaderRow(matrix);
   if (!header) return [];
 
   const headerLabels = new Set(
-    (matrix[header.rowIndex] || []).map((cell) => normalizeKey(cell)).filter(Boolean)
+    (matrix[header.rowIndex] || [])
+      .map((cell) => normalizeKey(cell))
+      .filter(Boolean),
   );
 
   const items: ParsedImportItem[] = [];
-  const fallbackRoom = isGenericSheetName(sheetName) ? '' : sheetName.trim();
+  const fallbackRoom = isGenericSheetName(sheetName) ? "" : sheetName.trim();
 
   for (let r = header.rowIndex + 1; r < matrix.length; r++) {
     const row = matrix[r] || [];
@@ -179,7 +175,7 @@ function buildItemsFromMatrix(
     if (!name || headerLabels.has(normalizeKey(name))) continue;
 
     const status = normalizeStatus(
-      cellAt(row, header.columns.status) || 'Working'
+      cellAt(row, header.columns.status) || "Working",
     ) as ItemStatus;
 
     const room = cellAt(row, header.columns.room) || fallbackRoom;
@@ -187,17 +183,17 @@ function buildItemsFromMatrix(
 
     items.push({
       id: generateItemId(),
-      roomId: '',
+      roomId: "",
       name,
-      category: cellAt(row, header.columns.category) || 'General',
+      category: cellAt(row, header.columns.category) || "General",
       quantity: parseQuantity(cellAt(row, header.columns.quantity)),
-      units: cellAt(row, header.columns.units) || 'pcs',
+      units: cellAt(row, header.columns.units) || "pcs",
       status,
       condition: status,
       remarks: cellAt(row, header.columns.remarks),
       room,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     });
   }
 
@@ -214,11 +210,11 @@ function summarize(
   fileName: string,
   fileSize: string,
   items: ParsedImportItem[],
-  sheetBreakdown: SheetBreakdown[]
+  sheetBreakdown: SheetBreakdown[],
 ): ImportAnalysis {
   const roomCounts: Record<string, number> = {};
   items.forEach((item) => {
-    const key = item.room || 'Unassigned';
+    const key = item.room || "Unassigned";
     roomCounts[key] = (roomCounts[key] || 0) + 1;
   });
 
@@ -227,10 +223,10 @@ function summarize(
     fileSize,
     totalItems: items.length,
     items,
-    roomsList: Object.keys(roomCounts).filter((name) => name !== 'Unassigned'),
+    roomsList: Object.keys(roomCounts).filter((name) => name !== "Unassigned"),
     roomCounts,
     sheetBreakdown,
-    samplePreview: items.slice(0, 5)
+    samplePreview: items.slice(0, 5),
   };
 }
 
@@ -238,7 +234,8 @@ function readAsArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => resolve(event.target?.result as ArrayBuffer);
-    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file.'));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Failed to read file."));
     reader.readAsArrayBuffer(file);
   });
 }
@@ -246,8 +243,9 @@ function readAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 function readAsText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (event) => resolve(String(event.target?.result ?? ''));
-    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file.'));
+    reader.onload = (event) => resolve(String(event.target?.result ?? ""));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Failed to read file."));
     reader.readAsText(file);
   });
 }
@@ -258,27 +256,31 @@ function readAsText(file: File): Promise<string> {
  */
 export async function analyzeSpreadsheet(file: File): Promise<ImportAnalysis> {
   const fileSize = `${(file.size / 1024).toFixed(1)} KB`;
-  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const isCsv = file.name.toLowerCase().endsWith(".csv");
 
   const items: ParsedImportItem[] = [];
   const sheetBreakdown: SheetBreakdown[] = [];
 
   if (isCsv) {
     const text = await readAsText(file);
-    const parsed = buildItemsFromMatrix(csvObjectsToMatrix(parseCsvText(text)), file.name);
+    const parsed = buildItemsFromMatrix(
+      csvObjectsToMatrix(parseCsvText(text)),
+      file.name,
+    );
     items.push(...parsed);
-    if (parsed.length > 0) sheetBreakdown.push({ sheetName: file.name, count: parsed.length });
+    if (parsed.length > 0)
+      sheetBreakdown.push({ sheetName: file.name, count: parsed.length });
   } else {
     const buffer = await readAsArrayBuffer(file);
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
 
     workbook.SheetNames.forEach((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
       if (!sheet) return;
       const matrix = (XLSX.utils.sheet_to_json as any)(sheet, {
         header: 1,
-        defval: '',
-        blankrows: false
+        defval: "",
+        blankrows: false,
       }) as unknown[][];
       const parsed = buildItemsFromMatrix(matrix, sheetName);
       if (parsed.length > 0) {

@@ -64,7 +64,10 @@ export const ColumnsVisibilityMenu: React.FC<Props> = ({
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
-        <Eye size={14} className="text-slate-500 dark:text-slate-400 shrink-0" />
+        <Eye
+          size={14}
+          className="text-slate-500 dark:text-slate-400 shrink-0"
+        />
         <span className="truncate">Columns</span>
         <ChevronDown size={12} className="text-slate-400 shrink-0" />
       </button>

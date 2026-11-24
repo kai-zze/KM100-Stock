@@ -1,4 +1,5 @@
 # KM100 Inventory Management System
+
 > **Official Asset & Property Register for KM100 Skills and Training Center, Inc.**
 
 ---
@@ -52,14 +53,18 @@ KM100 Stock/
 ## 🚀 Getting Started
 
 ### 1. Instant Run (No Installation Required)
+
 Simply double-click or open **`index.html`** in any web browser (Chrome, Edge, Firefox). The application loads offline using local scripts and connects automatically to the **Supabase PostgreSQL Cloud**.
 
 ### 2. Cloud Database Sync (Supabase)
+
 The system is pre-configured with the **KM100-Stock** Supabase project:
+
 - **Engine**: PostgreSQL 15+ Realtime
 - **URL**: `https://kpzancwkmbhnuqbnqrii.supabase.co`
 - Real-time multi-device sync is enabled across instructor tablets, classroom PCs, and admin workstations.
 
 ### 3. Excel Export & Import
+
 - **Multi-Sheet Export**: Generates branded `.xlsx` workbooks partitioned by facility room with summary metrics.
 - **Direct Import**: Drag & drop or upload any `.xlsx` or `.csv` spreadsheet to add directly to the database.

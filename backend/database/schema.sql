@@ -59,11 +59,38 @@ ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.columns_schema ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
 
--- Profiles: Authenticated users can read directory; users can update own profile
+-- Profiles: Authenticated users can read directory; users can insert and update own profile
 CREATE POLICY "Allow authenticated read profiles" ON public.profiles
     FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow users insert own profile" ON public.profiles
+    FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
 CREATE POLICY "Allow users update own profile" ON public.profiles
     FOR UPDATE TO authenticated USING (auth.uid() = id);
+
+-- 0.1 Automatic Profile Creation Trigger on Sign-Up (auth.users -> public.profiles)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, full_name, role)
+    VALUES (
+        new.id,
+        new.email,
+        COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+        COALESCE(new.raw_user_meta_data->>'role', 'staff')
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        full_name = EXCLUDED.full_name,
+        role = EXCLUDED.role,
+        updated_at = NOW();
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Rooms: Authenticated training center personnel can read; write restricted to authenticated staff/admin
 CREATE POLICY "Allow authenticated read rooms" ON public.rooms

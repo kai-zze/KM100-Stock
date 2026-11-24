@@ -1,0 +1,21 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "KM100 Skills and Training Center, Inc.",
+    "identifier": "https://km100-inventory.local"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:km100-inventory.local:services:inventory-register",
+      "displayName": "KM100 Property Custody & Inventory Management System",
+      "type": "application/ai-catalog+json",
+      "url": "https://km100-inventory.local/ai-catalog.json",
+      "description": "Institutional asset register and equipment custody catalog.",
+      "representativeQueries": [
+        "Check property custody and equipment inventory",
+        "List training rooms and equipment items",
+        "Conduct physical audit report"
+      ]
+    }
+  ]
+}

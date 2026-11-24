@@ -1,0 +1,8 @@
+# KM100 Inventory Management System
+
+> Official physical custody and inventory management platform for KM100 Skills and Training Center, Inc.
+
+## Institutional Facilities & Sections
+- [Facility Rooms Catalog](https://km100-inventory.local/#rooms): Comprehensive equipment registers categorized across training suites and workshops.
+- [Property Custody Register](https://km100-inventory.local/#inventory): High-density live equipment audit tracking quantities, conditions, and custody locations.
+- [Official Physical Audit Reporting](https://km100-inventory.local/#reports): Formal physical inventory sheets and multi-sheet audit workbooks for compliance.

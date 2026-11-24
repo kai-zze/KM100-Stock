@@ -1,88 +1,147 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { InventoryItem, Room } from "../types/inventory";
 import { normalizeStatus } from "../utils/status";
 
+// ── 1. Type Definitions & Interfaces ─────────────────────────────────────────
+
 interface Props {
+  /** Array of inventory items to render in the audit report */
   items: InventoryItem[];
+  /** Array of available rooms used to resolve location names */
   rooms: Room[];
+  /** Current facility scope name (e.g. specific room or "All Facilities") */
   facilityName: string;
 }
 
+// ── 2. Static Constants & Pure Data Transformers (Module Scope) ──────────────
+
+/**
+ * Standard brand name mappings enforced by KM100 property custody governance.
+ */
+const BRAND_RENAMES: Readonly<Record<string, string>> = {
+  "Analog Multimeter Sanwa": "Sanwa Analog Multimeter",
+  "191ml WD-40": "WD-40 191ml",
+  "Switch Catalyst 2960G": "Catalyst 2960G Switch",
+  "Switch Catalyst 3560G": "Catalyst 3560G Switch",
+};
+
+/**
+ * Pure data transformation function that sanitizes, merges duplicate items,
+ * and normalizes categories according to official audit standards.
+ */
+export function normalizeReportInventory(
+  rawItems: readonly InventoryItem[],
+): InventoryItem[] {
+  const merged: InventoryItem[] = [];
+
+  for (const item of rawItems) {
+    const currentItem: InventoryItem = { ...item };
+
+    // Standardize CSS Books category to "Books and References"
+    if (
+      currentItem.name === "CSS Books" &&
+      (currentItem.category === "Peripherals and Storage" ||
+        !currentItem.category)
+    ) {
+      currentItem.category = "Books and References";
+    }
+
+    // Standardize known vendor brand prefixes
+    if (BRAND_RENAMES[currentItem.name]) {
+      currentItem.name = BRAND_RENAMES[currentItem.name];
+    }
+
+    // Deduplicate Crimping Tools Non-Pass through sharing room, status, and unit
+    if (currentItem.name === "Crimping Tools Non-Pass through") {
+      const existingIdx = merged.findIndex(
+        (m) =>
+          m.name === currentItem.name &&
+          m.roomId === currentItem.roomId &&
+          m.status === currentItem.status &&
+          m.units === currentItem.units,
+      );
+      if (existingIdx !== -1) {
+        merged[existingIdx] = {
+          ...merged[existingIdx],
+          quantity:
+            (Number(merged[existingIdx].quantity) || 0) +
+            (Number(currentItem.quantity) || 0),
+        };
+        continue;
+      }
+    }
+
+    merged.push(currentItem);
+  }
+
+  return merged;
+}
+
+// ── 3. Component Implementation ──────────────────────────────────────────────
+
 /**
  * Formal audit sheet. Hidden on screen, revealed by the `@media print` rules in
- * index.html so "Print Sheet" produces a signed, letterheaded document.
+ * index.html so "Print Sheet" produces an official, signed, letterheaded document.
+ * Follows industry-standard co-located Tailwind utility classes directly in JSX.
  */
 export const PrintReport: React.FC<Props> = ({
   items,
   rooms,
   facilityName,
 }) => {
-  // Process items: deduplicate rows 28 & 29 (Crimping Tools Non-Pass through), update CSS Books category, and reorder brand names
-  const reportItems = useMemo(() => {
-    const brandRenames: Record<string, string> = {
-      'Analog Multimeter Sanwa': 'Sanwa Analog Multimeter',
-      '191ml WD-40': 'WD-40 191ml',
-      'Switch Catalyst 2960G': 'Catalyst 2960G Switch',
-      'Switch Catalyst 3560G': 'Catalyst 3560G Switch',
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      const rDom = ReactDOM as any;
+      if (typeof rDom.flushSync === "function") {
+        rDom.flushSync(() => {
+          setIsPrinting(true);
+        });
+      } else {
+        setIsPrinting(true);
+      }
+    };
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
     };
 
-    const merged: InventoryItem[] = [];
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
 
-    for (const item of items) {
-      const currentItem = { ...item };
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, []);
 
-      // Category update for CSS Books
-      if (
-        currentItem.name === 'CSS Books' &&
-        (currentItem.category === 'Peripherals and Storage' || !currentItem.category)
-      ) {
-        currentItem.category = 'Books and References';
-      }
+  // Clean, normalized items for the audit table
+  const reportItems = useMemo(() => normalizeReportInventory(items), [items]);
 
-      // Brand reorder
-      if (brandRenames[currentItem.name]) {
-        currentItem.name = brandRenames[currentItem.name];
-      }
-
-      // Duplicate merge for Crimping Tools Non-Pass through
-      if (currentItem.name === 'Crimping Tools Non-Pass through') {
-        const existingIdx = merged.findIndex(
-          (m) =>
-            m.name === currentItem.name &&
-            m.roomId === currentItem.roomId &&
-            m.status === currentItem.status &&
-            m.units === currentItem.units
-        );
-        if (existingIdx !== -1) {
-          merged[existingIdx] = {
-            ...merged[existingIdx],
-            quantity:
-              (Number(merged[existingIdx].quantity) || 0) +
-              (Number(currentItem.quantity) || 0),
-          };
-          continue;
-        }
-      }
-
-      merged.push(currentItem);
-    }
-
-    return merged;
-  }, [items]);
-
-  const totalUnits = reportItems.reduce(
-    (sum, item) => sum + (Number(item.quantity) || 0),
-    0,
+  // O(1) room map lookup instead of O(N * M) nested find in render loop
+  const roomNameMap = useMemo(
+    () => new Map(rooms.map((r) => [r.id, r.name])),
+    [rooms],
   );
+
+  const totalUnits = useMemo(
+    () =>
+      reportItems.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0),
+    [reportItems],
+  );
+
   const totalItems = reportItems.length;
 
-  const auditDate = useMemo(() => {
-    return new Date().toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }, []);
+  const auditDate = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+    [],
+  );
 
   const docRef = useMemo(() => {
     const now = new Date();
@@ -95,170 +154,187 @@ export const PrintReport: React.FC<Props> = ({
 
   const scopeDisplay =
     !facilityName ||
-    facilityName === 'Master Inventory (All Facilities)' ||
-    facilityName === 'All Facilities'
-      ? 'All Facilities'
+    facilityName === "Master Inventory (All Facilities)" ||
+    facilityName === "All Facilities"
+      ? "All Facilities"
       : facilityName;
 
+  if (!isPrinting) {
+    return null;
+  }
+
   return (
-    <div id="printable-report" className="print-only p-7 text-black bg-white">
-      <div className="pb-2.5 mb-4">
-        <div className="flex items-stretch justify-between gap-4">
-          <div className="flex items-stretch gap-3">
-            <div className="flex items-center shrink-0">
-              <img
-                src="/logo.png"
-                alt="KM100 Logo"
-                className="h-full max-h-[54px] w-auto aspect-square object-contain rounded-full"
-              />
-            </div>
-            <div className="text-[9px] flex flex-col justify-center">
-              <p className="text-[10px] font-semibold text-gray-800 leading-tight">
-                KM100 Skills and Training Center, Inc.
-              </p>
-              <p className="text-[9px] font-medium text-gray-700 leading-snug mt-0.5">
-                Inventory Control Department &middot; Audit &amp; Compliance
-              </p>
-              <div className="flex items-center gap-2 mt-1 leading-tight">
-                <h2 className="text-sm sm:text-base font-extrabold uppercase tracking-wider text-black leading-tight">
-                  PHYSICAL INVENTORY REPORT
-                </h2>
-                <span className="text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 border border-black rounded text-black bg-white shrink-0">
-                  Official Copy
-                </span>
-              </div>
-            </div>
+    <div id="printable-report" className="print-only bg-white p-7 text-black">
+      {/* ── Document Header & Institutional Brand ───────────────────── */}
+      <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
+        <div className="flex items-center gap-4">
+          <img
+            src="/logo-sm.png"
+            alt="KM100 Logo"
+            className="w-14 h-14 object-contain rounded-full"
+          />
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-black">
+              KM100 SKILLS AND TRAINING CENTER, INC.
+            </h1>
+            <p className="text-xs text-gray-700">
+              Official Physical Asset &amp; Property Inventory System
+            </p>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-black mt-1">
+              OFFICIAL PHYSICAL INVENTORY REPORT
+            </h2>
           </div>
-          <div className="text-right text-[9px] space-y-0.5 shrink-0 self-center">
-            <div>
-              <span className="text-gray-600">Scope: </span>
-              <span className="font-bold text-black">{scopeDisplay}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Audit Date: </span>
-              <span className="font-bold text-black tabular-nums">{auditDate}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Doc Ref: </span>
-              <span className="font-bold text-black tabular-nums">{docRef}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Catalog Items: </span>
-              <span className="font-bold text-black tabular-nums">{totalItems}</span>
-              <span className="text-gray-400 mx-1">&middot;</span>
-              <span className="text-gray-600">Total Units: </span>
-              <span className="font-bold text-black tabular-nums">{totalUnits.toLocaleString()}</span>
-            </div>
+        </div>
+        <div className="text-right text-xs text-gray-700 space-y-0.5">
+          <div>
+            Facility: <strong className="text-black">{scopeDisplay}</strong>
+          </div>
+          <div>
+            Audit Date: <strong className="text-black">{auditDate}</strong>
+          </div>
+          <div>
+            Doc. Ref.: <strong className="text-black">{docRef}</strong>
+          </div>
+          <div>
+            Catalog Items: <strong className="text-black">{totalItems}</strong>{" "}
+            &middot; Total Units:{" "}
+            <strong className="text-black">
+              {totalUnits.toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>
 
-      <table className="w-full table-fixed text-left text-[9px] border-collapse border border-black mb-6 bg-white">
+      {/* ── Official Inventory Audit Table ──────────────────────────── */}
+      <table className="mb-6 w-full table-fixed border-collapse border border-black bg-white text-left text-[9px]">
         <thead>
-          <tr className="bg-white text-black font-bold">
-            <th className="py-1.5 px-1.5 border border-black font-bold text-center w-8 text-black bg-white">
+          <tr className="bg-white font-bold text-black">
+            <th
+              scope="col"
+              className="w-8 border border-black bg-white p-1.5 text-center font-bold text-black"
+            >
               #
             </th>
-            <th className="py-1.5 px-2 border border-black font-bold w-[29%] text-black bg-white">
+            <th
+              scope="col"
+              className="w-[29%] border border-black bg-white px-2 py-1.5 font-bold text-black"
+            >
               Item
             </th>
-            <th className="py-1.5 px-2 border border-black font-bold w-[21%] text-black bg-white">
+            <th
+              scope="col"
+              className="w-[21%] border border-black bg-white px-2 py-1.5 font-bold text-black"
+            >
               Category
             </th>
-            <th className="py-1.5 px-1.5 border border-black font-bold text-center w-11 text-black bg-white">
+            <th
+              scope="col"
+              className="w-11 border border-black bg-white p-1.5 text-center font-bold text-black"
+            >
               Qty
             </th>
-            <th className="py-1.5 px-1.5 border border-black font-bold text-center w-12 text-black bg-white">
+            <th
+              scope="col"
+              className="w-12 border border-black bg-white p-1.5 text-center font-bold text-black"
+            >
               Unit
             </th>
-            <th className="py-1.5 px-1.5 border border-black font-bold text-center w-16 text-black bg-white">
+            <th
+              scope="col"
+              className="w-16 border border-black bg-white p-1.5 text-center font-bold text-black"
+            >
               Status
             </th>
-            <th className="py-1.5 px-2 border border-black font-bold w-36 text-black bg-white">
+            <th
+              scope="col"
+              className="w-36 border border-black bg-white px-2 py-1.5 font-bold text-black"
+            >
               Location
             </th>
           </tr>
         </thead>
         <tbody>
           {reportItems.map((item, index) => {
-            const room = rooms.find(
-              (candidate) => candidate.id === item.roomId,
-            );
+            const location =
+              roomNameMap.get(item.roomId ?? "") ?? item.room ?? "Unassigned";
             return (
-              <tr
-                key={item.id}
-                className="bg-white break-inside-avoid"
-              >
-                <td className="py-1.5 px-1.5 border border-black text-center tabular-nums text-black">
+              <tr key={item.id} className="break-inside-avoid bg-white">
+                <td className="border border-black p-1.5 text-center tabular-nums text-black">
                   {index + 1}
                 </td>
-                <td className="py-1.5 px-2 border border-black font-semibold break-words text-black">
+                <td className="border border-black px-2 py-1.5 font-semibold text-black break-words">
                   {item.name}
                 </td>
-                <td className="py-1.5 px-2 border border-black break-words text-black">
+                <td className="border border-black px-2 py-1.5 text-black break-words">
                   {item.category}
                 </td>
-                <td className="py-1.5 px-1.5 border border-black text-center font-bold tabular-nums text-black">
+                <td className="border border-black p-1.5 text-center font-bold tabular-nums text-black">
                   {Number(item.quantity) || 0}
                 </td>
-                <td className="py-1.5 px-1.5 border border-black text-center text-black">
+                <td className="border border-black p-1.5 text-center text-black">
                   {item.units || "pcs"}
                 </td>
-                <td className="py-1.5 px-1.5 border border-black text-center uppercase font-semibold text-[8px] text-black">
+                <td className="border border-black p-1.5 text-center text-[8px] font-semibold uppercase text-black">
                   {normalizeStatus(item.status ?? item.condition)}
                 </td>
-                <td className="py-1.5 px-2 border border-black break-words text-black">
-                  {room ? room.name : item.room}
+                <td className="border border-black px-2 py-1.5 text-black break-words">
+                  {location}
                 </td>
               </tr>
             );
           })}
-          <tr className="bg-white font-bold border border-black break-inside-avoid">
+        </tbody>
+        <tfoot>
+          <tr className="break-inside-avoid border border-black bg-white font-bold">
             <td
-              className="py-1.5 px-2 border border-black text-center text-black font-bold"
+              scope="row"
+              className="border border-black px-2 py-1.5 text-center font-bold text-black"
               colSpan={3}
             >
               TOTALS
             </td>
-            <td className="py-1.5 px-1.5 border border-black text-center tabular-nums text-black font-bold">
+            <td className="border border-black p-1.5 text-center font-bold tabular-nums text-black">
               {totalUnits}
             </td>
-            <td className="py-1.5 px-1.5 border border-black text-center tabular-nums text-black font-bold">
+            <td className="border border-black p-1.5 text-center font-bold tabular-nums text-black">
               {totalItems}
             </td>
-            <td className="py-1.5 px-1.5 border border-black text-center" colSpan={2}></td>
+            <td
+              className="border border-black p-1.5 text-center"
+              colSpan={2}
+            ></td>
           </tr>
-        </tbody>
+        </tfoot>
       </table>
 
-      {/* Centered Sign-Off Block without Date */}
-      <div className="grid grid-cols-3 gap-6 pt-2 text-[9px] text-center break-inside-avoid">
+      {/* ── Official Three-Party Sign-Off Block ─────────────────────── */}
+      <section className="grid grid-cols-3 gap-6 pt-2 text-center text-[9px] break-inside-avoid">
         <div>
-          <p className="font-bold text-black mb-7">Prepared By:</p>
-          <div className="border-b border-black w-full mb-1" />
+          <p className="mb-7 font-bold text-black">Prepared By:</p>
+          <div className="mb-1 w-full border-b border-black" />
           <p className="font-semibold text-black">Property Custodian</p>
-          <p className="text-gray-600 mt-0.5">Signature over Printed Name</p>
+          <p className="mt-0.5 text-gray-600">Signature over Printed Name</p>
         </div>
 
         <div>
-          <p className="font-bold text-black mb-7">Audited / Inspected By:</p>
-          <div className="border-b border-black w-full mb-1" />
+          <p className="mb-7 font-bold text-black">Audited / Inspected By:</p>
+          <div className="mb-1 w-full border-b border-black" />
           <p className="font-semibold text-black">
             Quality Assurance Inspector
           </p>
-          <p className="text-gray-600 mt-0.5">Signature over Printed Name</p>
+          <p className="mt-0.5 text-gray-600">Signature over Printed Name</p>
         </div>
 
         <div>
-          <p className="font-bold text-black mb-7">Approved By:</p>
-          <div className="border-b border-black w-full mb-1" />
+          <p className="mb-7 font-bold text-black">Approved By:</p>
+          <div className="mb-1 w-full border-b border-black" />
           <p className="font-semibold text-black">President</p>
-          <p className="text-gray-600 mt-0.5">Signature over Printed Name</p>
+          <p className="mt-0.5 text-gray-600">Signature over Printed Name</p>
         </div>
-      </div>
+      </section>
 
-      {/* Footer Note */}
-      <div className="mt-5 text-[8px] text-gray-600 text-center break-inside-avoid">
+      {/* ── Legal & Compliance Footer ───────────────────────────────── */}
+      <footer className="mt-5 text-center text-[8px] text-gray-600 break-inside-avoid">
         <p>
           This document is an official record of KM100 Skills and Training
           Center, Inc &mdash; unauthorized reproduction or alteration is
@@ -267,7 +343,7 @@ export const PrintReport: React.FC<Props> = ({
         <p>
           Generated from KM100 Inventory Management System &mdash; {auditDate}
         </p>
-      </div>
+      </footer>
     </div>
   );
 };

@@ -3,7 +3,9 @@
  * (`km100-001`, `item-<ts>`, `km100-<ts>`); everything new goes through here.
  */
 function randomSuffix(length = 5): string {
-  return Math.random().toString(36).slice(2, 2 + length);
+  return Math.random()
+    .toString(36)
+    .slice(2, 2 + length);
 }
 
 export function generateItemId(): string {

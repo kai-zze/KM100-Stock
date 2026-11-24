@@ -13,7 +13,7 @@ export interface CsvRow {
 export function parseCsvText(text: string): CsvRow[] {
   const records: string[][] = [];
   let record: string[] = [];
-  let field = '';
+  let field = "";
   let inQuotes = false;
 
   for (let i = 0; i < text.length; i++) {
@@ -35,15 +35,15 @@ export function parseCsvText(text: string): CsvRow[] {
 
     if (ch === '"') {
       inQuotes = true;
-    } else if (ch === ',') {
+    } else if (ch === ",") {
       record.push(field);
-      field = '';
-    } else if (ch === '\n') {
+      field = "";
+    } else if (ch === "\n") {
       record.push(field);
       records.push(record);
       record = [];
-      field = '';
-    } else if (ch !== '\r') {
+      field = "";
+    } else if (ch !== "\r") {
       field += ch;
     }
   }
@@ -60,7 +60,7 @@ export function parseCsvText(text: string): CsvRow[] {
   return rows.slice(1).map((cells) => {
     const obj: CsvRow = {};
     header.forEach((h, idx) => {
-      obj[h] = (cells[idx] ?? '').trim();
+      obj[h] = (cells[idx] ?? "").trim();
     });
     return obj;
   });
@@ -72,7 +72,7 @@ export function parseCsvText(text: string): CsvRow[] {
  */
 export function parseImportRows(
   rows: CsvRow[],
-  defaultRoomId: string
+  defaultRoomId: string,
 ): Array<{
   id: string;
   roomId: string;
@@ -89,14 +89,21 @@ export function parseImportRows(
   return rows.map((row, index) => ({
     id: `import-${Date.now()}-${index}`,
     roomId: row.roomId || row.room || defaultRoomId,
-    name: String(row.name || row['ITEM NAME'] || row['Item Name'] || `Imported Item ${index + 1}`),
-    category: String(row.category || row.CATEGORY || 'General'),
+    name: String(
+      row.name ||
+        row["ITEM NAME"] ||
+        row["Item Name"] ||
+        `Imported Item ${index + 1}`,
+    ),
+    category: String(row.category || row.CATEGORY || "General"),
     quantity: Number(row.quantity || row.QUANTITY || row.qty || 1) || 1,
-    units: String(row.units || row.UNITS || 'pcs'),
-    status: String(row.status || row.Status || row.condition || 'Working'),
-    condition: String(row.condition || row.Condition || row.status || 'Working'),
-    remarks: String(row.remarks || row.Remarks || ''),
+    units: String(row.units || row.UNITS || "pcs"),
+    status: String(row.status || row.Status || row.condition || "Working"),
+    condition: String(
+      row.condition || row.Condition || row.status || "Working",
+    ),
+    remarks: String(row.remarks || row.Remarks || ""),
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }));
 }

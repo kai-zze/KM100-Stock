@@ -23,7 +23,13 @@ import { InventoryTable } from "./components/InventoryTable";
 import { BulkActionBar } from "./components/BulkActionBar";
 import { ColumnsVisibilityMenu } from "./components/ColumnsVisibilityMenu";
 import { LoginScreen } from "./components/LoginScreen";
+import {
+  AppShellSkeleton,
+  DashboardSkeleton,
+  ModalSkeleton,
+} from "./components/SkeletonLoader";
 import { getStoredUser, logoutCurrentSession } from "./utils/auth";
+import { supabase } from "./utils/supabaseClient";
 import { inventoryService } from "./services/inventoryService";
 const lazyNamed = (loader: () => Promise<any>, name: string) =>
   (React as any).lazy(() => loader().then((mod) => ({ default: mod[name] })));
@@ -77,6 +83,9 @@ const STORAGE_KEY_ITEMS = "km100_inventory_items_v1";
 const STORAGE_KEY_COLUMNS = "km100_inventory_columns_v1";
 const STORAGE_KEY_HIDDEN_COLS = "km100_hidden_columns_v1";
 
+// Module-level deduplication for initial cloud data fetch (prevents duplicate requests in React StrictMode)
+let initialCloudFetchPromise: Promise<[any, any, any]> | null = null;
+
 export function App() {
   // ── State Initialization ──────────────────────────────────────────
   // defaultData.ts (43KB) is lazy-loaded below — only fetched when localStorage is empty
@@ -88,6 +97,28 @@ export function App() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() =>
     getStoredUser(),
   );
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
+  // ── Listen for Supabase Password Recovery Events & Direct Link Activation ──
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordRecovery(true);
+      }
+    });
+
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    if (hash.includes("type=recovery") || search.includes("type=recovery")) {
+      setIsPasswordRecovery(true);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // ── Initial Data Load: Local Cache Fast-Render + Live Supabase Fetch ─
   useEffect(() => {
@@ -111,13 +142,18 @@ export function App() {
         // ignore cache parse errors
       }
 
-      // 2. Fetch official cloud data directly from Supabase
+      // 2. Fetch official cloud data directly from Supabase (deduplicated across rapid mounts)
       try {
-        const [supaRooms, supaItems, supaColumns] = await Promise.all([
-          inventoryService.fetchRooms(),
-          inventoryService.fetchItems(),
-          inventoryService.fetchColumns(),
-        ]);
+        if (!initialCloudFetchPromise) {
+          initialCloudFetchPromise = Promise.all([
+            inventoryService.fetchRooms(),
+            inventoryService.fetchItems(),
+            inventoryService.fetchColumns(),
+          ]);
+        }
+
+        const [supaRooms, supaItems, supaColumns] =
+          await initialCloudFetchPromise;
 
         if (isMounted) {
           if (supaRooms && supaRooms.length > 0) {
@@ -876,11 +912,13 @@ export function App() {
     showToast("Signed out of KM100 System", "info");
   };
 
-  // ── Authentication Guard (Institutional Login Screen) ────────────
-  if (!currentUser) {
+  // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
+  if (!currentUser || isPasswordRecovery) {
     return (
       <LoginScreen
+        initialMode={isPasswordRecovery ? "reset" : undefined}
         onLoginSuccess={(user) => {
+          setIsPasswordRecovery(false);
           const cleanUser = {
             ...user,
             fullName: (user.fullName || user.email)
@@ -892,6 +930,11 @@ export function App() {
         }}
       />
     );
+  }
+
+  // ── Institutional Skeleton Loader (Enterprise Fast-Boot Mirror) ─────────
+  if (!defaultsLoaded) {
+    return <AppShellSkeleton />;
   }
 
   return (
@@ -1328,7 +1371,7 @@ export function App() {
 
       {/* ── Schema Builder Modal ────────────────────────────────────── */}
       {isColumnsModalOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalSkeleton size="lg" />}>
           <ColumnsSchemaModal
             isOpen={isColumnsModalOpen}
             onClose={() => setIsColumnsModalOpen(false)}
@@ -1348,7 +1391,7 @@ export function App() {
 
       {/* ── Room Add / Rename Modal ─────────────────────────────────── */}
       {isRoomModalOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalSkeleton size="sm" />}>
           <RoomModal
             key={editingRoom ? editingRoom.id : "new-room"}
             isOpen={isRoomModalOpen}
@@ -1375,7 +1418,7 @@ export function App() {
 
       {/* ── Equipment Asset Tag Printable Sticker Modal ─────────────── */}
       {assetTagItem && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalSkeleton size="sm" />}>
           <AssetTagModal
             item={assetTagItem}
             rooms={rooms}
@@ -1386,7 +1429,7 @@ export function App() {
 
       {/* ── Spreadsheet Upload Preview & Strategy Modal ─────────────── */}
       {importAnalysis && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalSkeleton size="lg" />}>
           <ImportPreviewModal
             analysis={importAnalysis}
             currentRoom={currentRoom}

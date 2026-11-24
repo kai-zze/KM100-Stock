@@ -17,18 +17,20 @@ A professional design intelligence framework for creating production-grade, high
 ## Design Dial Configurations
 
 When building an interface, balance three core dials:
+
 - **Density (1–10)**:
-  - *Compact (7–9)*: Ideal for dashboards, data tables, inventory management, developer tools. Uses 4px/8px rhythm, tighter padding (`py-2 px-3`), tabular numbers, sticky controls.
-  - *Standard (4–6)*: Typical web apps, SaaS portals, management interfaces.
-  - *Spacious (1–3)*: Marketing pages, onboarding flows, consumer mobile experiences.
+  - _Compact (7–9)_: Ideal for dashboards, data tables, inventory management, developer tools. Uses 4px/8px rhythm, tighter padding (`py-2 px-3`), tabular numbers, sticky controls.
+  - _Standard (4–6)_: Typical web apps, SaaS portals, management interfaces.
+  - _Spacious (1–3)_: Marketing pages, onboarding flows, consumer mobile experiences.
 - **Motion & Micro-interactions (1–10)**:
-  - *Functional (2–4)*: Subtle transitions (`transition-all duration-150 ease-out`), hover elevations, tactile button depressions (`active:scale-[0.98]`), gentle modal backdrops.
+  - _Functional (2–4)_: Subtle transitions (`transition-all duration-150 ease-out`), hover elevations, tactile button depressions (`active:scale-[0.98]`), gentle modal backdrops.
 - **Visual Weight & Variance (1–10)**:
-  - *Balanced (5–7)*: Crisp borders (`border-slate-200 dark:border-slate-800`), layered elevations, clean typography hierarchies, distinctive badge colors.
+  - _Balanced (5–7)_: Crisp borders (`border-slate-200 dark:border-slate-800`), layered elevations, clean typography hierarchies, distinctive badge colors.
 
 ## Curated Color Palettes for Enterprise & Institutional Tools
 
 ### Training Center & Executive Inventory (KM100 Theme)
+
 - **Primary / Brand**: Deep Indigo / Sapphire Blue (`#1e40af`, `#2563eb`, `#3b82f6`, `#60a5fa`)
 - **Accent**: Emerald Green (`#059669`, `#10b981`) for active/good condition; Amber (`#d97706`, `#f59e0b`) for fair/caution; Rose (`#e11d48`, `#f43f5e`) for repair/condemned.
 - **Surfaces (Light)**: Pure white `#ffffff`, slate tint `#f8fafc`, container card `#ffffff`, subtle divider `#e2e8f0`.

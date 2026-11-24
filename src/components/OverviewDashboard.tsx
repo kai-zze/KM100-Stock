@@ -49,34 +49,38 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
     }, [rooms, roomItemCounts]);
 
     return (
-      <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6">
+      <div className="border-b border-slate-200 bg-slate-50/60 px-3 py-4 dark:border-slate-800 dark:bg-slate-950/60 sm:px-4 sm:py-5 lg:px-6 lg:py-6">
         <div className="w-full space-y-4 sm:space-y-5">
           {/* Header Strip */}
           <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="animate-enter">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-heading font-bold tracking-tight text-slate-900 dark:text-white">
+              <h2 className="font-heading text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl lg:text-3xl">
                 All rooms
               </h2>
-              <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:mt-1 sm:text-sm md:text-base">
                 Everything we have, across all rooms.
               </p>
             </div>
 
             <div
-              className="flex items-center gap-2 animate-enter"
+              className="animate-enter flex items-center gap-2"
               style={{ animationDelay: "40ms" }}
             >
-              <div className="hidden items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 shadow-sm sm:flex">
+              <div className="hidden items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 sm:flex sm:text-sm">
                 <span className="font-bold tabular-nums text-slate-900 dark:text-white">
                   {rooms.length}
                 </span>
                 <span>rooms</span>
-                <span className="text-slate-300 dark:text-slate-700 mx-0.5">&middot;</span>
+                <span className="mx-0.5 text-slate-300 dark:text-slate-700">
+                  &middot;
+                </span>
                 <span className="font-bold tabular-nums text-slate-900 dark:text-white">
                   {items.length}
                 </span>
                 <span>items</span>
-                <span className="text-slate-300 dark:text-slate-700 mx-0.5">&middot;</span>
+                <span className="mx-0.5 text-slate-300 dark:text-slate-700">
+                  &middot;
+                </span>
                 <span className="font-bold tabular-nums text-slate-900 dark:text-white">
                   {totalUnits.toLocaleString()}
                 </span>
@@ -85,7 +89,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
 
               <button
                 onClick={() => onAddItem()}
-                className="flex items-center justify-center gap-2 rounded-xl bg-amber-700 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm shadow-amber-600/20 transition-all hover:bg-amber-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25 active:scale-[0.98]"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-700 px-3.5 py-2 text-xs font-semibold text-white shadow-sm shadow-amber-600/20 transition-all hover:bg-amber-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25 active:scale-[0.98] sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 <Plus size={16} /> Add item
               </button>
@@ -96,33 +100,36 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
           <div className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="flex items-center gap-2 text-base font-heading font-bold text-slate-900 dark:text-white">
-                  <Layers size={17} className="text-amber-700 dark:text-amber-400" />
+                <h3 className="font-heading flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                  <Layers
+                    size={17}
+                    className="text-amber-700 dark:text-amber-400"
+                  />
                   Rooms
                 </h3>
-                <p className="mt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                   Click a room to see its items.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-2xs">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                <div className="shadow-2xs flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/60 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
                     <span>Operational</span>
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-950/40">
-                    <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50/60 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
                     <span>Needs attention</span>
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-slate-800/60">
-                    <span className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/60 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:bg-slate-800/60 dark:text-slate-400">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
                     <span>Empty</span>
                   </span>
                 </div>
 
                 {attentionCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 px-3 py-1.5 font-bold text-rose-700 dark:text-rose-300 text-xs shadow-2xs">
+                  <span className="shadow-2xs inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300">
                     <AlertTriangle size={13} className="shrink-0" />
                     <span>{attentionCount} items flagged</span>
                   </span>
@@ -155,12 +162,15 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                       const needsAttentionCount =
                         roomItems.filter(isNeedsAttention).length;
                       const lowStockCount = roomItems.filter(
-                        (i) => Number(i.quantity) > 0 && Number(i.quantity) <= 5,
+                        (i) =>
+                          Number(i.quantity) > 0 && Number(i.quantity) <= 5,
                       ).length;
                       const outOfStockCount = roomItems.filter(
                         (i) => Number(i.quantity) === 0,
                       ).length;
-                      const displayDesc = cleanRoomDescription(room.description);
+                      const displayDesc = cleanRoomDescription(
+                        room.description,
+                      );
 
                       const needsAttention =
                         needsAttentionCount > 0 ||
@@ -172,65 +182,65 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                           key={room.id}
                           onClick={() => onSelectRoom(room.id)}
                           title={displayDesc || room.name}
-                          className="group flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 text-left shadow-sm transition-all hover:border-amber-400 dark:hover:border-amber-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          className="group flex cursor-pointer flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-sm transition-all hover:border-amber-400 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-600"
                         >
                           <div>
-                            <div className="flex items-start justify-between gap-2 mb-3">
+                            <div className="mb-3 flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
-                                <p className="text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors leading-snug">
+                                <p className="font-heading text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-amber-800 dark:text-white dark:group-hover:text-amber-400">
                                   {room.name}
                                 </p>
                                 {displayDesc ? (
-                                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                                     {displayDesc}
                                   </p>
                                 ) : null}
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 mb-3">
-                              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/70 p-2.5 border border-slate-100 dark:border-slate-800">
+                            <div className="mb-3 grid grid-cols-2 gap-2">
+                              <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70">
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Items
                                 </p>
-                                <p className="mt-1 text-lg sm:text-xl font-bold tabular-nums text-slate-900 dark:text-white leading-tight">
+                                <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-slate-900 dark:text-white sm:text-xl">
                                   {counts.unique}
                                 </p>
                               </div>
-                              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/70 p-2.5 border border-slate-100 dark:border-slate-800">
+                              <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-800/70">
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                   Units
                                 </p>
-                                <p className="mt-1 text-lg sm:text-xl font-bold tabular-nums text-slate-900 dark:text-white leading-tight">
+                                <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-slate-900 dark:text-white sm:text-xl">
                                   {counts.totalQty.toLocaleString()}
                                 </p>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+                          <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs dark:border-slate-800">
                             {needsAttention ? (
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                              <div className="flex flex-wrap items-center gap-1.5">
                                 {outOfStockCount > 0 && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 font-bold text-xs">
+                                  <span className="inline-flex items-center gap-1 rounded-md border border-rose-100 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
                                     <AlertTriangle size={12} />
                                     {outOfStockCount} out of stock
                                   </span>
                                 )}
                                 {lowStockCount > 0 && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 font-bold text-xs">
+                                  <span className="inline-flex items-center gap-1 rounded-md border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                                     <AlertTriangle size={12} />
                                     {lowStockCount} low
                                   </span>
                                 )}
                               </div>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
+                              <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                 Operational
                               </span>
                             )}
-                            <span className="text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-500 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                            <span className="text-xs font-semibold text-slate-600 transition-colors group-hover:text-amber-700 dark:text-slate-300 dark:group-hover:text-amber-400 sm:text-sm">
                               View
                             </span>
                           </div>
@@ -243,7 +253,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                 {/* Subtle Compact Empty Rooms Section */}
                 {emptyRooms.length > 0 && (
                   <div className="pt-2">
-                    <div className="flex items-center justify-between mb-2.5 px-0.5">
+                    <div className="mb-2.5 flex items-center justify-between px-0.5">
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
                           Empty rooms ({emptyRooms.length})
@@ -254,19 +264,21 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-2.5">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                       {emptyRooms.map((room) => (
                         <div
                           key={room.id}
                           onClick={() => onSelectRoom(room.id)}
-                          className="group flex items-center justify-between gap-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 px-3.5 py-2.5 text-left transition-colors hover:border-amber-300 dark:hover:border-amber-600 hover:bg-white dark:hover:bg-slate-800 cursor-pointer"
+                          className="group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-3 text-left transition-colors hover:border-amber-400 hover:bg-white dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-amber-600 dark:hover:bg-slate-800/80"
                           title={`Open ${room.name}`}
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">
+                            <p className="text-xs font-semibold leading-snug text-slate-800 transition-colors group-hover:text-amber-800 dark:text-slate-200 dark:group-hover:text-amber-400 sm:text-sm">
                               {room.name}
                             </p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">Empty</p>
+                            <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
+                              Empty
+                            </p>
                           </div>
 
                           <button
@@ -275,10 +287,13 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                               e.stopPropagation();
                               onAddItem(room.id);
                             }}
-                            className="flex shrink-0 items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-colors hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300"
+                            className="shadow-2xs flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
                             title={`Add equipment to ${room.name}`}
                           >
-                            <Plus size={13} className="text-amber-600 dark:text-amber-400" />
+                            <Plus
+                              size={13}
+                              className="text-amber-600 dark:text-amber-400"
+                            />
                             <span>Add item</span>
                           </button>
                         </div>

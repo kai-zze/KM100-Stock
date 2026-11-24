@@ -1,7 +1,7 @@
-import React from 'react';
-import { Tag, X, Printer } from 'lucide-react';
-import { InventoryItem, Room } from '../types/inventory';
-import { normalizeStatus } from '../utils/status';
+import React from "react";
+import { Tag, X, Printer } from "lucide-react";
+import { InventoryItem, Room } from "../types/inventory";
+import { normalizeStatus } from "../utils/status";
 
 interface Props {
   item: InventoryItem;
@@ -11,13 +11,26 @@ interface Props {
 
 export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
   const roomName =
-    item.room || rooms.find((room) => room.id === item.roomId)?.name || 'KM100 Lab';
+    item.room ||
+    rooms.find((room) => room.id === item.roomId)?.name ||
+    "KM100 Lab";
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handlePrint = () => {
     // The global print stylesheet hides dialogs, so opt this one back in.
-    document.body.classList.add('print-asset-tag');
+    document.body.classList.add("print-asset-tag");
     window.print();
-    window.setTimeout(() => document.body.classList.remove('print-asset-tag'), 800);
+    window.setTimeout(
+      () => document.body.classList.remove("print-asset-tag"),
+      800,
+    );
   };
 
   return (
@@ -33,7 +46,10 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
             <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
               <Tag size={18} />
             </div>
-            <h3 id="asset-tag-title" className="text-sm font-heading font-bold text-slate-900 dark:text-white">
+            <h3
+              id="asset-tag-title"
+              className="text-sm font-heading font-bold text-slate-900 dark:text-white"
+            >
               Asset tag
             </h3>
           </div>
@@ -49,7 +65,13 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
         {/* Physical sticker */}
         <div className="asset-tag-sticker border-2 border-dashed border-slate-300 p-4 rounded-2xl bg-white text-black space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-black">
-            <img src="/logo.png" alt="KM100 Logo" className="w-8 h-8 object-contain" />
+            <img
+              src="/logo-sm.png"
+              alt="KM100 Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain"
+            />
             <div>
               <h4 className="text-[11px] font-black uppercase text-black leading-tight">
                 KM100 Skills &amp; Training Center
@@ -60,7 +82,8 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
 
           <div className="space-y-1 text-[11px]">
             <div>
-              Property ID: <strong className="font-mono text-xs">{item.id}</strong>
+              Property ID:{" "}
+              <strong className="font-mono text-xs">{item.id}</strong>
             </div>
             <div>
               Item: <strong>{item.name}</strong>
@@ -72,7 +95,8 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
               Location: <strong>{roomName}</strong>
             </div>
             <div>
-              Status: <strong>{normalizeStatus(item.status ?? item.condition)}</strong>
+              Status:{" "}
+              <strong>{normalizeStatus(item.status ?? item.condition)}</strong>
             </div>
           </div>
 

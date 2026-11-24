@@ -5,19 +5,19 @@
  * this bridge, opening the new build looks like every record vanished.
  */
 export const STORAGE_KEYS = {
-  rooms: 'km100_inventory_rooms_v1',
-  items: 'km100_inventory_items_v1',
-  columns: 'km100_inventory_columns_v1',
-  theme: 'km100_inventory_theme_v1',
-  hiddenColumns: 'km100_hidden_columns_v1'
+  rooms: "km100_inventory_rooms_v1",
+  items: "km100_inventory_items_v1",
+  columns: "km100_inventory_columns_v1",
+  theme: "km100_inventory_theme_v1",
+  hiddenColumns: "km100_hidden_columns_v1",
 } as const;
 
 const LEGACY_KEYS: Record<string, string> = {
-  rooms: 'km100_inventory_rooms_v2',
-  items: 'km100_inventory_items_v2',
-  columns: 'km100_inventory_columns_v2',
-  theme: 'km100_inventory_theme_v2',
-  hiddenColumns: 'km100_hidden_columns_v2'
+  rooms: "km100_inventory_rooms_v2",
+  items: "km100_inventory_items_v2",
+  columns: "km100_inventory_columns_v2",
+  theme: "km100_inventory_theme_v2",
+  hiddenColumns: "km100_hidden_columns_v2",
 };
 
 export type StorageKey = keyof typeof STORAGE_KEYS;

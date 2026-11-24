@@ -1,4 +1,4 @@
-export type ColumnType = 'text' | 'number' | 'dropdown';
+export type ColumnType = "text" | "number" | "dropdown";
 
 export interface ColumnDefinition {
   id: string;
@@ -10,12 +10,19 @@ export interface ColumnDefinition {
   order: number;
 }
 
-export type ItemStatus = 'Working' | 'Empty' | 'Defective' | 'Used' | 'Incomplete' | string;
+export type ItemStatus =
+  "Working" | "Empty" | "Defective" | "Used" | "Incomplete" | string;
 export type ItemCondition = ItemStatus;
 
 // Canonical statuses used across seed data, default columns, badges, and dashboard.
 // 'Deffective' (misspelling) is accepted in legacy data but normalized to 'Defective'.
-export const ITEM_STATUSES: ItemStatus[] = ['Working', 'Empty', 'Defective', 'Used', 'Incomplete'];
+export const ITEM_STATUSES: ItemStatus[] = [
+  "Working",
+  "Empty",
+  "Defective",
+  "Used",
+  "Incomplete",
+];
 
 export interface InventoryItem {
   id: string;
@@ -39,7 +46,7 @@ export interface Room {
   description?: string;
 }
 
-export type UserRole = 'admin' | 'staff';
+export type UserRole = "admin" | "staff";
 
 export interface AppUser {
   id: string;

@@ -78,21 +78,48 @@ declare namespace React {
     [key: string]: any;
   }
 
-  export function useState<T>(initialState: T | (() => T)): [T, (newState: T | ((prevState: T) => T)) => void];
-  export function useEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
-  export function useMemo<T>(factory: () => T, deps: readonly any[] | undefined): T;
-  export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly any[]): T;
+  export function useState<T>(
+    initialState: T | (() => T),
+  ): [T, (newState: T | ((prevState: T) => T)) => void];
+  export function useEffect(
+    effect: () => void | (() => void),
+    deps?: readonly any[],
+  ): void;
+  export function useMemo<T>(
+    factory: () => T,
+    deps: readonly any[] | undefined,
+  ): T;
+  export function useCallback<T extends (...args: any[]) => any>(
+    callback: T,
+    deps: readonly any[],
+  ): T;
   export function useDeferredValue<T>(value: T): T;
   export function useTransition(): [boolean, (callback: () => void) => void];
   export function useRef<T>(initialValue: T): { current: T };
   export function useRef<T = any>(): { current: T | undefined };
   export function useContext<T>(context: any): T;
-  export function useReducer<R extends (...args: any[]) => any>(reducer: R, initialState: any): [any, (action: any) => void];
-  export function useLayoutEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
-  export function createElement(type: any, props?: any, ...children: any[]): any;
-  export function cloneElement(element: any, props?: any, ...children: any[]): any;
+  export function useReducer<R extends (...args: any[]) => any>(
+    reducer: R,
+    initialState: any,
+  ): [any, (action: any) => void];
+  export function useLayoutEffect(
+    effect: () => void | (() => void),
+    deps?: readonly any[],
+  ): void;
+  export function createElement(
+    type: any,
+    props?: any,
+    ...children: any[]
+  ): any;
+  export function cloneElement(
+    element: any,
+    props?: any,
+    ...children: any[]
+  ): any;
   export function createContext<T>(defaultValue: T): any;
-  export function forwardRef<T, P = {}>(render: (props: P, ref: any) => any): any;
+  export function forwardRef<T, P = {}>(
+    render: (props: P, ref: any) => any,
+  ): any;
   export function memo<T>(Component: T): T;
 
   export const StrictMode: any;
@@ -105,8 +132,13 @@ declare namespace ReactDOM {
     render(children: React.ReactNode): void;
     unmount(): void;
   }
-  export function createRoot(container: Element | DocumentFragment | null): Root;
-  export function render(element: React.ReactElement, container: Element | null): void;
+  export function createRoot(
+    container: Element | DocumentFragment | null,
+  ): Root;
+  export function render(
+    element: React.ReactElement,
+    container: Element | null,
+  ): void;
 }
 
 declare global {
@@ -163,22 +195,22 @@ declare global {
   }
 }
 
-declare module 'react' {
+declare module "react" {
   export = React;
   export default React;
 }
 
-declare module 'react-dom' {
+declare module "react-dom" {
   export = ReactDOM;
   export default ReactDOM;
 }
 
-declare module 'react-dom/client' {
+declare module "react-dom/client" {
   export = ReactDOM;
   export default ReactDOM;
 }
 
-declare module 'react/jsx-runtime' {
+declare module "react/jsx-runtime" {
   export const jsx: any;
   export const jsxs: any;
   export const Fragment: any;
@@ -199,7 +231,7 @@ declare module 'react/jsx-runtime' {
   }
 }
 
-declare module 'react/jsx-dev-runtime' {
+declare module "react/jsx-dev-runtime" {
   export const jsxDEV: any;
   export const Fragment: any;
   export namespace JSX {
@@ -219,8 +251,8 @@ declare module 'react/jsx-dev-runtime' {
   }
 }
 
-declare module 'lucide-react' {
-  import * as React from 'react';
+declare module "lucide-react" {
+  import * as React from "react";
   export interface LucideProps {
     size?: string | number;
     color?: string;
@@ -245,6 +277,7 @@ declare module 'lucide-react' {
   export const ChevronRight: Icon;
   export const ChevronLeft: Icon;
   export const ArrowRight: Icon;
+  export const ArrowLeft: Icon;
   export const CheckCircle2: Icon;
   export const PackageX: Icon;
   export const AlertTriangle: Icon;
@@ -254,6 +287,7 @@ declare module 'lucide-react' {
   export const Download: Icon;
   export const Upload: Icon;
   export const RefreshCw: Icon;
+  export const RotateCcw: Icon;
   export const Printer: Icon;
   export const Search: Icon;
   export const Filter: Icon;
@@ -276,6 +310,7 @@ declare module 'lucide-react' {
   export const Database: Icon;
   export const Folder: Icon;
   export const ExternalLink: Icon;
+  export const FileText: Icon;
   export const Copy: Icon;
   export const Save: Icon;
   export const LogOut: Icon;
@@ -283,13 +318,14 @@ declare module 'lucide-react' {
   export const User: Icon;
   export const UserPlus: Icon;
   export const Key: Icon;
+  export const KeyRound: Icon;
   export const Shield: Icon;
   export const Mail: Icon;
   const defaultIcon: Icon;
   export default defaultIcon;
 }
 
-declare module 'xlsx' {
+declare module "xlsx" {
   export const utils: any;
   export const read: any;
   export const write: any;
@@ -299,15 +335,19 @@ declare module 'xlsx' {
   export default XLSX;
 }
 
-declare module '@supabase/supabase-js' {
-  export function createClient(supabaseUrl: string, supabaseKey: string, options?: any): any;
+declare module "@supabase/supabase-js" {
+  export function createClient(
+    supabaseUrl: string,
+    supabaseKey: string,
+    options?: any,
+  ): any;
   export type SupabaseClient = any;
   export type RealtimeChannel = any;
   const defaultSupabase: any;
   export default defaultSupabase;
 }
 
-declare module 'exceljs' {
+declare module "exceljs" {
   export class Workbook {
     creator: string;
     lastModifiedBy: string;
@@ -323,4 +363,9 @@ declare module 'exceljs' {
   }
   const ExcelJS: any;
   export default ExcelJS;
+}
+
+declare module "*.module.css" {
+  const classes: { readonly [key: string]: string };
+  export default classes;
 }

@@ -18,6 +18,7 @@ A rigorous frontend design and anti-slop framework created to eradicate generic 
 ## Mode: OPERATE (High-Density Management Systems)
 
 For dashboards, inventory control, admin tools, and operational workflows:
+
 - **Maximum Data Clarity**: The data is the hero. Don't hide important metrics or actions behind complex nested sub-menus.
 - **Direct Manipulation**: Provide instant actions (quick inline steppers, search-as-you-type, instant column filters, one-click sheet exports).
 - **Sticky Navigation & Headers**: When tables contain dozens of records, keep the headers fixed and table scrolled cleanly.
@@ -26,15 +27,18 @@ For dashboards, inventory control, admin tools, and operational workflows:
 ## Refinement Commands
 
 ### 1. `/impeccable polish`
+
 - Review the entire visual surface for consistency.
 - Inspect alignment, spacing rhythm, border contrast, and icon alignment.
 - Verify light and dark mode toggles render with seamless contrast and no inverted anomalies.
 
 ### 2. `/impeccable audit`
+
 - **Accessibility**: Validate keyboard operability (Tab order, Enter/Space activation, Esc to dismiss modals).
 - **Responsive Behavior**: Test layout at mobile (<640px), tablet (768px-1024px), and desktop (>1280px). Ensure table scrolls horizontally without breaking outer container.
 - **Error States**: Ensure empty rooms, zero search results, and missing column values display graceful, helpful empty states.
 
 ### 3. `/impeccable typeset`
+
 - Proper optical hierarchy: `text-2xl font-bold tracking-tight` for main titles, `text-sm font-semibold` for table headers, `font-mono tabular-nums` for counts, numbers, and dates.
 - Balanced line heights and readability across all viewports.

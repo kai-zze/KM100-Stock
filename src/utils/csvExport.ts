@@ -1,5 +1,5 @@
-import { ColumnDefinition, InventoryItem, Room } from '../types/inventory';
-import { normalizeStatus } from './status';
+import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
+import { normalizeStatus } from "./status";
 
 interface ExportColumn {
   id: string;
@@ -17,33 +17,34 @@ export function resolveCsvColumns(columns: ColumnDefinition[]): ExportColumn[] {
   let hasStatus = false;
 
   columns.forEach((col) => {
-    if (col.id === 'room' || col.id === 'roomId' || col.id === 'roomLocation') {
+    if (col.id === "room" || col.id === "roomId" || col.id === "roomLocation") {
       hasRoom = true;
-      resolved.push({ id: '_room', label: col.label || 'ROOM' });
-    } else if (col.id === 'status' || col.id === 'condition') {
+      resolved.push({ id: "_room", label: col.label || "ROOM" });
+    } else if (col.id === "status" || col.id === "condition") {
       if (hasStatus) return;
       hasStatus = true;
-      resolved.push({ id: '_status', label: col.label || 'Status' });
+      resolved.push({ id: "_status", label: col.label || "Status" });
     } else {
       resolved.push({ id: col.id, label: col.label || col.id });
     }
   });
 
-  if (!hasRoom) resolved.push({ id: '_room', label: 'ROOM' });
+  if (!hasRoom) resolved.push({ id: "_room", label: "ROOM" });
   return resolved;
 }
 
 function cellValue(
   column: ExportColumn,
   item: InventoryItem,
-  roomName: string
+  roomName: string,
 ): string {
-  if (column.id === '_room') return roomName;
-  if (column.id === '_status') return normalizeStatus(item.status ?? item.condition);
-  if (column.id === 'quantity') return String(Number(item.quantity) || 0);
-  if (column.id === 'units') return item.units || 'pcs';
+  if (column.id === "_room") return roomName;
+  if (column.id === "_status")
+    return normalizeStatus(item.status ?? item.condition);
+  if (column.id === "quantity") return String(Number(item.quantity) || 0);
+  if (column.id === "units") return item.units || "pcs";
   const value = item[column.id];
-  return value === undefined || value === null ? '' : String(value);
+  return value === undefined || value === null ? "" : String(value);
 }
 
 const escapeCsv = (value: string): string =>
@@ -52,34 +53,36 @@ const escapeCsv = (value: string): string =>
 export function buildInventoryCsv(
   items: InventoryItem[],
   rooms: Room[],
-  columns: ColumnDefinition[]
+  columns: ColumnDefinition[],
 ): string {
   const exportColumns = resolveCsvColumns(columns);
   const roomNames = new Map(rooms.map((room) => [room.id, room.name]));
 
-  const lines = [exportColumns.map((col) => escapeCsv(col.label)).join(',')];
+  const lines = [exportColumns.map((col) => escapeCsv(col.label)).join(",")];
 
   items.forEach((item) => {
-    const roomName = item.room || roomNames.get(item.roomId) || 'Unassigned';
-    const row = exportColumns.map((col) => escapeCsv(cellValue(col, item, roomName)));
-    lines.push(row.join(','));
+    const roomName = item.room || roomNames.get(item.roomId) || "Unassigned";
+    const row = exportColumns.map((col) =>
+      escapeCsv(cellValue(col, item, roomName)),
+    );
+    lines.push(row.join(","));
   });
 
   // UTF-8 BOM keeps Excel from mangling en dashes and the peso sign.
-  return `\uFEFF${lines.join('\r\n')}`;
+  return `\uFEFF${lines.join("\r\n")}`;
 }
 
 export function downloadInventoryCsv(
   items: InventoryItem[],
   rooms: Room[],
-  columns: ColumnDefinition[]
+  columns: ColumnDefinition[],
 ): void {
   const csv = buildInventoryCsv(items, rooms, columns);
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
-  link.download = 'KM100_Skills_and_Training_Center,_Inc._INVENTORY.csv';
+  link.download = "KM100_Skills_and_Training_Center,_Inc._INVENTORY.csv";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
