@@ -324,7 +324,7 @@ export const InventoryTable: React.FC<Props> = ({
           <div className="flex items-center gap-3">
             <span>
               Showing{" "}
-              <strong className="font-mono text-slate-900 dark:text-white">
+              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
                 {items.length === 0
                   ? 0
                   : pageSize === -1
@@ -332,13 +332,13 @@ export const InventoryTable: React.FC<Props> = ({
                     : (currentPage - 1) * pageSize + 1}
               </strong>{" "}
               to{" "}
-              <strong className="font-mono text-slate-900 dark:text-white">
+              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
                 {pageSize === -1
                   ? items.length
                   : Math.min(currentPage * pageSize, items.length)}
               </strong>{" "}
               of{" "}
-              <strong className="font-mono text-slate-900 dark:text-white">
+              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
                 {items.length}
               </strong>{" "}
               items
@@ -378,7 +378,7 @@ export const InventoryTable: React.FC<Props> = ({
                 <span className="hidden sm:inline">Prev</span>
               </button>
 
-              <span className="px-2 font-mono tabular-nums text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <span className="px-2 font-heading tabular-nums text-xs font-bold text-slate-700 dark:text-slate-300">
                 {currentPage} / {totalPages}
               </span>
 

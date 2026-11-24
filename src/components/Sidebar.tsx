@@ -60,7 +60,7 @@ export const Sidebar: React.FC<Props> = React.memo(
               <p className="text-sm font-bold tracking-tight text-slate-600 dark:text-slate-300">
                 Rooms
               </p>
-              <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+              <p className="mt-1 text-2xl font-heading font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                 {rooms.length}
               </p>
             </div>
@@ -70,7 +70,7 @@ export const Sidebar: React.FC<Props> = React.memo(
               <p className="text-sm font-bold tracking-tight text-slate-600 dark:text-slate-300">
                 Items
               </p>
-              <p className="mt-1 text-2xl font-extrabold font-mono tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
+              <p className="mt-1 text-2xl font-heading font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white leading-none">
                 {totalItemsCount}
               </p>
             </div>
