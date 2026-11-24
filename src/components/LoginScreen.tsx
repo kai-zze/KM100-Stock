@@ -112,6 +112,9 @@ export const LoginScreen: React.FC<Props> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [hasReadPolicy, setHasReadPolicy] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const policyScrollRef = useRef<HTMLDivElement>(null);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -168,6 +171,29 @@ export const LoginScreen: React.FC<Props> = ({
 
     return () => clearTimeout(clearTimer);
   }, []);
+
+  useEffect(() => {
+    if (showPolicyModal) {
+      setHasScrolledToBottom(false);
+      // Auto-detect if content fits without scrolling
+      const timer = setTimeout(() => {
+        if (policyScrollRef.current) {
+          const el = policyScrollRef.current;
+          if (el.scrollHeight <= el.clientHeight + 24) {
+            setHasScrolledToBottom(true);
+          }
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [showPolicyModal]);
+
+  const handlePolicyScroll = (e: { currentTarget: HTMLDivElement }) => {
+    const target = e.currentTarget;
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24) {
+      setHasScrolledToBottom(true);
+    }
+  };
 
   const requirements = [
     {
@@ -383,8 +409,9 @@ export const LoginScreen: React.FC<Props> = ({
     }
     if (!acceptedTerms) {
       setErrorMessage(
-        "Please confirm that you are authorized KM100 personnel.",
+        "Please read and acknowledge the institutional acceptable use policy to register.",
       );
+      setShowPolicyModal(true);
       return;
     }
 
@@ -1181,11 +1208,19 @@ export const LoginScreen: React.FC<Props> = ({
 
                   {/* Institutional Personnel Declaration Card */}
                   <div
-                    onClick={() => setAcceptedTerms((prev) => !prev)}
+                    onClick={() => {
+                      if (!hasReadPolicy) {
+                        setShowPolicyModal(true);
+                      } else {
+                        setAcceptedTerms((prev) => !prev);
+                      }
+                    }}
                     className={`group relative rounded-xl border p-3.5 transition-all duration-200 cursor-pointer select-none ${
                       acceptedTerms
                         ? "border-amber-500/80 bg-amber-50/60 dark:border-amber-600/70 dark:bg-amber-950/25 shadow-xs ring-1 ring-amber-500/20"
-                        : "border-slate-200 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-800/40 hover:border-amber-400 dark:hover:border-amber-600/60 hover:bg-slate-50/90 dark:hover:bg-slate-800/60"
+                        : hasReadPolicy
+                          ? "border-slate-300 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 hover:border-amber-400 dark:hover:border-amber-600"
+                          : "border-amber-300/80 dark:border-amber-800/70 bg-amber-50/30 dark:bg-amber-950/15 hover:border-amber-500 dark:hover:border-amber-600 hover:bg-amber-50/50"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -1194,22 +1229,33 @@ export const LoginScreen: React.FC<Props> = ({
                         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-150 ${
                           acceptedTerms
                             ? "border-amber-700 bg-amber-700 dark:border-amber-600 dark:bg-amber-600 text-white shadow-xs"
-                            : "border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-900 group-hover:border-amber-600 dark:group-hover:border-amber-400 shadow-2xs"
+                            : hasReadPolicy
+                              ? "border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-900 group-hover:border-amber-600 dark:group-hover:border-amber-400 shadow-2xs"
+                              : "border-amber-500/70 bg-amber-50 dark:border-amber-700/60 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400"
                         }`}
                       >
-                        {acceptedTerms && (
+                        {acceptedTerms ? (
                           <Check
                             size={13}
                             strokeWidth={3}
                             className="text-white animate-in zoom-in-75 duration-100"
                           />
-                        )}
+                        ) : !hasReadPolicy ? (
+                          <FileText size={10} strokeWidth={2.5} />
+                        ) : null}
                       </div>
 
                       <input
                         type="checkbox"
                         checked={acceptedTerms}
-                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        disabled={!hasReadPolicy}
+                        onChange={(e) => {
+                          if (hasReadPolicy) {
+                            setAcceptedTerms(e.target.checked);
+                          } else {
+                            setShowPolicyModal(true);
+                          }
+                        }}
                         className="sr-only"
                         aria-label="Confirm KM100 authorized personnel declaration"
                       />
@@ -1223,28 +1269,52 @@ export const LoginScreen: React.FC<Props> = ({
                             <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
                               <Check size={10} strokeWidth={2.5} /> Acknowledged
                             </span>
+                          ) : hasReadPolicy ? (
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                              Click to check
+                            </span>
                           ) : (
-                            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
-                              Required
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                              Read Policy Required
                             </span>
                           )}
                         </div>
 
                         <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                          I confirm that I am authorized KM100 personnel and
-                          agree to the{" "}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowPolicyModal(true);
-                            }}
-                            className="inline-flex items-center gap-0.5 font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
-                          >
-                            <span>institutional acceptable use policy</span>
-                            <ExternalLink size={10} className="shrink-0" />
-                          </button>
-                          .
+                          {hasReadPolicy ? (
+                            <>
+                              I confirm that I am authorized KM100 personnel and
+                              agree to the{" "}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowPolicyModal(true);
+                                }}
+                                className="inline-flex items-center gap-0.5 font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                              >
+                                <span>institutional acceptable use policy</span>
+                                <ExternalLink size={10} className="shrink-0" />
+                              </button>
+                              .
+                            </>
+                          ) : (
+                            <>
+                              You must read the{" "}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowPolicyModal(true);
+                                }}
+                                className="inline-flex items-center gap-0.5 font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                              >
+                                <span>institutional acceptable use policy</span>
+                                <ExternalLink size={10} className="shrink-0" />
+                              </button>{" "}
+                              to the bottom before acknowledging.
+                            </>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -1575,7 +1645,11 @@ export const LoginScreen: React.FC<Props> = ({
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <div
+              ref={policyScrollRef}
+              onScroll={handlePolicyScroll}
+              className="p-6 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300 max-h-[55vh]"
+            >
               <div className="rounded-xl border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-[11px] text-amber-900 dark:text-amber-200">
                 <span className="font-semibold">Notice to All Staff:</span>{" "}
                 Access to this system is restricted to certified property
@@ -1635,27 +1709,68 @@ export const LoginScreen: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Reading Progress Notice */}
+              <div className="pt-2 text-center">
+                {hasScrolledToBottom ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/80 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 animate-in fade-in">
+                    <Check size={12} strokeWidth={2.5} />
+                    Full policy reviewed
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                    <span>Scroll to bottom to read all conditions</span>
+                    <ChevronDown
+                      size={12}
+                      className="animate-bounce shrink-0"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2.5 border-t border-slate-200 dark:border-slate-800 px-6 py-3.5 bg-slate-50/70 dark:bg-slate-800/40">
-              <button
-                type="button"
-                onClick={() => setShowPolicyModal(false)}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAcceptedTerms(true);
-                  setShowPolicyModal(false);
-                }}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-700 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-800 transition-colors shadow-xs cursor-pointer"
-              >
-                <Check size={14} />I Understand &amp; Acknowledge
-              </button>
+            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-3.5 bg-slate-50/70 dark:bg-slate-800/40">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {hasScrolledToBottom ? (
+                  <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                    Policy complete
+                  </span>
+                ) : (
+                  "Scroll to bottom to enable"
+                )}
+              </span>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowPolicyModal(false)}
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasScrolledToBottom}
+                  onClick={() => {
+                    setHasReadPolicy(true);
+                    setAcceptedTerms(true);
+                    setShowPolicyModal(false);
+                  }}
+                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all shadow-xs ${
+                    hasScrolledToBottom
+                      ? "bg-amber-700 hover:bg-amber-800 text-white cursor-pointer active:scale-[0.98]"
+                      : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                  }`}
+                  title={
+                    hasScrolledToBottom
+                      ? "Acknowledge policy"
+                      : "Scroll to bottom to read all policy terms"
+                  }
+                >
+                  <Check size={14} />
+                  <span>I Understand &amp; Acknowledge</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
