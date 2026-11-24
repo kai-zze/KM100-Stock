@@ -30,7 +30,7 @@ export default {
       },
       fontFamily: {
         sans: [
-          '"DM Sans"',
+          '"Inter"',
           "-apple-system",
           "BlinkMacSystemFont",
           '"Segoe UI"',
@@ -38,7 +38,7 @@ export default {
           "sans-serif",
         ],
         heading: [
-          '"Plus Jakarta Sans"',
+          '"Inter"',
           "-apple-system",
           "BlinkMacSystemFont",
           '"Segoe UI"',
