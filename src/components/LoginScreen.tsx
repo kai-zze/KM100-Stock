@@ -410,7 +410,7 @@ export const LoginScreen: React.FC<Props> = ({
       {/* Main Authentication Card */}
       <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:shadow-black/50 ring-1 ring-slate-900/5 dark:ring-white/5 lg:grid lg:grid-cols-[1.05fr_1fr]">
         {/* Left Institutional Brand Panel (Visible on Desktop/Tablet Landscape) */}
-        <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-8 lg:p-10 text-slate-900 dark:text-slate-100 lg:flex">
+        <aside className="relative hidden flex-col justify-center overflow-hidden border-r border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-8 lg:p-10 text-slate-900 dark:text-slate-100 lg:flex">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] dark:bg-[radial-gradient(#475569_1px,transparent_1px)] opacity-[0.14] [background-size:18px_18px]"
@@ -479,28 +479,10 @@ export const LoginScreen: React.FC<Props> = ({
               })}
             </ul>
           </div>
-
-          {/* Footer Security Notice */}
-          <div className="relative mt-8 pt-3.5 flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800 text-[11px]">
-            <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-400">
-              <ShieldCheck
-                size={14}
-                className="text-amber-700 dark:text-amber-400 shrink-0"
-              />
-              <span>Authorized personnel only</span>
-              <span className="text-slate-300 dark:text-slate-600">&bull;</span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                Audit logged
-              </span>
-            </div>
-            <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500">
-              v1.0
-            </span>
-          </div>
         </aside>
 
         {/* Right Form Panel */}
-        <section className="p-6 sm:p-8 lg:p-10 flex flex-col justify-between min-h-[580px]">
+        <section className="p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
           {/* Mobile-only Branding Header */}
           <div className="mb-4 flex items-center gap-3 lg:hidden">
             <picture className="shrink-0 flex items-center">
@@ -1519,18 +1501,6 @@ export const LoginScreen: React.FC<Props> = ({
                 </form>
               </div>
             )}
-          </div>
-
-          {/* Institutional Footer Tag */}
-          <div className="relative mt-8 pt-3.5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
-            <Lock
-              size={12}
-              className="text-slate-400 dark:text-slate-500 shrink-0"
-            />
-            <span>
-              KM100 Skills and Training Center, Inc. &bull; Property Custody
-              Register
-            </span>
           </div>
         </section>
       </div>
