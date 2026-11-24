@@ -20,8 +20,8 @@ This project adheres strictly to **UI/UX Pro Max** and **Impeccable** craftsmans
    - Destructive operations (room deletion, item deletion) must always require an explicit confirmation modal with red accents.
 
 3. **Institutional Typography**:
-   - Universal Interface & Headings: **Inter** (`font-sans font-heading font-extrabold tracking-tight`).
-   - Body & Controls: **Inter** (`font-sans font-medium`).
+   - Headings & Brand: **Plus Jakarta Sans** (`font-heading font-extrabold tracking-tight`).
+   - Body, Tables & Controls: **Inter** (`font-sans font-medium`).
    - Numbers, Metrics, & Timestamps: Always use `tabular-nums` with un-slashed zeros to prevent layout shifts.
 
 4. **Responsive Ergonomics**:

@@ -441,11 +441,11 @@ export const LoginScreen: React.FC<Props> = ({
 
             {/* Institutional Hero Copy */}
             <div className="mt-8 max-w-sm">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 font-mono mb-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 mb-3">
                 Property Custody Platform
-              </p>
-              <h1 className="text-2xl sm:text-[28px] font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.2]">
-                Every tool &amp; asset accounted for.
+              </div>
+              <h1 className="text-2xl sm:text-[28px] font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.2] text-balance">
+                Every tool &amp; asset accounted for
               </h1>
               <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 Institutional asset registration, room-by-room custody

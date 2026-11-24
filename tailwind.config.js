@@ -38,6 +38,7 @@ export default {
           "sans-serif",
         ],
         heading: [
+          '"Plus Jakarta Sans"',
           '"Inter"',
           "-apple-system",
           "BlinkMacSystemFont",
