@@ -124,12 +124,12 @@ export const OnboardingModal: React.FC<Props> = ({
     {
       id: "account",
       targetId: "tour-header-profile",
-      section: "SECURITY & HELP",
-      title: "Profile, Passkeys & Help",
+      section: "SECURITY",
+      title: "Profile & Passkeys",
       description:
         userRole === "admin"
           ? "Update your profile or manage institutional passkeys (KM100-ADMIN / KM100-STAFF) to restrict unauthorized user registration."
-          : "Update your account details, manage your password, or restart this walkthrough anytime via the '?' button.",
+          : "Update your account details, manage your password, and securely sign out.",
       preferredPlacement: "bottom",
     },
   ];

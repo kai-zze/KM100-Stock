@@ -10,7 +10,6 @@ import {
   LogOut,
   Shield,
   User,
-  HelpCircle,
 } from "lucide-react";
 import { Room, AppUser } from "../types/inventory";
 
@@ -80,7 +79,6 @@ interface Props {
   currentRoom?: Room;
   currentUser?: AppUser | null;
   onSignOut?: () => void;
-  onOpenTutorial?: () => void;
 }
 
 export const Header: React.FC<Props> = ({
@@ -96,7 +94,6 @@ export const Header: React.FC<Props> = ({
   currentRoom,
   currentUser,
   onSignOut,
-  onOpenTutorial,
 }) => {
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -393,18 +390,6 @@ export const Header: React.FC<Props> = ({
               id="tour-header-profile"
               className="flex items-center gap-1 sm:gap-1.5 pl-0.5 sm:pl-2 shrink-0"
             >
-              {onOpenTutorial && (
-                <button
-                  type="button"
-                  onClick={onOpenTutorial}
-                  className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors shrink-0"
-                  title="Product Tour"
-                  aria-label="Product Tour"
-                >
-                  <HelpCircle size={15} />
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={onOpenProfile}

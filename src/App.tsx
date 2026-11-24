@@ -1053,7 +1053,6 @@ export function App() {
         currentRoom={currentRoom}
         currentUser={currentUser}
         onSignOut={handleRequestSignOut}
-        onOpenTutorial={() => setIsOnboardingOpen(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
