@@ -284,13 +284,13 @@ export const AppShellSkeleton: React.FC = () => {
 
           {/* 2-Box Stat Counters (Rooms & Items) */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 p-3 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
-              <SkeletonBone className="h-4 w-12" />
-              <SkeletonBone className="h-7 w-10" />
+            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-2xs">
+              <SkeletonBone className="h-3 w-10 mx-auto" />
+              <SkeletonBone className="h-9 w-12 mx-auto" />
             </div>
-            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 p-3 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
-              <SkeletonBone className="h-4 w-12" />
-              <SkeletonBone className="h-7 w-12" />
+            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-2xs">
+              <SkeletonBone className="h-3 w-10 mx-auto" />
+              <SkeletonBone className="h-9 w-16 mx-auto" />
             </div>
           </div>
 
