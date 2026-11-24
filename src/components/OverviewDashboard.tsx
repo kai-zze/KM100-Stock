@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { AlertTriangle, Layers, Plus } from "lucide-react";
+import { AlertTriangle, ArrowRight, Layers, Plus } from "lucide-react";
 import { Room, InventoryItem } from "../types/inventory";
 import { isNeedsAttention } from "../utils/status";
 
@@ -108,7 +108,7 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                   Rooms
                 </h3>
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                  Click a room to see its items.
+                  Click View on any room to see its items.
                 </p>
               </div>
 
@@ -178,16 +178,14 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                         outOfStockCount > 0;
 
                       return (
-                        <button
+                        <div
                           key={room.id}
-                          onClick={() => onSelectRoom(room.id)}
-                          title={displayDesc || room.name}
-                          className="group flex cursor-pointer flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-sm transition-all hover:border-amber-400 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-600"
+                          className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                         >
                           <div>
                             <div className="mb-3 flex items-start justify-between gap-2">
                               <div className="min-w-0 flex-1">
-                                <p className="font-heading text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-amber-800 dark:text-white dark:group-hover:text-amber-400">
+                                <p className="font-heading text-base font-bold leading-snug text-slate-900 dark:text-white">
                                   {room.name}
                                 </p>
                                 {displayDesc ? (
@@ -240,11 +238,21 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                                 Operational
                               </span>
                             )}
-                            <span className="text-xs font-semibold text-slate-600 transition-colors group-hover:text-amber-700 dark:text-slate-300 dark:group-hover:text-amber-400 sm:text-sm">
-                              View
-                            </span>
+                            <button
+                              type="button"
+                              onClick={() => onSelectRoom(room.id)}
+                              className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:border-amber-500 dark:hover:bg-amber-950/40 dark:hover:text-amber-300 cursor-pointer shadow-2xs active:scale-95 sm:text-xs"
+                              title={`View ${room.name} items`}
+                              aria-label={`View ${room.name} items`}
+                            >
+                              <span>View</span>
+                              <ArrowRight
+                                size={13}
+                                className="transition-transform group-hover/btn:translate-x-0.5 text-amber-600 dark:text-amber-400"
+                              />
+                            </button>
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -268,12 +276,10 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                       {emptyRooms.map((room) => (
                         <div
                           key={room.id}
-                          onClick={() => onSelectRoom(room.id)}
-                          className="group flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-3 text-left transition-colors hover:border-amber-400 hover:bg-white dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-amber-600 dark:hover:bg-slate-800/80"
-                          title={`Open ${room.name}`}
+                          className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-3 text-left transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/60"
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold leading-snug text-slate-800 transition-colors group-hover:text-amber-800 dark:text-slate-200 dark:group-hover:text-amber-400 sm:text-sm">
+                            <p className="text-xs font-semibold leading-snug text-slate-800 dark:text-slate-200 sm:text-sm">
                               {room.name}
                             </p>
                             <p className="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
@@ -281,21 +287,30 @@ export const OverviewDashboard: React.FC<Props> = React.memo(
                             </p>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onAddItem(room.id);
-                            }}
-                            className="shadow-2xs flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
-                            title={`Add equipment to ${room.name}`}
-                          >
-                            <Plus
-                              size={13}
-                              className="text-amber-600 dark:text-amber-400"
-                            />
-                            <span>Add item</span>
-                          </button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => onSelectRoom(room.id)}
+                              className="shadow-2xs flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
+                              title={`View ${room.name}`}
+                              aria-label={`View ${room.name}`}
+                            >
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onAddItem(room.id)}
+                              className="shadow-2xs flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-400 hover:bg-amber-50 hover:text-amber-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-amber-600 dark:hover:bg-amber-950/40 dark:hover:text-amber-300"
+                              title={`Add equipment to ${room.name}`}
+                              aria-label={`Add equipment to ${room.name}`}
+                            >
+                              <Plus
+                                size={13}
+                                className="text-amber-600 dark:text-amber-400"
+                              />
+                              <span>Add item</span>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
