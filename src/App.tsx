@@ -23,7 +23,7 @@ import { InventoryTable } from "./components/InventoryTable";
 import { BulkActionBar } from "./components/BulkActionBar";
 import { ColumnsVisibilityMenu } from "./components/ColumnsVisibilityMenu";
 import { LoginScreen } from "./components/LoginScreen";
-import { SplashScreen } from "./components/SplashScreen";
+import { SplashAssembly3D } from "./components/SplashAssembly3D";
 import {
   AppShellSkeleton,
   DashboardSkeleton,
@@ -107,11 +107,11 @@ export function App() {
   useEffect(() => {
     const fadeTimer = setTimeout(() => {
       setIsSplashFading(true);
-    }, 1800);
+    }, 2700);
 
     const removeTimer = setTimeout(() => {
       setIsSplashVisible(false);
-    }, 2200);
+    }, 3100);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -950,7 +950,7 @@ export function App() {
             showToast(`Welcome, ${cleanUser.fullName}!`, "success");
           }}
         />
-        {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
+        {isSplashVisible && <SplashAssembly3D isFading={isSplashFading} />}
       </>
     );
   }
@@ -960,7 +960,7 @@ export function App() {
     return (
       <>
         <AppShellSkeleton />
-        {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
+        {isSplashVisible && <SplashAssembly3D isFading={isSplashFading} />}
       </>
     );
   }
@@ -1551,8 +1551,8 @@ export function App() {
           <span className="text-sm font-medium">{toast.message}</span>
         </div>
       )}
-      {/* ── Institutional Splash Screen Delay Overlay ──────────────── */}
-      {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
+      {/* ── Institutional 3D Assembly Splash Screen Delay Overlay ─────── */}
+      {isSplashVisible && <SplashAssembly3D isFading={isSplashFading} />}
     </div>
   );
 }

@@ -431,3 +431,22 @@ MIT License, Copyright (c) andrew-manzyk (Andrew Manzyk)
   transform: translateX(-90%);
   animation: uiverse-wobble 2s cubic-bezier(0.5, 0.8, 0.5, 0.2) infinite;
 }
+
+/* KM100 3D Splash Shockwave Pulse */
+@keyframes km100-shockwave {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.95;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+.animate-km100-shockwave {
+  animation: km100-shockwave 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
