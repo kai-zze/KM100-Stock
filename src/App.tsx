@@ -23,6 +23,7 @@ import { InventoryTable } from "./components/InventoryTable";
 import { BulkActionBar } from "./components/BulkActionBar";
 import { ColumnsVisibilityMenu } from "./components/ColumnsVisibilityMenu";
 import { LoginScreen } from "./components/LoginScreen";
+import { SplashScreen } from "./components/SplashScreen";
 import {
   AppShellSkeleton,
   DashboardSkeleton,
@@ -98,6 +99,25 @@ export function App() {
     getStoredUser(),
   );
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
+  // ── Institutional Splash Screen Delay & Graceful Fade ──────────────────
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const [isSplashFading, setIsSplashFading] = useState(false);
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      setIsSplashFading(true);
+    }, 1800);
+
+    const removeTimer = setTimeout(() => {
+      setIsSplashVisible(false);
+    }, 2200);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
 
   // ── Listen for Supabase Password Recovery Events & Direct Link Activation ──
   useEffect(() => {
@@ -915,26 +935,34 @@ export function App() {
   // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
   if (!currentUser || isPasswordRecovery) {
     return (
-      <LoginScreen
-        initialMode={isPasswordRecovery ? "reset" : undefined}
-        onLoginSuccess={(user) => {
-          setIsPasswordRecovery(false);
-          const cleanUser = {
-            ...user,
-            fullName: (user.fullName || user.email)
-              .replace(/\s*\([^)]*\)/g, "")
-              .trim(),
-          };
-          setCurrentUser(cleanUser);
-          showToast(`Welcome, ${cleanUser.fullName}!`, "success");
-        }}
-      />
+      <>
+        <LoginScreen
+          initialMode={isPasswordRecovery ? "reset" : undefined}
+          onLoginSuccess={(user) => {
+            setIsPasswordRecovery(false);
+            const cleanUser = {
+              ...user,
+              fullName: (user.fullName || user.email)
+                .replace(/\s*\([^)]*\)/g, "")
+                .trim(),
+            };
+            setCurrentUser(cleanUser);
+            showToast(`Welcome, ${cleanUser.fullName}!`, "success");
+          }}
+        />
+        {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
+      </>
     );
   }
 
   // ── Institutional Skeleton Loader (Enterprise Fast-Boot Mirror) ─────────
   if (!defaultsLoaded) {
-    return <AppShellSkeleton />;
+    return (
+      <>
+        <AppShellSkeleton />
+        {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
+      </>
+    );
   }
 
   return (
@@ -1523,6 +1551,8 @@ export function App() {
           <span className="text-sm font-medium">{toast.message}</span>
         </div>
       )}
+      {/* ── Institutional Splash Screen Delay Overlay ──────────────── */}
+      {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
     </div>
   );
 }
