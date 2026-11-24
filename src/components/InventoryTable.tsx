@@ -161,7 +161,7 @@ export const InventoryTable: React.FC<Props> = ({
           </thead>
 
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {paginatedItems.map((item) => {
+            {paginatedItems.map((item, itemIdx) => {
               const itemRoom = rooms.find((room) => room.id === item.roomId);
               const isSelected = selectedIds.indexOf(item.id) !== -1;
 
@@ -221,7 +221,14 @@ export const InventoryTable: React.FC<Props> = ({
                           key={col.id}
                           className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap"
                         >
-                          <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1">
+                          <div
+                            id={
+                              itemIdx === 0
+                                ? "tour-quantity-stepper"
+                                : undefined
+                            }
+                            className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1"
+                          >
                             <button
                               onClick={() => onQuantityChange(item.id, -1)}
                               aria-label={`Decrease quantity for ${item.name}`}

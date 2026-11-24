@@ -128,6 +128,7 @@ export const Header: React.FC<Props> = ({
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {(onOpenMobileMenu || onToggleSidebar) && (
             <button
+              id="tour-mobile-menu-btn"
               type="button"
               onClick={() => {
                 if (window.innerWidth < 768) {
