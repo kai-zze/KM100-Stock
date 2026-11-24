@@ -61,16 +61,6 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: isMobile ? "bottom" : "right",
     },
     {
-      id: "kpis",
-      targetId: "tour-kpis",
-      section: "METRICS",
-      title: "Live Counters & Quick Filters",
-      description:
-        "Real-time tally of total items, active stock, and equipment requiring maintenance or disposal. Click any KPI card to instantly filter the table.",
-      tip: "Clicking 'Need attention' filters for equipment marked Needs Repair.",
-      preferredPlacement: "bottom",
-    },
-    {
       id: "add-item",
       targetId: "tour-add-item",
       fallbackTargetId: "tour-add-item-overview",
@@ -81,12 +71,22 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "bottom",
     },
     {
+      id: "kpis",
+      targetId: "tour-kpis",
+      section: "METRICS & KPIS",
+      title: "Equipment Overview & Live Counters",
+      description:
+        "Real-time tally of your room inventory across 4 live counters: Items, Cumulative Units, Items Needing Attention (repairs/disposal), and Out of Stock.",
+      tip: "Click any KPI card (e.g. 'Need attention' or 'Out of stock') to instantly filter the table.",
+      preferredPlacement: "bottom",
+    },
+    {
       id: "search-filters",
       targetId: "tour-search-filters",
-      section: "SEARCH",
+      section: "SEARCH & FILTERS",
       title: "Search & Attribute Filtering",
       description:
-        "Search equipment names, remarks, or serial numbers in real time without reloading. Filter by category, condition, or customize visible columns.",
+        "Search equipment names, remarks, or serial numbers in real time without reloading. Filter by category, condition, or reset active filters with one click.",
       preferredPlacement: "bottom",
     },
     {
@@ -112,6 +112,16 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "top",
     },
     {
+      id: "reports",
+      targetId: "tour-header-tools",
+      section: "AUDIT EXPORTS",
+      title: "Printable Sheets & Multi-Sheet Excel",
+      description:
+        "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
+      tip: "Physical inventory sheets automatically format for letter-size print.",
+      preferredPlacement: "bottom",
+    },
+    {
       id: "schema-columns",
       targetId: "tour-schema-columns-btn",
       fallbackTargetId: "tour-header-tools",
@@ -123,19 +133,9 @@ export const OnboardingModal: React.FC<Props> = ({
       preferredPlacement: "bottom",
     },
     {
-      id: "reports",
-      targetId: "tour-header-tools",
-      section: "AUDIT EXPORTS",
-      title: "Printable Sheets & Multi-Sheet Excel",
-      description:
-        "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
-      tip: "Physical inventory sheets automatically format for letter-size print.",
-      preferredPlacement: "bottom",
-    },
-    {
       id: "account",
       targetId: "tour-header-profile",
-      section: "SECURITY",
+      section: "SECURITY & HELP",
       title: "Profile, Passkeys & Help",
       description:
         userRole === "admin"
