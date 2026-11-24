@@ -5,6 +5,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   userRole?: "admin" | "staff";
+  onToggleMobileNav?: (open: boolean) => void;
+  isMobileNavOpen?: boolean;
 }
 
 interface TourStep {
@@ -30,6 +32,8 @@ export const OnboardingModal: React.FC<Props> = ({
   isOpen,
   onClose,
   userRole = "staff",
+  onToggleMobileNav,
+  isMobileNavOpen,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -39,18 +43,22 @@ export const OnboardingModal: React.FC<Props> = ({
     placement: "bottom",
   });
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   const TOUR_STEPS: TourStep[] = [
     {
       id: "facilities",
       targetId: "tour-sidebar",
-      fallbackTargetId: "tour-mobile-menu-btn",
+      fallbackTargetId: "tour-mobile-drawer",
       section: "FACILITIES",
       title: "Facility & Workshop Navigation",
-      description:
-        "Switch between training rooms, labs, and workshops. Click 'All rooms' for the institution-wide register, or '+ Add room' to register a new facility.",
-      tip: "Shortcut: Press Ctrl + B (or Cmd + B) to toggle the sidebar.",
-      preferredPlacement: "right",
+      description: isMobile
+        ? "This slide-in drawer displays all training rooms and labs. Tap any room to view its equipment, or 'All rooms' for the master register."
+        : "Switch between training rooms, labs, and workshops. Click 'All rooms' for the institution-wide register, or '+ Add room' to register a new facility.",
+      tip: isMobile
+        ? "You can reopen this rooms drawer anytime by tapping the ☰ Menu button in the top left."
+        : "Shortcut: Press Ctrl + B (or Cmd + B) to toggle the sidebar.",
+      preferredPlacement: isMobile ? "bottom" : "right",
     },
     {
       id: "kpis",
@@ -117,6 +125,30 @@ export const OnboardingModal: React.FC<Props> = ({
 
   const activeStep = TOUR_STEPS[currentStep];
 
+  // Open mobile rooms drawer automatically on Step 1 when on mobile
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (
+      currentStep === 0 &&
+      typeof window !== "undefined" &&
+      window.innerWidth < 768
+    ) {
+      onToggleMobileNav?.(true);
+    } else {
+      onToggleMobileNav?.(false);
+    }
+
+    return () => {
+      onToggleMobileNav?.(false);
+    };
+  }, [isOpen, currentStep, onToggleMobileNav]);
+
+  const handleClose = useCallback(() => {
+    onToggleMobileNav?.(false);
+    onClose();
+  }, [onClose, onToggleMobileNav]);
+
   const updateHighlightAndPosition = useCallback(() => {
     if (!isOpen) {
       setTargetRect(null);
@@ -125,9 +157,25 @@ export const OnboardingModal: React.FC<Props> = ({
     const step = TOUR_STEPS[currentStep];
     if (!step) return;
 
-    let el = document.getElementById(step.targetId);
+    const checkVisible = (id: string) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      if (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style.display !== "none" &&
+        style.visibility !== "hidden"
+      ) {
+        return el;
+      }
+      return null;
+    };
+
+    let el = checkVisible(step.targetId);
     if (!el && step.fallbackTargetId) {
-      el = document.getElementById(step.fallbackTargetId);
+      el = checkVisible(step.fallbackTargetId);
     }
 
     if (el) {
@@ -292,7 +340,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
       } else if (e.key === "ArrowRight") {
         setCurrentStep((prev) => Math.min(prev + 1, TOUR_STEPS.length - 1));
       } else if (e.key === "ArrowLeft") {
@@ -302,7 +350,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose, TOUR_STEPS.length]);
+  }, [isOpen, handleClose, TOUR_STEPS.length]);
 
   if (!isOpen) return null;
 
@@ -311,7 +359,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
   const handleNext = () => {
     if (isLastStep) {
-      onClose();
+      handleClose();
     } else {
       setCurrentStep((prev) => prev + 1);
     }
@@ -324,10 +372,10 @@ export const OnboardingModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden no-print">
+    <div className="fixed inset-0 z-[60] overflow-hidden no-print">
       {/* Background Dim Backdrop */}
       <div
-        onClick={onClose}
+        onClick={handleClose}
         className="fixed inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity"
         aria-hidden="true"
       />
@@ -405,7 +453,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close walkthrough"
             className="w-7 h-7 flex items-center justify-center rounded-lg text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
           >
@@ -440,7 +488,7 @@ export const OnboardingModal: React.FC<Props> = ({
         <div className="pt-2 flex items-center justify-between gap-2 border-t border-neutral-200 dark:border-neutral-800">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="text-xs font-semibold text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer py-1"
           >
             Skip Tour

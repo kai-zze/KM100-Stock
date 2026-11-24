@@ -1656,6 +1656,8 @@ export function App() {
           isOpen={isOnboardingOpen}
           onClose={handleCloseOnboarding}
           userRole={currentUser.role}
+          onToggleMobileNav={setIsMobileNavOpen}
+          isMobileNavOpen={isMobileNavOpen}
         />
       )}
 

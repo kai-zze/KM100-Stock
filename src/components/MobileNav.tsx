@@ -49,7 +49,10 @@ export const MobileNav: React.FC<Props> = React.memo(
           onClick={onClose}
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         />
-        <div className="relative z-10 flex h-full w-72 max-w-[85vw] flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl animate-slide-down">
+        <div
+          id="tour-mobile-drawer"
+          className="relative z-10 flex h-full w-72 max-w-[85vw] flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl animate-slide-down"
+        >
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 p-4">
             <div className="flex items-center gap-2">
               <span className="rounded-lg bg-amber-50 dark:bg-amber-950/60 p-1.5 text-amber-700 dark:text-amber-400 ring-1 ring-amber-100 dark:ring-amber-900/60">
