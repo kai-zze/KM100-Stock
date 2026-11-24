@@ -185,30 +185,283 @@
         }
       }
 
-      @keyframes km100-pulse-subtle {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 1;
+      /*
+      From Uiverse.io by andrew-manzyk - https://uiverse.io/andrew-manzyk/unlucky-mouse-21
+      MIT License, Copyright (c) andrew-manzyk (Andrew Manzyk)
+      */
+      .uiverse-scrolling-loader {
+        --main-size: 2.2rem;
+        --text-color: #0f172a;
+        --shine-color: rgba(15, 23, 42, 0.08);
+        --shadow-color: #94a3b8;
+        --accent-color: #b45309;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        position: relative;
+        font-size: var(--main-size);
+        font-weight: 900;
+        text-transform: uppercase;
+        color: var(--text-color);
+        width: 7.3em;
+        height: 1em;
+        filter: drop-shadow(0 0 0.05em var(--shine-color));
+        font-family:
+          "Plus Jakarta Sans",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        position: absolute;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(1) {
+        clip-path: polygon(0% 0%, 11.11% 0%, 11.11% 100%, 0% 100%);
+        font-size: calc(var(--main-size) / 20);
+        margin-left: -2.1em;
+        opacity: 0.6;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(2) {
+        clip-path: polygon(11.11% 0%, 22.22% 0%, 22.22% 100%, 11.11% 100%);
+        font-size: calc(var(--main-size) / 16);
+        margin-left: -0.98em;
+        opacity: 0.7;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(3) {
+        clip-path: polygon(22.22% 0%, 33.33% 0%, 33.33% 100%, 22.22% 100%);
+        font-size: calc(var(--main-size) / 13);
+        margin-left: -0.33em;
+        opacity: 0.8;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(4) {
+        clip-path: polygon(33.33% 0%, 44.44% 0%, 44.44% 100%, 33.33% 100%);
+        font-size: calc(var(--main-size) / 11);
+        margin-left: -0.05em;
+        opacity: 0.9;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(5) {
+        clip-path: polygon(44.44% 0%, 55.55% 0%, 55.55% 100%, 44.44% 100%);
+        font-size: calc(var(--main-size) / 10);
+        margin-left: 0em;
+        opacity: 1;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(6) {
+        clip-path: polygon(55.55% 0%, 66.66% 0%, 66.66% 100%, 55.55% 100%);
+        font-size: calc(var(--main-size) / 11);
+        margin-left: 0.05em;
+        opacity: 0.9;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(7) {
+        clip-path: polygon(66.66% 0%, 77.77% 0%, 77.77% 100%, 66.66% 100%);
+        font-size: calc(var(--main-size) / 13);
+        margin-left: 0.33em;
+        opacity: 0.8;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(8) {
+        clip-path: polygon(77.77% 0%, 88.88% 0%, 88.88% 100%, 77.77% 100%);
+        font-size: calc(var(--main-size) / 16);
+        margin-left: 0.98em;
+        opacity: 0.7;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(9) {
+        clip-path: polygon(88.88% 0%, 100% 0%, 100% 100%, 88.88% 100%);
+        font-size: calc(var(--main-size) / 20);
+        margin-left: 2.1em;
+        opacity: 0.6;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text span {
+        animation:
+          uiverse-scrolling 2s cubic-bezier(0.1, 0.6, 0.9, 0.4) infinite,
+          uiverse-shadow 2s cubic-bezier(0.1, 0.6, 0.9, 0.4) infinite;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(1) span {
+        background: linear-gradient(
+          to right,
+          var(--text-color) 4%,
+          var(--shadow-color) 7%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(2) span {
+        background: linear-gradient(
+          to right,
+          var(--text-color) 9%,
+          var(--shadow-color) 13%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(3) span {
+        background: linear-gradient(
+          to right,
+          var(--text-color) 15%,
+          var(--shadow-color) 18%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(4) span {
+        background: linear-gradient(
+          to right,
+          var(--text-color) 20%,
+          var(--shadow-color) 23%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(5) span {
+        background: linear-gradient(
+          to right,
+          var(--text-color) 25%,
+          var(--shadow-color) 28%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(6) span {
+        background: linear-gradient(
+          to right,
+          var(--shadow-color) 29%,
+          var(--text-color) 32%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(7) span {
+        background: linear-gradient(
+          to right,
+          var(--shadow-color) 34%,
+          var(--text-color) 37%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(8) span {
+        background: linear-gradient(
+          to right,
+          var(--shadow-color) 39%,
+          var(--text-color) 42%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-text:nth-child(9) span {
+        background: linear-gradient(
+          to right,
+          var(--shadow-color) 45%,
+          var(--text-color) 48%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .uiverse-scrolling-loader .uiverse-line {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        height: 0.05em;
+        width: calc(var(--main-size) / 2);
+        margin-top: 0.9em;
+        border-radius: 0.05em;
+      }
+
+      .uiverse-scrolling-loader .uiverse-line::before {
+        content: "";
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: var(--text-color);
+        opacity: 0.15;
+      }
+
+      .uiverse-scrolling-loader .uiverse-line::after {
+        content: "";
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: var(--accent-color, #b45309);
+        border-radius: 0.05em;
+        transform: translateX(-90%);
+        animation: uiverse-wobble 2s cubic-bezier(0.5, 0.8, 0.5, 0.2) infinite;
+      }
+
+      @keyframes uiverse-wobble {
+        0% {
+          transform: translateX(-90%);
         }
         50% {
-          transform: scale(1.025);
-          opacity: 0.96;
+          transform: translateX(90%);
+        }
+        100% {
+          transform: translateX(-90%);
         }
       }
 
-      @keyframes km100-progress {
+      @keyframes uiverse-scrolling {
         0% {
-          left: -40%;
-          width: 40%;
-        }
-        50% {
-          left: 20%;
-          width: 60%;
+          transform: translateX(-100%);
         }
         100% {
-          left: 100%;
-          width: 40%;
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes uiverse-shadow {
+        0% {
+          background-position: -98% 0;
+        }
+        100% {
+          background-position: 102% 0;
         }
       }
 
@@ -391,86 +644,24 @@
           "
         ></div>
 
-        <!-- Official Circular Logo Emblem with Architectural Ring & Subtle Breathing Pulse -->
-        <div
-          style="
-            position: relative;
-            margin-bottom: 20px;
-            animation: km100-pulse-subtle 3s ease-in-out infinite;
-          "
-        >
-          <div
+        <!-- Official Circular Logo (Clean & Sharp, No Glowing Aura) -->
+        <div style="margin-bottom: 24px">
+          <img
+            src="/logo.png"
+            width="96"
+            height="96"
+            decoding="async"
+            fetchpriority="high"
+            alt="KM100 Logo"
             style="
-              width: 104px;
-              height: 104px;
+              width: 96px;
+              height: 96px;
               border-radius: 50%;
-              padding: 4px;
-              background: #ffffff;
-              box-shadow:
-                0 14px 30px -8px rgba(180, 83, 9, 0.22),
-                0 4px 12px -2px rgba(0, 0, 0, 0.05);
-              border: 2px solid #fed7aa;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0 auto;
+              object-fit: contain;
+              display: block;
             "
-          >
-            <picture>
-              <source type="image/webp" srcset="/logo-sm.webp" />
-              <img
-                src="/logo-sm.png"
-                width="96"
-                height="96"
-                decoding="async"
-                fetchpriority="high"
-                alt="KM100 Logo"
-                style="
-                  width: 96px;
-                  height: 96px;
-                  border-radius: 50%;
-                  object-fit: contain;
-                  display: block;
-                "
-                onerror="this.style.display = 'none'"
-              />
-            </picture>
-          </div>
-        </div>
-
-        <!-- Official Security & Custody Pill -->
-        <div
-          style="
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 14px;
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            border-radius: 9999px;
-            margin-bottom: 12px;
-          "
-        >
-          <span
-            style="
-              width: 6px;
-              height: 6px;
-              border-radius: 50%;
-              background: #b45309;
-              display: inline-block;
-            "
-          ></span>
-          <span
-            style="
-              font-size: 11px;
-              font-weight: 700;
-              color: #92400e;
-              letter-spacing: 0.06em;
-              text-transform: uppercase;
-            "
-          >
-            Official Property Custody
-          </span>
+            onerror="this.style.display = 'none'"
+          />
         </div>
 
         <!-- Institutional Titles -->
@@ -478,10 +669,10 @@
           style="
             margin: 0;
             color: #0f172a;
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: -0.025em;
-            line-height: 1.3;
+            line-height: 1.25;
             max-width: 320px;
           "
         >
@@ -500,41 +691,19 @@
           Property Custody &amp; Inventory Management System
         </p>
 
-        <!-- Animated Progress Indicator Track -->
-        <div
-          style="
-            margin-top: 26px;
-            width: 140px;
-            height: 3px;
-            background: #f1f5f9;
-            border-radius: 9999px;
-            overflow: hidden;
-            position: relative;
-          "
-        >
-          <div
-            style="
-              position: absolute;
-              top: 0;
-              bottom: 0;
-              background: linear-gradient(90deg, #b45309, #f59e0b);
-              border-radius: 9999px;
-              animation: km100-progress 1.4s ease-in-out infinite;
-            "
-          ></div>
+        <!-- Uiverse.io Scrolling Loader -->
+        <div class="uiverse-scrolling-loader" style="margin-top: 32px">
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-text"><span>Loading</span></div>
+          <div class="uiverse-line"></div>
         </div>
-        <p
-          style="
-            margin: 10px 0 0 0;
-            color: #94a3b8;
-            font-size: 11.5px;
-            font-weight: 500;
-            font-family: &quot;DM Sans&quot;, system-ui, sans-serif;
-            letter-spacing: 0.02em;
-          "
-        >
-          Initializing inventory workspace...
-        </p>
 
         <!-- Bottom Institutional Anchor -->
         <div
