@@ -25,43 +25,34 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       {/* Top Institutional Gradient Accent */}
       <div className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500" />
 
-      {/* Institutional Brand Header with KM100 and TESDA Logos flanking the Company Name */}
-      <div className="flex items-center justify-center gap-3 sm:gap-6 px-4 max-w-2xl">
+      {/* Institutional Brand Header (Centered, Adaptive & Balanced) */}
+      <div className="flex flex-col items-center justify-center max-w-2xl px-4 text-center">
         <img
           src="/logo-sm.png"
-          alt="KM100 Logo"
-          width={64}
-          height={64}
-          className="h-12 w-12 sm:h-16 sm:w-16 shrink-0 rounded-full object-contain filter drop-shadow-sm"
+          alt="KM100 Official Emblem"
+          width={72}
+          height={72}
+          className="h-14 w-14 sm:h-18 sm:w-18 md:h-20 md:w-20 shrink-0 rounded-full object-contain mb-3 sm:mb-4 filter drop-shadow-md"
         />
 
-        <div className="space-y-1 text-center">
-          <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
-            KM100 SKILLS AND TRAINING CENTER, INC.
-          </h1>
-          <p className="font-sans text-xs sm:text-sm font-medium text-slate-500">
-            Property Custody &amp; Inventory Management System
-          </p>
-        </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight [text-wrap:balance]">
+          KM100 SKILLS AND TRAINING CENTER, INC.
+        </h1>
 
-        <img
-          src="/tesda_logo.png"
-          alt="TESDA Logo"
-          width={64}
-          height={64}
-          className="h-12 w-12 sm:h-16 sm:w-16 shrink-0 rounded-full object-contain filter drop-shadow-sm"
-        />
+        <p className="mt-1.5 sm:mt-2 font-sans text-xs sm:text-sm md:text-base font-medium text-slate-500 leading-relaxed max-w-md">
+          Property Custody &amp; Inventory Management System
+        </p>
       </div>
 
       {/* Uiverse.io Scrolling Loader (Adaptive Across All Screen Sizes & Devices) */}
-      <div className="mt-12 sm:mt-16 flex justify-center w-full overflow-hidden px-4">
+      <div className="mt-8 sm:mt-12 md:mt-14 flex justify-center w-full overflow-hidden px-4">
         <ScrollingLoader text="Loading" />
       </div>
 
       {/* Regulatory Institutional Anchor */}
       <div className="absolute bottom-6 left-0 right-0 px-4 text-center">
-        <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          TESDA Regulated &bull; Institutional Property Register
+        <span className="font-sans text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Institutional Property Register &bull; Official Custody System
         </span>
       </div>
     </div>
