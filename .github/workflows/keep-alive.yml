@@ -1,0 +1,30 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Runs every 3 days at 00:00 UTC to prevent Supabase free tier inactivity pausing
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: "https://kpzancwkmbhnuqbnqrii.supabase.co"
+          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_Op-yvVaKrb9kArQ2ieDefw_ueZNswLZ' }}
+        run: |
+          echo "Sending keep-alive request to Supabase..."
+          HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X GET "${SUPABASE_URL}/rest/v1/rooms?select=id&limit=1" \
+            -H "apikey: ${ANON_KEY}" \
+            -H "Authorization: Bearer ${ANON_KEY}")
+          echo "Supabase HTTP response: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "Successfully pinged Supabase. Database is active!"
+          else
+            echo "Warning: Received HTTP $HTTP_STATUS"
+            cat response.json
+            exit 1
+          fi
