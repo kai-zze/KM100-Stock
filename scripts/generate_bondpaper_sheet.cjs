@@ -11,12 +11,6 @@ if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, { recursive: true });
 }
 
-// Clean up temporary debug scripts
-["test_q.cjs", "debug_ink.cjs", "test_diag2_lines.cjs"].forEach((f) => {
-  const p = path.join(__dirname, f);
-  if (fs.existsSync(p)) fs.unlinkSync(p);
-});
-
 // 1. Read APP_FLOWCHART.md
 const markdownPath = path.join(docsDir, "APP_FLOWCHART.md");
 const content = fs.readFileSync(markdownPath, "utf8");
@@ -30,7 +24,7 @@ while ((match = mermaidRegex.exec(content)) !== null) {
 }
 
 console.log(
-  `Found ${blocks.length} mermaid diagrams to render for Bond Paper.`,
+  `Found ${blocks.length} mermaid diagrams to render for Landscape Bond Paper.`,
 );
 
 const diagramsMeta = [
@@ -62,13 +56,13 @@ const diagramsMeta = [
     filename: "04-roles-permission-matrix.png",
     title: "Institutional Role & Permission Matrix",
     docRef: "KM100-FLW-04-ROLES",
-    desc: "Shared Institutional Security Passkey, Daily Stock Controls (Shared) & Administrative Authority (Custodian Exclusive)",
+    desc: "Shared Institutional Security Passkey, Daily Custody Controls (Shared) & Administrative Authority (Custodian Exclusive)",
   },
 ];
 
 async function generatePng(code, filename) {
   console.log(
-    `Generating ${filename} (bond paper proportioned, solid white background)...`,
+    `Generating ${filename} (landscape bond paper proportioned, solid white background)...`,
   );
 
   // Strip %% comment lines and init blocks for clean mermaid.ink URL payload
@@ -141,7 +135,7 @@ async function generatePng(code, filename) {
   const outPath = path.join(outDir, filename);
   fs.writeFileSync(outPath, buffer);
   console.log(
-    `Saved ${filename} (${buffer.length} bytes, ColorType=${buffer[25]} [Solid White RGB])`,
+    `Saved ${filename} (${buffer.length} bytes, ColorType=${buffer[25]} [Solid White Background])`,
   );
 
   if (fs.existsSync(brainDir)) {
@@ -152,7 +146,7 @@ async function generatePng(code, filename) {
   return buffer;
 }
 
-// Generate the printable HTML Bond Paper document
+// Generate the printable HTML Landscape Bond Paper document
 function generatePrintableHtml(imagesBase64) {
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -170,7 +164,7 @@ function generatePrintableHtml(imagesBase64) {
 
       return `
     <section class="bondpaper-page">
-      <!-- Institutional Header -->
+      <!-- Institutional Header (Landscape Width) -->
       <header class="page-header">
         <div class="header-left">
           <div class="logo-circle">KM100</div>
@@ -182,12 +176,14 @@ function generatePrintableHtml(imagesBase64) {
               <span class="meta-divider">•</span>
               <span class="meta-item"><strong>Classification:</strong> Official Institutional Architecture</span>
               <span class="meta-divider">•</span>
+              <span class="meta-item"><strong>Layout:</strong> Landscape Short Bond Paper (11" × 8.5")</span>
+              <span class="meta-divider">•</span>
               <span class="meta-item"><strong>Date:</strong> ${currentDate}</span>
             </div>
           </div>
         </div>
         <div class="header-badge">
-          <span class="badge-tag">SHORT BOND PAPER (8.5" × 11")</span>
+          <span class="badge-tag">LANDSCAPE BOND PAPER (11" × 8.5")</span>
           <span class="page-count">Page ${pageNum} of ${totalPages}</span>
         </div>
       </header>
@@ -198,7 +194,7 @@ function generatePrintableHtml(imagesBase64) {
         <p class="diagram-desc">${meta.desc}</p>
       </div>
 
-      <!-- Flowchart Image Container (Fitted for Bond Paper) -->
+      <!-- Flowchart Image Container (Fitted for Landscape Bond Paper) -->
       <div class="diagram-viewport">
         <img src="${imgSrc}" alt="${meta.title}" class="flowchart-image" />
       </div>
@@ -224,7 +220,7 @@ function generatePrintableHtml(imagesBase64) {
         </div>
         <div class="footer-bottom-bar">
           <span>KM100 Skills &amp; Training Center, Inc. • Confidential Property Inventory Document</span>
-          <span>Standard Short Bond Paper (Letter: 8.5" × 11")</span>
+          <span>Standard Short Bond Paper — Landscape (Letter: 11" × 8.5")</span>
         </div>
       </footer>
     </section>
@@ -237,7 +233,7 @@ function generatePrintableHtml(imagesBase64) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KM100 Inventory System - Architecture Flowcharts (Bond Paper Format)</title>
+  <title>KM100 Inventory System - Architecture Flowcharts (Landscape Bond Paper)</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -257,7 +253,7 @@ function generatePrintableHtml(imagesBase64) {
       position: sticky;
       top: 0;
       z-index: 9999;
-      max-width: 8.5in;
+      max-width: 11in;
       margin: 0 auto 24px auto;
       background: #ffffff;
       padding: 16px 24px;
@@ -299,14 +295,14 @@ function generatePrintableHtml(imagesBase64) {
       background: #92400e;
     }
 
-    /* Bond Paper Sheet Layout (Standard Letter / Short Bond Paper: 8.5in x 11in) */
+    /* Landscape Bond Paper Sheet Layout (Standard Letter / Short Bond Paper Landscape: 11in x 8.5in) */
     .bondpaper-page {
-      width: 8.5in;
-      min-height: 11in;
-      max-height: 11in;
+      width: 11in;
+      min-height: 8.5in;
+      max-height: 8.5in;
       margin: 0 auto 32px auto;
       background: #ffffff;
-      padding: 0.45in 0.5in;
+      padding: 0.35in 0.5in;
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
       border: 1px solid #e2e8f0;
       border-radius: 4px;
@@ -322,8 +318,8 @@ function generatePrintableHtml(imagesBase64) {
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 2px solid #0f172a;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
     }
 
     .header-left {
@@ -333,8 +329,8 @@ function generatePrintableHtml(imagesBase64) {
     }
 
     .logo-circle {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: #b45309;
       color: #ffffff;
@@ -342,7 +338,7 @@ function generatePrintableHtml(imagesBase64) {
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: -0.5px;
       box-shadow: 0 2px 4px rgba(180, 83, 9, 0.3);
     }
@@ -368,7 +364,7 @@ function generatePrintableHtml(imagesBase64) {
       gap: 6px;
       font-size: 9.5px;
       color: #64748b;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     .meta-divider {
@@ -400,7 +396,7 @@ function generatePrintableHtml(imagesBase64) {
     }
 
     .diagram-title-card {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .diagram-heading {
@@ -415,6 +411,7 @@ function generatePrintableHtml(imagesBase64) {
       margin-top: 2px;
     }
 
+    /* Diagram Viewport - Scaled for Landscape Bond Paper (Wide 16:9 / 11:8.5) */
     .diagram-viewport {
       flex: 1;
       display: flex;
@@ -423,7 +420,7 @@ function generatePrintableHtml(imagesBase64) {
       border: 1px solid #e2e8f0;
       border-radius: 4px;
       background: #ffffff;
-      padding: 12px;
+      padding: 8px 12px;
       overflow: hidden;
       min-height: 0;
     }
@@ -431,21 +428,23 @@ function generatePrintableHtml(imagesBase64) {
     .flowchart-image {
       max-width: 100%;
       max-height: 100%;
+      width: auto;
+      height: auto;
       object-fit: contain;
       display: block;
     }
 
     .page-footer {
-      margin-top: 10px;
+      margin-top: 8px;
       border-top: 1px solid #cbd5e1;
-      padding-top: 8px;
+      padding-top: 6px;
     }
 
     .signoff-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 6px;
+      gap: 32px;
+      margin-bottom: 4px;
     }
 
     .signoff-box {
@@ -454,9 +453,9 @@ function generatePrintableHtml(imagesBase64) {
 
     .sign-line {
       border-bottom: 1px solid #94a3b8;
-      width: 75%;
-      margin: 0 auto 4px auto;
-      height: 14px;
+      width: 60%;
+      margin: 0 auto 3px auto;
+      height: 12px;
     }
 
     .sign-name {
@@ -476,12 +475,12 @@ function generatePrintableHtml(imagesBase64) {
       font-size: 8px;
       color: #94a3b8;
       border-top: 1px dashed #e2e8f0;
-      padding-top: 4px;
+      padding-top: 3px;
     }
 
     @media print {
       @page {
-        size: letter portrait;
+        size: letter landscape; /* Standard Short Bond Paper Landscape (11in x 8.5in) */
         margin: 0;
       }
 
@@ -495,11 +494,11 @@ function generatePrintableHtml(imagesBase64) {
       }
 
       .bondpaper-page {
-        width: 8.5in !important;
-        height: 11in !important;
-        max-height: 11in !important;
+        width: 11in !important;
+        height: 8.5in !important;
+        max-height: 8.5in !important;
         margin: 0 !important;
-        padding: 0.45in 0.5in !important;
+        padding: 0.35in 0.5in !important;
         border: none !important;
         box-shadow: none !important;
         page-break-inside: avoid;
@@ -516,7 +515,7 @@ function generatePrintableHtml(imagesBase64) {
   <div class="screen-toolbar">
     <div class="toolbar-info">
       <h2>KM100 Property Custody &amp; Inventory Management System</h2>
-      <p>Architecture &amp; Operational Flowcharts — Short Bond Paper Formatted (8.5" × 11")</p>
+      <p>Architecture &amp; Operational Flowcharts — Landscape Short Bond Paper Formatted (11" × 8.5")</p>
     </div>
     <button class="print-btn" onclick="window.print()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -524,7 +523,7 @@ function generatePrintableHtml(imagesBase64) {
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
         <rect x="6" y="14" width="12" height="8"></rect>
       </svg>
-      Print to Bond Paper / Save as PDF
+      Print to Landscape Bond Paper / Save as PDF
     </button>
   </div>
 
@@ -548,14 +547,14 @@ async function run() {
     await new Promise((r) => setTimeout(r, 1200));
   }
 
-  // Generate printable bond paper HTML
+  // Generate printable landscape bond paper HTML
   const htmlContent = generatePrintableHtml(imagesBase64);
   const htmlPath = path.join(
     docsDir,
     "KM100_Inventory_Flowcharts_Bondpaper.html",
   );
   fs.writeFileSync(htmlPath, htmlContent, "utf8");
-  console.log(`Generated Bond Paper document: ${htmlPath}`);
+  console.log(`Generated Landscape Bond Paper document: ${htmlPath}`);
 
   if (fs.existsSync(brainDir)) {
     const brainHtmlPath = path.join(
@@ -565,7 +564,7 @@ async function run() {
     fs.writeFileSync(brainHtmlPath, htmlContent, "utf8");
   }
 
-  console.log("All bond paper flowcharts generated successfully!");
+  console.log("All landscape bond paper flowcharts generated successfully!");
 }
 
 run();

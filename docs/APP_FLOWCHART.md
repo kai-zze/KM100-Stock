@@ -1,10 +1,10 @@
-# KM100 Inventory Management System: Architecture & Workflow Diagrams (Light Mode)
+# KM100 Inventory Management System: Architecture & Workflow Diagrams (Landscape Bond Paper)
 
 This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System.
 
-All diagrams are formatted to fit standard **Short Bond Paper (Letter: 8.5" × 11")** and rendered as high-resolution PNG images with an **opaque solid pure white background** in [`docs/flowcharts/`](./flowcharts/).
+All diagrams are arranged in a horizontal Left-to-Right (`flowchart LR`) layout specifically proportioned to fit **Landscape Short Bond Paper (Letter: 11" × 8.5")**, rendered as high-resolution PNG images with an **opaque solid pure white background** in [`docs/flowcharts/`](./flowcharts/).
 
-> 🖨️ **Print-Ready Bond Paper Document**: Open [`docs/KM100_Inventory_Flowcharts_Bondpaper.html`](./KM100_Inventory_Flowcharts_Bondpaper.html) in your browser to print all 5 flowcharts on standard bond paper sheets or save as a multi-page PDF.
+> 🖨️ **Print-Ready Landscape Bond Paper Document**: Open [`docs/KM100_Inventory_Flowcharts_Bondpaper.html`](./KM100_Inventory_Flowcharts_Bondpaper.html) in your browser to print all 5 flowcharts on landscape bond paper or save as a landscape multi-page PDF.
 
 ---
 
@@ -12,69 +12,72 @@ All diagrams are formatted to fit standard **Short Bond Paper (Letter: 8.5" × 1
 
 ![Master System Flowchart](./flowcharts/00-master-system-flowchart.png)
 
-> **Export**: [Download / View PNG (00-master-system-flowchart.png)](./flowcharts/00-master-system-flowchart.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
+> **Export**: [Download / View PNG (00-master-system-flowchart.png)](./flowcharts/00-master-system-flowchart.png) • **Print Layout**: Landscape Bond Paper (11" × 8.5")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart TD
-    %% Section 1: Authentication & Shared Passkey
-    subgraph AuthLayer["1. Authentication & Shared Institutional Security"]
-        StartApp([User Launches App]) --> Splash["3D Logo Splash & Cache Pre-load"]
+flowchart LR
+    subgraph S1["1. Shared Passkey Auth"]
+        direction TB
+        StartApp([User Launches App]) --> Splash["3D Logo Splash"]
         Splash --> AuthState{"Active Session?"}
-        AuthState -->|No| LoginModal["Sign In / Registration View"]
-        LoginModal --> PasskeyCheck{"Valid Shared Institutional Passkey?"}
-        PasskeyCheck -->|Invalid Passkey| RejectAuth["Access Denied Error Banner"]
+        AuthState -->|No| LoginModal["Login / Registration"]
+        LoginModal --> PasskeyCheck{"Shared Passkey Valid?"}
+        PasskeyCheck -->|Invalid| RejectAuth["Access Denied"]
         RejectAuth --> LoginModal
-        PasskeyCheck -->|Valid Passkey| RoleChoice{"Select System Role"}
-        RoleChoice -->|Property Custodian| CustodianRole["Role: Property Custodian (Admin)"]
-        RoleChoice -->|Training Instructor| InstructorRole["Role: Training Instructor (Staff)"]
+        PasskeyCheck -->|Valid| RoleChoice{"Select Role"}
+        RoleChoice -->|Custodian| CustodianRole["Property Custodian"]
+        RoleChoice -->|Instructor| InstructorRole["Training Instructor"]
     end
 
-    %% Section 2: Local-First Core Architecture
-    subgraph ClientEngine["2. Local-First Client Engine (React + Vite)"]
-        CustodianRole --> BootSession["Initialize User Session"]
+    subgraph S2["2. Client Engine"]
+        direction TB
+        CustodianRole --> BootSession["Init Session"]
         InstructorRole --> BootSession
         AuthState -->|Yes| BootSession
-        BootSession --> LocalStore["Local-First Cache (localStorage - 0ms Paint)"]
-        LocalStore --> ReactiveState["React Hooks State Engine"]
-        ReactiveState --> UIRender["Tailwind CSS High-Density UI"]
+        BootSession --> LocalStore["Local Cache (0ms)"]
+        LocalStore --> ReactiveState["React Hooks State"]
+        ReactiveState --> UIRender["High-Density UI"]
     end
 
-    %% Section 3: Inventory Lifecycle Operations
-    subgraph OpsLayer["3. Facilities & Inventory Management"]
-        UIRender --> FacilityNav["Facility Scope Navigation (All Rooms or Specific Room)"]
-        FacilityNav --> KPIMetrics["Live KPI Telemetry (Total Items, Quantities, Defective, Empty)"]
-        KPIMetrics --> SearchFilter["Live Search-as-You-Type & Attribute Filters"]
-        SearchFilter --> TableGrid["High-Density Equipment Table (Sticky Headers)"]
-
-        TableGrid --> DirectOps{"Direct Manipulation Controls"}
-        DirectOps -->|Inline Steppers| StepperAdjust["Inline + / - Quantity & Physical Audits"]
-        DirectOps -->|Status Pills| StatusUpdate["Condition Tagging (Working, Fair, Needs Repair)"]
-        DirectOps -->|Enroll Equipment| EnrollModal["Add Equipment Specification"]
-        DirectOps -->|Decommission| DeleteModal["Delete Item (Admin Confirmation)"]
+    subgraph S3["3. Facilities & Inventory Ops"]
+        direction TB
+        UIRender --> FacilityNav["Facility Navigation"]
+        FacilityNav --> KPIMetrics["Live KPI Telemetry"]
+        KPIMetrics --> SearchFilter["Live Search & Filters"]
+        SearchFilter --> TableGrid["Equipment Table Grid"]
+        TableGrid --> DirectOps{"Direct Controls"}
+        DirectOps -->|Steppers| StepperAdjust["Inline + / - Stock"]
+        DirectOps -->|Badges| StatusUpdate["Condition Tagging"]
+        DirectOps -->|Enroll| EnrollModal["Add Equipment"]
+        DirectOps -->|Delete| DeleteModal["Delete Item (Admin)"]
     end
 
-    %% Section 4: Cloud Persistence & Automation
-    subgraph CloudLayer["4. Cloud Infrastructure & Synchronization"]
-        StepperAdjust --> CloudSync["Supabase Cloud Backend (PostgreSQL)"]
+    subgraph S4["4. Cloud Infrastructure"]
+        direction TB
+        StepperAdjust --> CloudSync["Supabase PostgreSQL"]
         StatusUpdate --> CloudSync
         EnrollModal --> CloudSync
         DeleteModal --> CloudSync
-        CloudSync -->|Realtime CDC WebSockets| RealtimeSync["Push Updates to All Connected Devices"]
+        CloudSync -->|Realtime CDC| RealtimeSync["WebSocket Push Under 200ms"]
         RealtimeSync --> ReactiveState
-        GHA["GitHub Actions Keep-Alive Cron (Every 3 Days)"] -->|REST Keepalive Ping| CloudSync
+        GHA["GitHub Actions Cron"] -->|3-Day Ping| CloudSync
     end
 
-    %% Section 5: Institutional Governance & Reporting
-    subgraph ReportingLayer["5. Institutional Auditing & Compliance"]
-        TableGrid --> ExportReport{"Institutional Document Generation"}
-        ExportReport -->|Formal Print| PrintSheet["Print Physical Custody Sheet (Official 3-Signatures Block)"]
-        ExportReport -->|Spreadsheet| ExcelExport["Generate Multi-Sheet Formatted Excel Workbook (.xlsx)"]
-        ExportReport -->|Schema Control| SchemaConfig["Dynamic Column Customization (Admin Only)"]
-        ExportReport -->|Security| PasskeyMgmt["Passkey Governance & Profile Management"]
+    subgraph S5["5. Governance & Export"]
+        direction TB
+        TableGrid --> ExportReport{"Document Generation"}
+        ExportReport -->|Print Sheet| PrintSheet["Custody Sheet (3 Signatures)"]
+        ExportReport -->|Spreadsheet| ExcelExport["Multi-Sheet Excel (.xlsx)"]
+        ExportReport -->|Schema| SchemaConfig["Column Customizer (Admin)"]
+        ExportReport -->|Security| PasskeyMgmt["Passkey Governance"]
     end
+
+    S1 --> S2 --> S3
+    S3 --> S4
+    S3 --> S5
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
@@ -94,41 +97,42 @@ flowchart TD
 
 ![High-Level System Architecture](./flowcharts/01-architecture-data-flow.png)
 
-> **Export**: [Download / View PNG (01-architecture-data-flow.png)](./flowcharts/01-architecture-data-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
+> **Export**: [Download / View PNG (01-architecture-data-flow.png)](./flowcharts/01-architecture-data-flow.png) • **Print Layout**: Landscape Bond Paper (11" × 8.5")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Client["Client Application (React + Vite)"]
-        UI["Web & Mobile UI (Tailwind CSS)"]
+        direction TB
+        UI["Web and Mobile UI (Tailwind CSS)"]
         LocalCache["Local-First Cache (localStorage)"]
         State["Application State (React Hooks)"]
+
+        UI -->|Instant Paint 0ms| LocalCache
+        LocalCache -->|Initial State| State
+        State -->|Display| UI
     end
 
     subgraph Supabase["Supabase Cloud Backend"]
+        direction TB
         AuthService["Supabase Auth (auth.users)"]
         PostgresDB[("PostgreSQL Database")]
-        RealtimeEngine["Realtime WebSockets (CDC Engine)"]
+        RealtimeEngine["Realtime CDC Engine (WebSockets)"]
+
+        AuthService -->|Auto-Profile Trigger| PostgresDB
+        PostgresDB -->|CDC Streams| RealtimeEngine
     end
 
     subgraph Automation["Automated Services"]
-        GHA["GitHub Actions Keep-Alive Cron"]
+        direction TB
+        GHA["GitHub Actions Cron (Every 3 Days)"]
+        GHA -->|REST Keepalive Ping| PostgresDB
     end
 
-    %% Client Interactions
-    UI -->|Instant Paint 0ms| LocalCache
-    LocalCache -->|Initial State| State
-    State -->|Display| UI
-
-    %% Cloud Sync
-    State -->|Async Reconcile & Writes| PostgresDB
-    AuthService -->|Auto-Profile Trigger| PostgresDB
-    RealtimeEngine -->|Push Changes <200ms| State
-
-    %% Cron
-    GHA -->|Every 3 Days REST Ping| PostgresDB
+    State -->|Async Reconcile and Writes| PostgresDB
+    RealtimeEngine -->|Push Changes Under 200ms| State
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef highlight fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
@@ -141,55 +145,65 @@ flowchart TD
 
 ## 2. Authentication & First-Time Onboarding Flow (Shared Passkey)
 
-> **Access Governance**: Property Custodians (Admin) and Training Instructors (Staff) share the same institutional passkey. The user selects their organizational role during enrollment.
+> **Access Governance**: Property Custodians (Admin) and Training Instructors (Staff) share the same institutional security passkey. The user selects their organizational role during registration.
 
 ![Authentication & First-Time Onboarding Flow](./flowcharts/02-authentication-onboarding-flow.png)
 
-> **Export**: [Download / View PNG (02-authentication-onboarding-flow.png)](./flowcharts/02-authentication-onboarding-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
+> **Export**: [Download / View PNG (02-authentication-onboarding-flow.png)](./flowcharts/02-authentication-onboarding-flow.png) • **Print Layout**: Landscape Bond Paper (11" × 8.5")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart TD
-    Start([User Opens Application]) --> Splash["Splash Screen Assembly and Boot"]
-    Splash --> CheckSession{"Existing Valid Session?"}
+flowchart LR
+    subgraph Step1["1. Application Entry"]
+        direction TB
+        Start([User Opens App]) --> Splash["3D Logo Splash"]
+        Splash --> CheckSession{"Existing Session?"}
+    end
 
-    CheckSession -->|Yes| NormalDashboard["Display Master Facilities Dashboard"]
-    CheckSession -->|No| LoginScreen["Display Authentication Screen"]
+    subgraph Step2["2. Authentication Choice"]
+        direction TB
+        CheckSession -->|No| LoginScreen["Authentication Screen"]
+        LoginScreen --> ModeChoice{"User Action"}
+        ModeChoice -->|Sign In| EnterCreds["Enter Email and Password"]
+        EnterCreds --> VerifyAuth{"Verify Credentials"}
+        VerifyAuth -->|Invalid| LoginError["Show Error Banner"]
+        LoginError --> LoginScreen
+        ModeChoice -->|Register| EnterReg["Enter Info and Shared Passkey"]
+        EnterReg --> CheckPasskey{"Valid Shared Passkey?"}
+        PasskeyError["Show Passkey Error"]
+        CheckPasskey -->|Invalid| PasskeyError
+        PasskeyError --> EnterReg
+    end
 
-    LoginScreen --> ModeChoice{"User Action"}
+    subgraph Step3["3. Role & Account Creation"]
+        direction TB
+        CheckPasskey -->|Valid| SelectRole{"Select Role"}
+        SelectRole -->|Custodian| CreateAdmin["Create Admin Account"]
+        SelectRole -->|Instructor| CreateStaff["Create Staff Account"]
+        VerifyAuth -->|Valid| SetSession["Set Active Session"]
+    end
 
-    ModeChoice -->|Sign In| EnterCreds["Enter Email and Password"]
-    EnterCreds --> VerifyAuth{"Verify Credentials"}
-    VerifyAuth -->|Invalid| LoginError["Show Error Banner"]
-    LoginError --> LoginScreen
-    VerifyAuth -->|Valid| SetSession["Set Active User Session"]
-    SetSession --> NormalDashboard
+    subgraph Step4["4. Onboarding & Facilities"]
+        direction TB
+        CreateAdmin --> OnboardingTour["8-Step Interactive Tour"]
+        CreateStaff --> OnboardingTour
+        OnboardingTour --> CompleteTour["Complete or Skip Tour"]
+        CompleteTour --> SaveTourDone["Save Tour Flag"]
+        SaveTourDone --> NormalDashboard["Master Facilities Dashboard"]
+        CheckSession -->|Yes| NormalDashboard
+        SetSession --> NormalDashboard
+    end
 
-    ModeChoice -->|Register| EnterReg["Enter Name, Email, Password, Role and Passkey"]
-    EnterReg --> CheckSharedPasskey{"Valid Shared Institutional Passkey?"}
-
-    CheckSharedPasskey -->|Invalid| PasskeyError["Show Invalid Passkey Error"]
-    PasskeyError --> EnterReg
-
-    CheckSharedPasskey -->|Valid| SelectRole{"Selected Role"}
-    SelectRole -->|Property Custodian| CreateAdmin["Register Admin Account in Cloud"]
-    SelectRole -->|Training Instructor| CreateStaff["Register Staff Account in Cloud"]
-
-    CreateAdmin --> OnboardingTour["Launch 8-Step Interactive System Tour"]
-    CreateStaff --> OnboardingTour
-
-    OnboardingTour --> CompleteTour["User Completes or Skips Tour"]
-    CompleteTour --> SaveTourDone["Save Tour Completed in Storage"]
-    SaveTourDone --> NormalDashboard
+    Step1 --> Step2 --> Step3 --> Step4
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
     classDef rose fill:#fff1f2,stroke:#e11d48,stroke-width:1.5px,color:#9f1239;
     classDef emerald fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
 
-    class OnboardingTour,CheckSharedPasskey amber;
+    class OnboardingTour,CheckPasskey amber;
     class PasskeyError,LoginError rose;
     class CreateAdmin,CreateStaff,NormalDashboard emerald;
 ```
@@ -202,47 +216,52 @@ flowchart TD
 
 ![Core Operational Inventory Lifecycle](./flowcharts/03-inventory-lifecycle-flow.png)
 
-> **Export**: [Download / View PNG (03-inventory-lifecycle-flow.png)](./flowcharts/03-inventory-lifecycle-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
+> **Export**: [Download / View PNG (03-inventory-lifecycle-flow.png)](./flowcharts/03-inventory-lifecycle-flow.png) • **Print Layout**: Landscape Bond Paper (11" × 8.5")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Stage1["1. Facility Scope & Telemetry"]
+        direction TB
         Scope{"Select Scope"}
-        Scope -->|All Facilities| MasterOverview["Overview Dashboard (Room Cards Grid)"]
+        Scope -->|All Facilities| MasterOverview["Overview Dashboard"]
         Scope -->|Specific Room| RoomView["Room Inventory View"]
 
-        MasterOverview --> KPICards["Live KPI Telemetry (Total Items, Quantities, Defective, Empty)"]
+        MasterOverview --> KPICards["Live KPI Telemetry Cards"]
         RoomView --> KPICards
-        KPICards --> SearchFilterBar["Live Search-as-You-Type & Attribute Filters"]
+        KPICards --> SearchFilterBar["Live Search & Attribute Filters"]
     end
 
     subgraph Stage2["2. Equipment Direct Manipulation"]
-        SearchFilterBar --> TableGrid["High-Density Equipment Table (Sticky Headers)"]
+        direction TB
+        SearchFilterBar --> TableGrid["Equipment Table Grid"]
         TableGrid --> ActionChoice{"Perform Operation"}
 
-        ActionChoice -->|Stock Adjust| Steppers["Inline + / - Quantity Steppers & Direct Numeric Input"]
-        ActionChoice -->|Condition| StatusPill["Condition Badges (Working, Fair, Needs Repair)"]
-        ActionChoice -->|Add Item| AddModal["Equipment Enrollment Modal"]
-        ActionChoice -->|Edit Item| EditModal["Specification & Room Reassignment"]
-        ActionChoice -->|Delete Item| DeleteModal["Confirm Deletion Dialog (Admin Only)"]
+        ActionChoice -->|Stock Adjust| Steppers["Inline + / - Steppers"]
+        ActionChoice -->|Condition| StatusPill["Condition Badges"]
+        ActionChoice -->|Enroll| AddModal["Add Item Modal"]
+        ActionChoice -->|Modify| EditModal["Edit Item Modal"]
+        ActionChoice -->|Decommission| DeleteModal["Delete Dialog (Admin)"]
 
-        Steppers --> CloudSync["Instant Cloud Sync (Supabase PostgreSQL + localStorage)"]
+        Steppers --> CloudSync["Supabase Cloud Sync"]
         StatusPill --> CloudSync
         AddModal --> CloudSync
         EditModal --> CloudSync
         DeleteModal --> CloudSync
     end
 
-    subgraph Stage3["3. Compliance, Auditing & Export"]
+    subgraph Stage3["3. Institutional Auditing & Export"]
+        direction TB
         TableGrid --> AuditActions{"Compliance Action"}
 
-        AuditActions -->|Formal Custody Sheet| PrintDialog["Print Physical Inventory Sheet (3-Signatures Block)"]
-        AuditActions -->|Multi-Sheet Workbook| ExcelEngine["Generate Styled Multi-Sheet Excel Workbook (.xlsx)"]
-        AuditActions -->|Schema Control| SchemaModal["Admin Dynamic Column Customization"]
+        AuditActions -->|Formal Print| PrintDialog["Print Custody Sheet (3 Signatures)"]
+        AuditActions -->|Multi-Sheet| ExcelEngine["Generate Styled Excel (.xlsx)"]
+        AuditActions -->|Custom Fields| SchemaModal["Admin Dynamic Column Schema"]
     end
+
+    Stage1 --> Stage2 --> Stage3
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
@@ -262,20 +281,22 @@ flowchart TD
 
 ![Institutional Role & Permission Matrix](./flowcharts/04-roles-permission-matrix.png)
 
-> **Export**: [Download / View PNG (04-roles-permission-matrix.png)](./flowcharts/04-roles-permission-matrix.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
+> **Export**: [Download / View PNG (04-roles-permission-matrix.png)](./flowcharts/04-roles-permission-matrix.png) • **Print Layout**: Landscape Bond Paper (11" × 8.5")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph PasskeyGovernance["Shared Institutional Security"]
+        direction TB
         SharedKey["Shared Institutional Passkey (KM100-2026 / 2025)"]
         SharedKey --> RoleAdmin["Property Custodian (Admin)"]
         SharedKey --> RoleStaff["Training Instructor (Staff)"]
     end
 
-    subgraph Tier1["1. Daily Stock & Custody Controls (Shared: Admin & Staff)"]
+    subgraph Tier1["1. Daily Custody Controls (Shared: Admin & Staff)"]
+        direction TB
         P1["Inline Stock Audits (+ / - Steppers)"]
         P2["Condition Tagging (Working, Fair, Needs Repair)"]
         P3["Physical Custody Sheet Printing (3-Signature Block)"]
@@ -283,7 +304,8 @@ flowchart TD
         P5["Enroll & Edit Equipment Specifications"]
     end
 
-    subgraph Tier2["2. Center-Wide Administrative Authority (Admin Exclusive)"]
+    subgraph Tier2["2. Center Administrative Authority (Admin Exclusive)"]
+        direction TB
         P6["Decommission & Permanent Item Deletion"]
         P7["Facility Room Creation, Rename & Deletion"]
         P8["Custom Schema & Dynamic Column Configuration"]
