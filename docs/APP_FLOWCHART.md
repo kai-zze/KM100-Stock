@@ -118,7 +118,7 @@ flowchart TD
     subgraph MetricsAndFilters["2. Metrics & Discovery"]
         KPICards["Live KPI Counters (Items, Units, Need Attention, Out of Stock)"]
         SearchFilterBar["Live Search & Attribute Filters (Category, Condition)"]
-        
+
         MasterOverview --> KPICards
         RoomView --> KPICards
         KPICards -->|1-Click Filter| FilteredGrid["Filtered Equipment View"]
@@ -127,7 +127,7 @@ flowchart TD
 
     subgraph ItemOperations["3. Equipment Direct Manipulation"]
         FilteredGrid --> ActionChoice{"Perform Action"}
-        
+
         ActionChoice -->|Quantity Adjust| Steppers["Inline + / − Steppers or Direct Numeric Input"]
         Steppers -->|Immediate Write| CloudSync["Instant Cloud Sync (Supabase + localStorage)"]
 
@@ -144,7 +144,7 @@ flowchart TD
 
     subgraph Reporting["4. Audit & Institutional Reporting"]
         AuditActions{"Audit Action"}
-        
+
         AuditActions -->|Print Physical Sheet| PrintDialog["Print-Formatted Custody Sheet (3-Signature Blocks)"]
         AuditActions -->|Multi-Sheet Excel| ExcelEngine["Generate Styled Multi-Sheet .xlsx Workbook"]
         AuditActions -->|Customize Schema| SchemaModal["Admin Column Customizer (Add/Reorder Custom Fields)"]

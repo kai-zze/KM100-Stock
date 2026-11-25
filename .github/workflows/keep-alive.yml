@@ -3,7 +3,7 @@ name: Keep Supabase Active
 on:
   schedule:
     # Runs every 3 days at 00:00 UTC to prevent Supabase free tier inactivity pausing
-    - cron: '0 0 */3 * *'
+    - cron: "0 0 */3 * *"
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:

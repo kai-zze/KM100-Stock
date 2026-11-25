@@ -1,10 +1,18 @@
 @echo off
-set PATH=C:\Program Files\nodejs;%PATH%
-cd /d "c:\Users\KM100 - 1008\Downloads\KM100 Stock"
-echo Installing npm dependencies...
-npm install
+setlocal
+cd /d "%~dp0"
+echo ========================================================
+echo   KM100 Property Custody & Inventory Management System
+echo ========================================================
 echo.
-echo Dependencies installed successfully!
+echo Installing dependencies...
+call npm install
+if %ERRORLEVEL% neq 0 (
+  echo [ERROR] Failed to install dependencies.
+  pause
+  exit /b %ERRORLEVEL%
+)
 echo.
-echo Starting development server...
-npm run dev
+echo Starting local development server...
+echo.
+call npm run dev
