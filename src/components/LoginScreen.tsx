@@ -1042,8 +1042,8 @@ export const LoginScreen: React.FC<Props> = ({
                         autoComplete="off"
                         placeholder={
                           role === "admin"
-                            ? "Enter KM100 Custodian Passkey"
-                            : "Enter KM100 Staff Passkey"
+                            ? "e.g. KM100-ADMIN-2026"
+                            : "e.g. KM100-STAFF-2026"
                         }
                         value={passkey}
                         onChange={(e) => setPasskey(e.target.value)}
@@ -1062,8 +1062,9 @@ export const LoginScreen: React.FC<Props> = ({
                       </button>
                     </div>
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      Required by KM100 property custody governance to activate
-                      staff accounts.
+                      {role === "admin"
+                        ? "Enter the official Custodian Authorization Passkey (e.g. KM100-ADMIN-2026)."
+                        : "Enter the official Institutional Passkey (e.g. KM100-STAFF-2026)."}
                     </p>
                   </div>
 

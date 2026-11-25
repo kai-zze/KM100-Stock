@@ -137,14 +137,18 @@ export const PASSKEYS_STORAGE_KEY = "km100_institutional_passkeys_v1";
 
 export const VALID_STAFF_PASSKEYS = [
   DEFAULT_STAFF_PASSKEY,
+  "KM100-STAFF-2025",
   "km100staff2026",
+  "km100staff2025",
   "km100staff",
   "km100",
 ];
 
 export const VALID_ADMIN_PASSKEYS = [
   DEFAULT_ADMIN_PASSKEY,
+  "KM100-ADMIN-2025",
   "km100admin2026",
+  "km100admin2025",
   "km100admin",
   "KM100ADMIN",
   "km100",
