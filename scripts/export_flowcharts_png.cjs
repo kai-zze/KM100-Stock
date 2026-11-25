@@ -25,6 +25,7 @@ while ((match = mermaidRegex.exec(content)) !== null) {
 console.log(`Found ${blocks.length} mermaid diagrams.`);
 
 const filenames = [
+  "00-master-system-flowchart.png",
   "01-architecture-data-flow.png",
   "02-authentication-onboarding-flow.png",
   "03-inventory-lifecycle-flow.png",
@@ -32,44 +33,65 @@ const filenames = [
 ];
 
 async function generatePng(code, filename) {
-  console.log(`Generating ${filename}...`);
+  console.log(`Generating ${filename} with solid white background...`);
+
+  // Strip %%{init ...}%% line for clean mermaid.ink URL payload
+  const cleanCode = code
+    .split("\n")
+    .filter((l) => !l.trim().startsWith("%%{init"))
+    .join("\n");
+
+  const payload = {
+    code: cleanCode,
+    mermaid: {
+      theme: "default",
+      themeVariables: {
+        darkMode: false,
+        background: "#ffffff",
+        primaryColor: "#ffffff",
+        primaryBorderColor: "#94a3b8",
+        primaryTextColor: "#0f172a",
+        lineColor: "#475569",
+        secondaryColor: "#f8fafc",
+        secondaryBorderColor: "#cbd5e1",
+        secondaryTextColor: "#0f172a",
+        tertiaryColor: "#f1f5f9",
+        tertiaryBorderColor: "#cbd5e1",
+        tertiaryTextColor: "#0f172a",
+      },
+    },
+  };
+
+  const b64 = Buffer.from(JSON.stringify(payload)).toString("base64");
+  const url = `https://mermaid.ink/img/${b64}?bgColor=ffffff&type=png`;
+
   let buffer;
-
-  // Try Kroki first (handles complex diagrams, multi-line labels, and custom themes cleanly)
-  try {
-    const res = await fetch("https://kroki.io/mermaid/png", {
-      method: "POST",
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-      body: code,
-    });
-    if (res.ok) {
-      const arrayBuffer = await res.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
-    }
-  } catch (krokiErr) {
-    console.warn(
-      `Kroki attempt failed for ${filename}, trying mermaid.ink fallback...`,
-    );
-  }
-
-  // Fallback to mermaid.ink
-  if (!buffer) {
-    const payload = { code, mermaid: { theme: "default" } };
-    const b64 = Buffer.from(JSON.stringify(payload)).toString("base64");
-    const url = `https://mermaid.ink/img/${b64}?type=png`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(
-        `Failed to fetch ${filename} from both renderers: HTTP ${res.status}`,
-      );
-    }
+  const res = await fetch(url);
+  if (res.ok) {
     const arrayBuffer = await res.arrayBuffer();
     buffer = Buffer.from(arrayBuffer);
+  } else {
+    // Fallback: simple payload
+    const fallbackPayload = { code: cleanCode, mermaid: { theme: "default" } };
+    const fb64 = Buffer.from(JSON.stringify(fallbackPayload)).toString(
+      "base64",
+    );
+    const fbUrl = `https://mermaid.ink/img/${fb64}?bgColor=ffffff&type=png`;
+    const fbRes = await fetch(fbUrl);
+    if (!fbRes.ok) {
+      throw new Error(
+        `Failed to generate ${filename}: HTTP ${res.status} / Fallback HTTP ${fbRes.status}`,
+      );
+    }
+    buffer = Buffer.from(await fbRes.arrayBuffer());
   }
 
+  const colorType = buffer[25];
   const outPath = path.join(outDir, filename);
   fs.writeFileSync(outPath, buffer);
-  console.log(`Saved ${outPath} (${buffer.length} bytes)`);
+  console.log(
+    `Saved ${filename} (${buffer.length} bytes, ColorType=${colorType} [${colorType === 2 ? "Solid White RGB (No Alpha)" : "RGBA"}])`,
+  );
 
   if (fs.existsSync(brainDir)) {
     const brainPath = path.join(brainDir, filename);
@@ -79,14 +101,16 @@ async function generatePng(code, filename) {
 
 async function run() {
   for (let i = 0; i < blocks.length; i++) {
-    const name = filenames[i] || `flowchart-${i + 1}.png`;
+    const name = filenames[i] || `flowchart-${i}.png`;
     try {
       await generatePng(blocks[i], name);
     } catch (err) {
       console.error(`Error generating ${name}:`, err.message);
     }
   }
-  console.log("Done generating all flowchart PNGs!");
+  console.log(
+    "Done generating all flowchart PNGs with solid white background!",
+  );
 }
 
 run();

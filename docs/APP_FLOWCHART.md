@@ -1,6 +1,87 @@
 # KM100 Inventory Management System: Architecture & Workflow Diagrams (Light Mode)
 
-This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System. High-resolution standalone PNG renders are located in [`docs/flowcharts/`](./flowcharts/).
+This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System. All diagrams are rendered as high-resolution PNG images with an **opaque pure white background** in [`docs/flowcharts/`](./flowcharts/).
+
+---
+
+## 0. Master System Flowchart (End-to-End Operational Overview)
+
+![Master System Flowchart](./flowcharts/00-master-system-flowchart.png)
+
+> **Export**: [Download / View PNG (00-master-system-flowchart.png)](./flowcharts/00-master-system-flowchart.png)
+
+<details>
+<summary>View Mermaid Source Definition</summary>
+
+```mermaid
+flowchart TD
+    %% Section 1: Authentication & Authorization
+    subgraph AuthLayer["1. Authentication & Role Authorization"]
+        StartApp(["User Launches App"]) --> Splash["3D Logo Splash & Cache Pre-load"]
+        Splash --> AuthState{"Active Session?"}
+        AuthState -->|No| LoginModal["Sign In / Registration View"]
+        LoginModal --> PasskeyCheck{"Institutional Passkey Validation"}
+        PasskeyCheck -->|Admin Passkey: KM100-ADMIN-2026 / 2025| CustodianRole["Role: Property Custodian (Full Control)"]
+        PasskeyCheck -->|Staff Passkey: KM100-STAFF-2026 / 2025| InstructorRole["Role: Training Instructor (Audits & Stock)"]
+        PasskeyCheck -->|Invalid| RejectAuth["Access Denied Banner"]
+        RejectAuth --> LoginModal
+    end
+
+    %% Section 2: Local-First Core Architecture
+    subgraph ClientEngine["2. Local-First Client Engine (React + Vite)"]
+        CustodianRole --> BootSession["Initialize User Session"]
+        InstructorRole --> BootSession
+        AuthState -->|Yes| BootSession
+        BootSession --> LocalStore["Local-First Cache (localStorage - 0ms Paint)"]
+        LocalStore --> ReactiveState["React Hooks State Engine"]
+        ReactiveState --> UIRender["Tailwind CSS High-Density UI"]
+    end
+
+    %% Section 3: Inventory Lifecycle Operations
+    subgraph OpsLayer["3. Facilities & Inventory Management"]
+        UIRender --> FacilityNav["Facility Scope Navigation (All Rooms or Specific Room)"]
+        FacilityNav --> KPIMetrics["Live KPI Telemetry (Total Items, Quantities, Defective, Empty)"]
+        KPIMetrics --> SearchFilter["Live Search-as-You-Type & Attribute Filters"]
+        SearchFilter --> TableGrid["High-Density Equipment Table (Sticky Headers)"]
+
+        TableGrid --> DirectOps{"Direct Manipulation Controls"}
+        DirectOps -->|Inline Steppers| StepperAdjust["Inline + / - Quantity & Physical Audits"]
+        DirectOps -->|Status Pills| StatusUpdate["Condition Tagging (Working, Fair, Needs Repair)"]
+        DirectOps -->|Enroll Equipment| EnrollModal["Add Equipment Specification"]
+        DirectOps -->|Decommission| DeleteModal["Delete Item (Admin Confirmation)"]
+    end
+
+    %% Section 4: Cloud Persistence & Automation
+    subgraph CloudLayer["4. Cloud Infrastructure & Synchronization"]
+        StepperAdjust --> CloudSync["Supabase Cloud Backend (PostgreSQL)"]
+        StatusUpdate --> CloudSync
+        EnrollModal --> CloudSync
+        DeleteModal --> CloudSync
+        CloudSync -->|Realtime CDC WebSockets| RealtimeSync["Push Updates to All Connected Devices"]
+        RealtimeSync --> ReactiveState
+        GHA["GitHub Actions Keep-Alive Cron (Every 3 Days)"] -->|REST Keepalive Ping| CloudSync
+    end
+
+    %% Section 5: Institutional Governance & Reporting
+    subgraph ReportingLayer["5. Institutional Auditing & Compliance"]
+        TableGrid --> ExportReport{"Institutional Document Generation"}
+        ExportReport -->|Formal Print| PrintSheet["Print Physical Custody Sheet (Official 3-Signatures Block)"]
+        ExportReport -->|Spreadsheet| ExcelExport["Generate Multi-Sheet Formatted Excel Workbook (.xlsx)"]
+        ExportReport -->|Schema Control| SchemaConfig["Dynamic Column Customization (Admin Only)"]
+        ExportReport -->|Security| PasskeyMgmt["Passkey Governance & Profile Management"]
+    end
+
+    classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+    classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
+    classDef emerald fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
+    classDef rose fill:#fff1f2,stroke:#e11d48,stroke-width:1.5px,color:#9f1239;
+
+    class CustodianRole,PasskeyCheck,StepperAdjust,KPIMetrics amber;
+    class InstructorRole,CloudSync,RealtimeSync,LocalStore emerald;
+    class RejectAuth rose;
+```
+
+</details>
 
 ---
 
@@ -14,7 +95,6 @@ This document provides light-mode architectural blueprints, role-based access co
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     subgraph Client["Client Application (React + Vite)"]
         UI["Web & Mobile UI (Tailwind CSS)"]
@@ -49,7 +129,6 @@ flowchart TD
     classDef highlight fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
     class UI,LocalCache,State,AuthService,PostgresDB,RealtimeEngine,GHA default;
 ```
-</details>
 
 </details>
 
@@ -65,7 +144,6 @@ flowchart TD
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     Start(["User Opens Application"]) --> Splash["Splash Screen Assembly & Boot"]
     Splash --> CheckSession{"Existing Valid Session?"}
@@ -118,7 +196,6 @@ flowchart TD
     class PasskeyError,LoginError rose;
     class CreateCloudAccount,MainApp emerald;
 ```
-</details>
 
 </details>
 
@@ -134,7 +211,6 @@ flowchart TD
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     subgraph FacilityNav["1. Facility Navigation"]
         Scope{"Select Scope"}
@@ -187,7 +263,6 @@ flowchart TD
     class Steppers,KPICards amber;
     class CloudSync emerald;
 ```
-</details>
 
 </details>
 
@@ -203,7 +278,6 @@ flowchart TD
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart LR
     subgraph Roles["System Roles"]
         Admin["Property Custodian (Admin)"]
@@ -245,6 +319,5 @@ flowchart LR
     class Admin admin;
     class Staff staff;
 ```
-</details>
 
 </details>
