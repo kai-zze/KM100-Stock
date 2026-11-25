@@ -74,25 +74,20 @@ export const LoginScreen: React.FC<Props> = ({
 }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode || "signin");
   const [fullName, setFullName] = useState("");
-  const [rememberMe, setRememberMe] = useState(() => {
-    try {
-      return Boolean(localStorage.getItem("km100_remembered_email"));
-    } catch {
-      return false;
-    }
-  });
-  const [email, setEmail] = useState(() => {
-    try {
-      return localStorage.getItem("km100_remembered_email") || "";
-    } catch {
-      return "";
-    }
-  });
+  const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole>("staff");
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Clear any previously persisted email from localStorage so fields are never prefilled
+  useEffect(() => {
+    try {
+      localStorage.removeItem("km100_remembered_email");
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -277,6 +272,8 @@ export const LoginScreen: React.FC<Props> = ({
     setMode(next);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setEmail("");
+    setFullName("");
     setPassword("");
     setConfirmPassword("");
     setPasskey("");
@@ -386,11 +383,7 @@ export const LoginScreen: React.FC<Props> = ({
       const res = await loginWithCredentials(email, password);
       if (res.success && res.user) {
         try {
-          if (rememberMe) {
-            localStorage.setItem("km100_remembered_email", email.trim());
-          } else {
-            localStorage.removeItem("km100_remembered_email");
-          }
+          localStorage.removeItem("km100_remembered_email");
         } catch {}
         onLoginSuccess(res.user, false);
       } else {
@@ -865,7 +858,7 @@ export const LoginScreen: React.FC<Props> = ({
                         id="signup-email"
                         type="email"
                         required
-                        autoComplete="email"
+                        autoComplete="off"
                         placeholder="Enter your employee email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
