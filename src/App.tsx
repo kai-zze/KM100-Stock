@@ -968,13 +968,18 @@ export function App() {
   };
 
   // ── First-Time User Interactive Guided Tutorial ───────────────────
+  // Strictly triggers ONLY for newly registered accounts on their first sign-in
   useEffect(() => {
     if (currentUser && !isSplashVisible) {
       try {
+        const isPendingNewUser =
+          localStorage.getItem(`km100_first_time_user_${currentUser.id}`) ===
+          "pending";
         const hasCompleted = localStorage.getItem(
-          STORAGE_KEY_TUTORIAL_COMPLETED,
+          `km100_tour_completed_${currentUser.id}`,
         );
-        if (!hasCompleted) {
+
+        if (isPendingNewUser && !hasCompleted) {
           const timer = setTimeout(() => {
             setIsOnboardingOpen(true);
           }, 450);
@@ -989,11 +994,15 @@ export function App() {
   const handleCloseOnboarding = useCallback(() => {
     setIsOnboardingOpen(false);
     try {
+      if (currentUser) {
+        localStorage.removeItem(`km100_first_time_user_${currentUser.id}`);
+        localStorage.setItem(`km100_tour_completed_${currentUser.id}`, "true");
+      }
       localStorage.setItem(STORAGE_KEY_TUTORIAL_COMPLETED, "true");
     } catch {
       // LocalStorage access issues
     }
-  }, []);
+  }, [currentUser]);
 
   // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
   if (!currentUser || isPasswordRecovery) {
@@ -1001,7 +1010,7 @@ export function App() {
       <>
         <LoginScreen
           initialMode={isPasswordRecovery ? "reset" : undefined}
-          onLoginSuccess={(user) => {
+          onLoginSuccess={(user, isFirstTimeRegistration) => {
             setIsPasswordRecovery(false);
             const cleanUser = {
               ...user,
@@ -1009,6 +1018,14 @@ export function App() {
                 .replace(/\s*\([^)]*\)/g, "")
                 .trim(),
             };
+            if (isFirstTimeRegistration) {
+              try {
+                localStorage.setItem(
+                  `km100_first_time_user_${cleanUser.id}`,
+                  "pending",
+                );
+              } catch {}
+            }
             setCurrentUser(cleanUser);
             showToast(`Welcome, ${cleanUser.fullName}!`, "success");
           }}

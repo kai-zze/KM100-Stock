@@ -34,7 +34,7 @@ import {
 import { supabase } from "../utils/supabaseClient";
 
 interface Props {
-  onLoginSuccess: (user: AppUser) => void;
+  onLoginSuccess: (user: AppUser, isFirstTimeRegistration?: boolean) => void;
   initialMode?: AuthMode;
   onClearRecovery?: () => void;
 }
@@ -392,7 +392,7 @@ export const LoginScreen: React.FC<Props> = ({
             localStorage.removeItem("km100_remembered_email");
           }
         } catch {}
-        onLoginSuccess(res.user);
+        onLoginSuccess(res.user, false);
       } else {
         setErrorMessage(res.error || "Invalid employee email or password.");
       }
@@ -458,7 +458,13 @@ export const LoginScreen: React.FC<Props> = ({
       });
 
       if (res.success && res.user) {
-        onLoginSuccess(res.user);
+        try {
+          localStorage.setItem(
+            `km100_first_time_user_${res.user.id}`,
+            "pending",
+          );
+        } catch {}
+        onLoginSuccess(res.user, true);
       } else {
         setErrorMessage(
           res.error || "Unable to create your account. Please try again.",
