@@ -1,30 +1,35 @@
 # KM100 Inventory Management System: Architecture & Workflow Diagrams (Light Mode)
 
-This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System. All diagrams are rendered as high-resolution PNG images with an **opaque pure white background** in [`docs/flowcharts/`](./flowcharts/).
+This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System.
+
+All diagrams are formatted to fit standard **Short Bond Paper (Letter: 8.5" × 11")** and rendered as high-resolution PNG images with an **opaque solid pure white background** in [`docs/flowcharts/`](./flowcharts/).
+
+> 🖨️ **Print-Ready Bond Paper Document**: Open [`docs/KM100_Inventory_Flowcharts_Bondpaper.html`](./KM100_Inventory_Flowcharts_Bondpaper.html) in your browser to print all 5 flowcharts on standard bond paper sheets or save as a multi-page PDF.
 
 ---
 
-## 0. Master System Flowchart (End-to-End Operational Overview)
+## 0. Master System Flowchart (End-to-End Operational Lifecycle)
 
 ![Master System Flowchart](./flowcharts/00-master-system-flowchart.png)
 
-> **Export**: [Download / View PNG (00-master-system-flowchart.png)](./flowcharts/00-master-system-flowchart.png)
+> **Export**: [Download / View PNG (00-master-system-flowchart.png)](./flowcharts/00-master-system-flowchart.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 flowchart TD
-    %% Section 1: Authentication & Authorization
-    subgraph AuthLayer["1. Authentication & Role Authorization"]
-        StartApp(["User Launches App"]) --> Splash["3D Logo Splash & Cache Pre-load"]
+    %% Section 1: Authentication & Shared Passkey
+    subgraph AuthLayer["1. Authentication & Shared Institutional Security"]
+        StartApp([User Launches App]) --> Splash["3D Logo Splash & Cache Pre-load"]
         Splash --> AuthState{"Active Session?"}
         AuthState -->|No| LoginModal["Sign In / Registration View"]
-        LoginModal --> PasskeyCheck{"Institutional Passkey Validation"}
-        PasskeyCheck -->|Admin Passkey: KM100-ADMIN-2026 / 2025| CustodianRole["Role: Property Custodian (Full Control)"]
-        PasskeyCheck -->|Staff Passkey: KM100-STAFF-2026 / 2025| InstructorRole["Role: Training Instructor (Audits & Stock)"]
-        PasskeyCheck -->|Invalid| RejectAuth["Access Denied Banner"]
+        LoginModal --> PasskeyCheck{"Valid Shared Institutional Passkey?"}
+        PasskeyCheck -->|Invalid Passkey| RejectAuth["Access Denied Error Banner"]
         RejectAuth --> LoginModal
+        PasskeyCheck -->|Valid Passkey| RoleChoice{"Select System Role"}
+        RoleChoice -->|Property Custodian| CustodianRole["Role: Property Custodian (Admin)"]
+        RoleChoice -->|Training Instructor| InstructorRole["Role: Training Instructor (Staff)"]
     end
 
     %% Section 2: Local-First Core Architecture
@@ -89,7 +94,7 @@ flowchart TD
 
 ![High-Level System Architecture](./flowcharts/01-architecture-data-flow.png)
 
-> **Export**: [Download / View PNG (01-architecture-data-flow.png)](./flowcharts/01-architecture-data-flow.png)
+> **Export**: [Download / View PNG (01-architecture-data-flow.png)](./flowcharts/01-architecture-data-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
@@ -134,57 +139,49 @@ flowchart TD
 
 ---
 
-## 2. Authentication & First-Time Onboarding Flow
+## 2. Authentication & First-Time Onboarding Flow (Shared Passkey)
+
+> **Access Governance**: Property Custodians (Admin) and Training Instructors (Staff) share the same institutional passkey. The user selects their organizational role during enrollment.
 
 ![Authentication & First-Time Onboarding Flow](./flowcharts/02-authentication-onboarding-flow.png)
 
-> **Export**: [Download / View PNG (02-authentication-onboarding-flow.png)](./flowcharts/02-authentication-onboarding-flow.png)
+> **Export**: [Download / View PNG (02-authentication-onboarding-flow.png)](./flowcharts/02-authentication-onboarding-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 flowchart TD
-    Start(["User Opens Application"]) --> Splash["Splash Screen Assembly & Boot"]
+    Start([User Opens Application]) --> Splash["Splash Screen Assembly and Boot"]
     Splash --> CheckSession{"Existing Valid Session?"}
 
-    CheckSession -->|Yes| MainApp["Enter Main Inventory Application"]
-    CheckSession -->|No| LoginScreen["Display Login Screen"]
+    CheckSession -->|Yes| NormalDashboard["Display Master Facilities Dashboard"]
+    CheckSession -->|No| LoginScreen["Display Authentication Screen"]
 
     LoginScreen --> ModeChoice{"User Action"}
 
-    %% Sign In Branch
-    ModeChoice -->|Sign In| EnterCreds["Enter Email & Password"]
+    ModeChoice -->|Sign In| EnterCreds["Enter Email and Password"]
     EnterCreds --> VerifyAuth{"Verify Credentials"}
     VerifyAuth -->|Invalid| LoginError["Show Error Banner"]
     LoginError --> LoginScreen
     VerifyAuth -->|Valid| SetSession["Set Active User Session"]
-    SetSession --> MainApp
+    SetSession --> NormalDashboard
 
-    %% Sign Up Branch
-    ModeChoice -->|Register| EnterReg["Enter Name, Email, Password, Role & Passkey"]
-    EnterReg --> CheckRole{"Selected Role"}
+    ModeChoice -->|Register| EnterReg["Enter Name, Email, Password, Role and Passkey"]
+    EnterReg --> CheckSharedPasskey{"Valid Shared Institutional Passkey?"}
 
-    CheckRole -->|Administrator| CheckAdminPasskey{"Valid Custodian Passkey? (KM100-ADMIN-2026 / 2025)"}
-    CheckRole -->|Instructor| CheckStaffPasskey{"Valid Staff Passkey? (KM100-STAFF-2026 / 2025)"}
-
-    CheckAdminPasskey -->|No| PasskeyError["Show Invalid Passkey Error"]
-    CheckStaffPasskey -->|No| PasskeyError
+    CheckSharedPasskey -->|Invalid| PasskeyError["Show Invalid Passkey Error"]
     PasskeyError --> EnterReg
 
-    CheckAdminPasskey -->|Yes| CreateCloudAccount["Register in Supabase & Local Cache"]
-    CheckStaffPasskey -->|Yes| CreateCloudAccount
+    CheckSharedPasskey -->|Valid| SelectRole{"Selected Role"}
+    SelectRole -->|Property Custodian| CreateAdmin["Register Admin Account in Cloud"]
+    SelectRole -->|Training Instructor| CreateStaff["Register Staff Account in Cloud"]
 
-    CreateCloudAccount --> SetNewUserFlag["Flag Session: First-Time User"]
-    SetNewUserFlag --> MainApp
-
-    %% Onboarding Check
-    MainApp --> CheckNewUser{"Is Newly Registered User?"}
-    CheckNewUser -->|Yes| OnboardingTour["Launch 8-Step Interactive System Tour"]
-    CheckNewUser -->|No| NormalDashboard["Display Master Facilities Dashboard"]
+    CreateAdmin --> OnboardingTour["Launch 8-Step Interactive System Tour"]
+    CreateStaff --> OnboardingTour
 
     OnboardingTour --> CompleteTour["User Completes or Skips Tour"]
-    CompleteTour --> SaveTourDone["Save Tour Completed Flag in Storage"]
+    CompleteTour --> SaveTourDone["Save Tour Completed in Storage"]
     SaveTourDone --> NormalDashboard
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
@@ -192,9 +189,9 @@ flowchart TD
     classDef rose fill:#fff1f2,stroke:#e11d48,stroke-width:1.5px,color:#9f1239;
     classDef emerald fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
 
-    class OnboardingTour,CheckAdminPasskey,CheckStaffPasskey amber;
+    class OnboardingTour,CheckSharedPasskey amber;
     class PasskeyError,LoginError rose;
-    class CreateCloudAccount,MainApp emerald;
+    class CreateAdmin,CreateStaff,NormalDashboard emerald;
 ```
 
 </details>
@@ -205,56 +202,47 @@ flowchart TD
 
 ![Core Operational Inventory Lifecycle](./flowcharts/03-inventory-lifecycle-flow.png)
 
-> **Export**: [Download / View PNG (03-inventory-lifecycle-flow.png)](./flowcharts/03-inventory-lifecycle-flow.png)
+> **Export**: [Download / View PNG (03-inventory-lifecycle-flow.png)](./flowcharts/03-inventory-lifecycle-flow.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 flowchart TD
-    subgraph FacilityNav["1. Facility Navigation"]
+    subgraph Stage1["1. Facility Scope & Telemetry"]
         Scope{"Select Scope"}
         Scope -->|All Facilities| MasterOverview["Overview Dashboard (Room Cards Grid)"]
         Scope -->|Specific Room| RoomView["Room Inventory View"]
-    end
 
-    subgraph MetricsAndFilters["2. Metrics & Discovery"]
-        KPICards["Live KPI Counters (Items, Units, Need Attention, Out of Stock)"]
-        SearchFilterBar["Live Search & Attribute Filters (Category, Condition)"]
-
-        MasterOverview --> KPICards
+        MasterOverview --> KPICards["Live KPI Telemetry (Total Items, Quantities, Defective, Empty)"]
         RoomView --> KPICards
-        KPICards -->|1-Click Filter| FilteredGrid["Filtered Equipment View"]
-        SearchFilterBar -->|Dynamic Query| FilteredGrid
+        KPICards --> SearchFilterBar["Live Search-as-You-Type & Attribute Filters"]
     end
 
-    subgraph ItemOperations["3. Equipment Direct Manipulation"]
-        FilteredGrid --> ActionChoice{"Perform Action"}
+    subgraph Stage2["2. Equipment Direct Manipulation"]
+        SearchFilterBar --> TableGrid["High-Density Equipment Table (Sticky Headers)"]
+        TableGrid --> ActionChoice{"Perform Operation"}
 
-        ActionChoice -->|Quantity Adjust| Steppers["Inline + / − Steppers or Direct Numeric Input"]
-        Steppers -->|Immediate Write| CloudSync["Instant Cloud Sync (Supabase + localStorage)"]
-
+        ActionChoice -->|Stock Adjust| Steppers["Inline + / - Quantity Steppers & Direct Numeric Input"]
+        ActionChoice -->|Condition| StatusPill["Condition Badges (Working, Fair, Needs Repair)"]
         ActionChoice -->|Add Item| AddModal["Equipment Enrollment Modal"]
-        AddModal -->|Save| CloudSync
+        ActionChoice -->|Edit Item| EditModal["Specification & Room Reassignment"]
+        ActionChoice -->|Delete Item| DeleteModal["Confirm Deletion Dialog (Admin Only)"]
 
-        ActionChoice -->|Edit Item| EditModal["Specification & Room Assignment Modal"]
-        EditModal -->|Save| CloudSync
-
-        ActionChoice -->|Delete Item| ConfirmDelete{"Confirmation Dialog"}
-        ConfirmDelete -->|Confirm| CloudSync
-        ConfirmDelete -->|Cancel| FilteredGrid
+        Steppers --> CloudSync["Instant Cloud Sync (Supabase PostgreSQL + localStorage)"]
+        StatusPill --> CloudSync
+        AddModal --> CloudSync
+        EditModal --> CloudSync
+        DeleteModal --> CloudSync
     end
 
-    subgraph Reporting["4. Audit & Institutional Reporting"]
-        AuditActions{"Audit Action"}
+    subgraph Stage3["3. Compliance, Auditing & Export"]
+        TableGrid --> AuditActions{"Compliance Action"}
 
-        AuditActions -->|Print Physical Sheet| PrintDialog["Print-Formatted Custody Sheet (3-Signature Blocks)"]
-        AuditActions -->|Multi-Sheet Excel| ExcelEngine["Generate Styled Multi-Sheet .xlsx Workbook"]
-        AuditActions -->|Customize Schema| SchemaModal["Admin Column Customizer (Add/Reorder Custom Fields)"]
+        AuditActions -->|Formal Custody Sheet| PrintDialog["Print Physical Inventory Sheet (3-Signatures Block)"]
+        AuditActions -->|Multi-Sheet Workbook| ExcelEngine["Generate Styled Multi-Sheet Excel Workbook (.xlsx)"]
+        AuditActions -->|Schema Control| SchemaModal["Admin Dynamic Column Customization"]
     end
-
-    RoomView --> AuditActions
-    MasterOverview --> AuditActions
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
@@ -268,56 +256,50 @@ flowchart TD
 
 ---
 
-## 4. Institutional Role & Permission Matrix
+## 4. Institutional Role & Permission Matrix (Shared Passkey Architecture)
+
+> **Security Governance**: Admin and Staff share the same institutional passkey to unlock the system. Role assignment dictates execution permissions between daily custody audits and center-wide administrative controls.
 
 ![Institutional Role & Permission Matrix](./flowcharts/04-roles-permission-matrix.png)
 
-> **Export**: [Download / View PNG (04-roles-permission-matrix.png)](./flowcharts/04-roles-permission-matrix.png)
+> **Export**: [Download / View PNG (04-roles-permission-matrix.png)](./flowcharts/04-roles-permission-matrix.png) • **Print Layout**: Fits Short Bond Paper (8.5" × 11")
 
 <details>
 <summary>View Mermaid Source Definition</summary>
 
 ```mermaid
-flowchart LR
-    subgraph Roles["System Roles"]
-        Admin["Property Custodian (Admin)"]
-        Staff["Training Instructor (Staff)"]
+flowchart TD
+    subgraph PasskeyGovernance["Shared Institutional Security"]
+        SharedKey["Shared Institutional Passkey (KM100-2026 / 2025)"]
+        SharedKey --> RoleAdmin["Property Custodian (Admin)"]
+        SharedKey --> RoleStaff["Training Instructor (Staff)"]
     end
 
-    subgraph Capabilities["Permissions & Controls"]
-        P1["Physical Stock Audits (+ / − Steppers)"]
+    subgraph Tier1["1. Daily Stock & Custody Controls (Shared: Admin & Staff)"]
+        P1["Inline Stock Audits (+ / - Steppers)"]
         P2["Condition Tagging (Working, Fair, Needs Repair)"]
-        P3["Print Official Physical Custody Sheets"]
-        P4["Export Multi-Sheet Excel Reports"]
-        P5["Enroll & Edit Equipment Records"]
-        P6["Decommission / Delete Equipment"]
-        P7["Create, Rename & Delete Facility Rooms"]
-        P8["Customize Dynamic Database Schema"]
-        P9["Manage Institutional Security Passkeys"]
+        P3["Physical Custody Sheet Printing (3-Signature Block)"]
+        P4["Export Multi-Sheet Formatted Excel (.xlsx)"]
+        P5["Enroll & Edit Equipment Specifications"]
     end
 
-    Staff --> P1
-    Staff --> P2
-    Staff --> P3
-    Staff --> P4
-    Staff --> P5
+    subgraph Tier2["2. Center-Wide Administrative Authority (Admin Exclusive)"]
+        P6["Decommission & Permanent Item Deletion"]
+        P7["Facility Room Creation, Rename & Deletion"]
+        P8["Custom Schema & Dynamic Column Configuration"]
+        P9["Institutional Passkey & Profile Governance"]
+    end
 
-    Admin --> P1
-    Admin --> P2
-    Admin --> P3
-    Admin --> P4
-    Admin --> P5
-    Admin --> P6
-    Admin --> P7
-    Admin --> P8
-    Admin --> P9
+    RoleStaff --> Tier1
+    RoleAdmin --> Tier1
+    RoleAdmin --> Tier2
 
     classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
     classDef admin fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
     classDef staff fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#14532d;
 
-    class Admin admin;
-    class Staff staff;
+    class RoleAdmin admin;
+    class RoleStaff staff;
 ```
 
 </details>

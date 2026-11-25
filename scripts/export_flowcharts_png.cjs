@@ -35,10 +35,10 @@ const filenames = [
 async function generatePng(code, filename) {
   console.log(`Generating ${filename} with solid white background...`);
 
-  // Strip %%{init ...}%% line for clean mermaid.ink URL payload
+  // Strip %% comment lines and init blocks for clean mermaid.ink URL payload
   const cleanCode = code
     .split("\n")
-    .filter((l) => !l.trim().startsWith("%%{init"))
+    .filter((l) => !l.trim().startsWith("%%"))
     .join("\n");
 
   const payload = {
