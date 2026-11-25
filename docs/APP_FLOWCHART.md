@@ -1,12 +1,13 @@
-# KM100 Inventory Management System: Architecture & Workflow Diagrams
+# KM100 Inventory Management System: Architecture & Workflow Diagrams (Light Mode)
 
-This document outlines the architectural blueprints, role-based access control, and operational lifecycles of the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System.
+This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System.
 
 ---
 
 ## 1. High-Level System Architecture & Data Flow
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     subgraph Client["Client Application (React + Vite)"]
         UI["Web & Mobile UI (Tailwind CSS)"]
@@ -36,6 +37,10 @@ flowchart TD
 
     %% Cron
     GHA -->|Every 3 Days REST Ping| PostgresDB
+
+    classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+    classDef highlight fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
+    class UI,LocalCache,State,AuthService,PostgresDB,RealtimeEngine,GHA default;
 ```
 
 ---
@@ -43,6 +48,7 @@ flowchart TD
 ## 2. Authentication & First-Time Onboarding Flow
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     Start(["User Opens Application"]) --> Splash["Splash Screen Assembly & Boot"]
     Splash --> CheckSession{"Existing Valid Session?"}
@@ -85,6 +91,15 @@ flowchart TD
     OnboardingTour --> CompleteTour["User Completes or Skips Tour"]
     CompleteTour --> SaveTourDone["Save Tour Completed Flag in Storage"]
     SaveTourDone --> NormalDashboard
+
+    classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+    classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
+    classDef rose fill:#fff1f2,stroke:#e11d48,stroke-width:1.5px,color:#9f1239;
+    classDef emerald fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
+
+    class OnboardingTour,CheckAdminPasskey,CheckStaffPasskey amber;
+    class PasskeyError,LoginError rose;
+    class CreateCloudAccount,MainApp emerald;
 ```
 
 ---
@@ -92,6 +107,7 @@ flowchart TD
 ## 3. Core Operational Inventory Lifecycle
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart TD
     subgraph FacilityNav["1. Facility Navigation"]
         Scope{"Select Scope"}
@@ -102,7 +118,7 @@ flowchart TD
     subgraph MetricsAndFilters["2. Metrics & Discovery"]
         KPICards["Live KPI Counters (Items, Units, Need Attention, Out of Stock)"]
         SearchFilterBar["Live Search & Attribute Filters (Category, Condition)"]
-
+        
         MasterOverview --> KPICards
         RoomView --> KPICards
         KPICards -->|1-Click Filter| FilteredGrid["Filtered Equipment View"]
@@ -111,7 +127,7 @@ flowchart TD
 
     subgraph ItemOperations["3. Equipment Direct Manipulation"]
         FilteredGrid --> ActionChoice{"Perform Action"}
-
+        
         ActionChoice -->|Quantity Adjust| Steppers["Inline + / − Steppers or Direct Numeric Input"]
         Steppers -->|Immediate Write| CloudSync["Instant Cloud Sync (Supabase + localStorage)"]
 
@@ -128,7 +144,7 @@ flowchart TD
 
     subgraph Reporting["4. Audit & Institutional Reporting"]
         AuditActions{"Audit Action"}
-
+        
         AuditActions -->|Print Physical Sheet| PrintDialog["Print-Formatted Custody Sheet (3-Signature Blocks)"]
         AuditActions -->|Multi-Sheet Excel| ExcelEngine["Generate Styled Multi-Sheet .xlsx Workbook"]
         AuditActions -->|Customize Schema| SchemaModal["Admin Column Customizer (Add/Reorder Custom Fields)"]
@@ -136,6 +152,13 @@ flowchart TD
 
     RoomView --> AuditActions
     MasterOverview --> AuditActions
+
+    classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+    classDef amber fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#78350f;
+    classDef emerald fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
+
+    class Steppers,KPICards amber;
+    class CloudSync emerald;
 ```
 
 ---
@@ -143,6 +166,7 @@ flowchart TD
 ## 4. Institutional Role & Permission Matrix
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
 flowchart LR
     subgraph Roles["System Roles"]
         Admin["Property Custodian (Admin)"]
@@ -176,4 +200,11 @@ flowchart LR
     Admin --> P7
     Admin --> P8
     Admin --> P9
+
+    classDef default fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+    classDef admin fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
+    classDef staff fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#14532d;
+
+    class Admin admin;
+    class Staff staff;
 ```
