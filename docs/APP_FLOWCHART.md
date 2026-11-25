@@ -1,10 +1,17 @@
 # KM100 Inventory Management System: Architecture & Workflow Diagrams (Light Mode)
 
-This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System.
+This document provides light-mode architectural blueprints, role-based access control, and operational lifecycles for the **KM100 Skills and Training Center, Inc.** Property Custody & Inventory Management System. High-resolution standalone PNG renders are located in [`docs/flowcharts/`](./flowcharts/).
 
 ---
 
 ## 1. High-Level System Architecture & Data Flow
+
+![High-Level System Architecture](./flowcharts/01-architecture-data-flow.png)
+
+> **Export**: [Download / View PNG (01-architecture-data-flow.png)](./flowcharts/01-architecture-data-flow.png)
+
+<details>
+<summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
@@ -42,10 +49,20 @@ flowchart TD
     classDef highlight fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f;
     class UI,LocalCache,State,AuthService,PostgresDB,RealtimeEngine,GHA default;
 ```
+</details>
+
+</details>
 
 ---
 
 ## 2. Authentication & First-Time Onboarding Flow
+
+![Authentication & First-Time Onboarding Flow](./flowcharts/02-authentication-onboarding-flow.png)
+
+> **Export**: [Download / View PNG (02-authentication-onboarding-flow.png)](./flowcharts/02-authentication-onboarding-flow.png)
+
+<details>
+<summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
@@ -70,8 +87,8 @@ flowchart TD
     ModeChoice -->|Register| EnterReg["Enter Name, Email, Password, Role & Passkey"]
     EnterReg --> CheckRole{"Selected Role"}
 
-    CheckRole -->|Administrator| CheckAdminPasskey{"Valid Custodian Passkey?<br>(KM100-ADMIN-2026 / 2025)"}
-    CheckRole -->|Instructor| CheckStaffPasskey{"Valid Staff Passkey?<br>(KM100-STAFF-2026 / 2025)"}
+    CheckRole -->|Administrator| CheckAdminPasskey{"Valid Custodian Passkey? (KM100-ADMIN-2026 / 2025)"}
+    CheckRole -->|Instructor| CheckStaffPasskey{"Valid Staff Passkey? (KM100-STAFF-2026 / 2025)"}
 
     CheckAdminPasskey -->|No| PasskeyError["Show Invalid Passkey Error"]
     CheckStaffPasskey -->|No| PasskeyError
@@ -101,10 +118,20 @@ flowchart TD
     class PasskeyError,LoginError rose;
     class CreateCloudAccount,MainApp emerald;
 ```
+</details>
+
+</details>
 
 ---
 
 ## 3. Core Operational Inventory Lifecycle
+
+![Core Operational Inventory Lifecycle](./flowcharts/03-inventory-lifecycle-flow.png)
+
+> **Export**: [Download / View PNG (03-inventory-lifecycle-flow.png)](./flowcharts/03-inventory-lifecycle-flow.png)
+
+<details>
+<summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
@@ -160,10 +187,20 @@ flowchart TD
     class Steppers,KPICards amber;
     class CloudSync emerald;
 ```
+</details>
+
+</details>
 
 ---
 
 ## 4. Institutional Role & Permission Matrix
+
+![Institutional Role & Permission Matrix](./flowcharts/04-roles-permission-matrix.png)
+
+> **Export**: [Download / View PNG (04-roles-permission-matrix.png)](./flowcharts/04-roles-permission-matrix.png)
+
+<details>
+<summary>View Mermaid Source Definition</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'darkMode': false, 'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryBorderColor': '#94a3b8', 'primaryTextColor': '#0f172a', 'lineColor': '#475569', 'secondaryColor': '#f8fafc', 'secondaryBorderColor': '#cbd5e1', 'secondaryTextColor': '#0f172a', 'tertiaryColor': '#f1f5f9', 'tertiaryBorderColor': '#cbd5e1', 'tertiaryTextColor': '#0f172a' }}}%%
@@ -208,3 +245,6 @@ flowchart LR
     class Admin admin;
     class Staff staff;
 ```
+</details>
+
+</details>
