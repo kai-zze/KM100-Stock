@@ -45,22 +45,41 @@ export const UserProfileModal: React.FC<Props> = ({
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Institutional Passkeys state (Admin only)
-  const [adminPasskey, setAdminPasskey] = useState(
-    () => getInstitutionalPasskeys().adminPasskey,
-  );
-  const [staffPasskey, setStaffPasskey] = useState(
-    () => getInstitutionalPasskeys().staffPasskey,
-  );
+  // Institutional Passkeys state (Admin only) - keep inputs empty by default
+  const [adminPasskey, setAdminPasskey] = useState("");
+  const [staffPasskey, setStaffPasskey] = useState("");
   const [showAdminPasskey, setShowAdminPasskey] = useState(false);
   const [showStaffPasskey, setShowStaffPasskey] = useState(false);
   const [passkeyErrorMsg, setPasskeyErrorMsg] = useState("");
   const [passkeySuccessMsg, setPasskeySuccessMsg] = useState("");
 
+  // Reset draft fields whenever opened or currentUser changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab("profile");
+      setFullName(currentUser.fullName || "");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setErrorMsg("");
+      setSuccessMsg("");
+      setAdminPasskey("");
+      setStaffPasskey("");
+      setShowAdminPasskey(false);
+      setShowStaffPasskey(false);
+      setPasskeyErrorMsg("");
+      setPasskeySuccessMsg("");
+    }
+  }, [isOpen, currentUser]);
+
   // Close modal on Escape key press
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -149,14 +168,32 @@ export const UserProfileModal: React.FC<Props> = ({
     setPasskeyErrorMsg("");
     setPasskeySuccessMsg("");
 
+    const current = getInstitutionalPasskeys();
+    const newAdmin = adminPasskey.trim() || current.adminPasskey;
+    const newStaff = staffPasskey.trim() || current.staffPasskey;
+
+    if (!adminPasskey.trim() && !staffPasskey.trim()) {
+      setPasskeyErrorMsg("Please enter a new passkey to update.");
+      return;
+    }
+
+    if (adminPasskey.trim() && adminPasskey.trim().length < 6) {
+      setPasskeyErrorMsg("Admin passkey must be at least 6 characters.");
+      return;
+    }
+    if (staffPasskey.trim() && staffPasskey.trim().length < 6) {
+      setPasskeyErrorMsg("Staff passkey must be at least 6 characters.");
+      return;
+    }
+
     const res = updateInstitutionalPasskeys({
-      adminPasskey: adminPasskey.trim(),
-      staffPasskey: staffPasskey.trim(),
+      adminPasskey: newAdmin,
+      staffPasskey: newStaff,
     });
 
     if (res.success) {
-      setAdminPasskey(res.passkeys.adminPasskey);
-      setStaffPasskey(res.passkeys.staffPasskey);
+      setAdminPasskey("");
+      setStaffPasskey("");
       setPasskeySuccessMsg(
         "Institutional passkeys updated successfully! New registrations will require these credentials.",
       );
@@ -166,9 +203,9 @@ export const UserProfileModal: React.FC<Props> = ({
   };
 
   const handleResetPasskeys = () => {
-    const defaults = resetInstitutionalPasskeys();
-    setAdminPasskey(defaults.adminPasskey);
-    setStaffPasskey(defaults.staffPasskey);
+    resetInstitutionalPasskeys();
+    setAdminPasskey("");
+    setStaffPasskey("");
     setPasskeyErrorMsg("");
     setPasskeySuccessMsg(
       "Passkeys restored to institutional defaults (KM100-ADMIN-2026 / KM100-STAFF-2026).",
@@ -251,9 +288,15 @@ export const UserProfileModal: React.FC<Props> = ({
 
         {/* Admin Tabs */}
         {currentUser.role === "admin" && (
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1">
+          <div
+            role="tablist"
+            aria-label="Account settings sections"
+            className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1"
+          >
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "profile"}
               onClick={() => {
                 setActiveTab("profile");
                 setErrorMsg("");
@@ -261,7 +304,7 @@ export const UserProfileModal: React.FC<Props> = ({
               }}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "profile"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold"
+                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -270,6 +313,8 @@ export const UserProfileModal: React.FC<Props> = ({
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "passkeys"}
               onClick={() => {
                 setActiveTab("passkeys");
                 setPasskeyErrorMsg("");
@@ -277,7 +322,7 @@ export const UserProfileModal: React.FC<Props> = ({
               }}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === "passkeys"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold"
+                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -299,12 +344,18 @@ export const UserProfileModal: React.FC<Props> = ({
           <>
             {/* Alerts */}
             {errorMsg && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300">
+              <div
+                role="alert"
+                className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300"
+              >
                 {errorMsg}
               </div>
             )}
             {successMsg && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <div
+                role="status"
+                className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2"
+              >
                 <CheckCircle2 size={16} />
                 <span>{successMsg}</span>
               </div>
@@ -540,18 +591,17 @@ export const UserProfileModal: React.FC<Props> = ({
                   />
                   <span>Custodian (Admin) Passkey</span>
                 </label>
-                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">
+                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-sans font-semibold">
                   Full Authority
                 </span>
               </div>
               <div className="relative">
                 <input
                   type={showAdminPasskey ? "text" : "password"}
-                  required
                   value={adminPasskey}
                   onChange={(e) => setAdminPasskey(e.target.value)}
-                  placeholder="e.g. KM100-ADMIN-2026"
-                  className="w-full pl-3 pr-10 py-2 font-mono text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
+                  placeholder="Enter new Custodian passkey (leave blank to keep current)"
+                  className="w-full pl-3 pr-10 py-2 font-sans font-medium tracking-wide text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
                 />
                 <button
                   type="button"
@@ -582,18 +632,17 @@ export const UserProfileModal: React.FC<Props> = ({
                   />
                   <span>Staff (Instructor) Passkey</span>
                 </label>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-medium">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans font-semibold">
                   Operational
                 </span>
               </div>
               <div className="relative">
                 <input
                   type={showStaffPasskey ? "text" : "password"}
-                  required
                   value={staffPasskey}
                   onChange={(e) => setStaffPasskey(e.target.value)}
-                  placeholder="e.g. KM100-STAFF-2026"
-                  className="w-full pl-3 pr-10 py-2 font-mono text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
+                  placeholder="Enter new Staff passkey (leave blank to keep current)"
+                  className="w-full pl-3 pr-10 py-2 font-sans font-medium tracking-wide text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
                 />
                 <button
                   type="button"
@@ -637,8 +686,11 @@ export const UserProfileModal: React.FC<Props> = ({
                 <button
                   type="submit"
                   disabled={
-                    adminPasskey.trim().length < 6 ||
-                    staffPasskey.trim().length < 6
+                    (!adminPasskey.trim() && !staffPasskey.trim()) ||
+                    (adminPasskey.trim().length > 0 &&
+                      adminPasskey.trim().length < 6) ||
+                    (staffPasskey.trim().length > 0 &&
+                      staffPasskey.trim().length < 6)
                   }
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >

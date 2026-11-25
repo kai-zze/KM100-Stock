@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   Eye,
   EyeOff,
   FileSpreadsheet,
-  FileText,
   Key,
   KeyRound,
   Lock,
@@ -30,6 +29,10 @@ import {
   sendPasswordResetEmail,
   completePasswordRecovery,
   logoutCurrentSession,
+  hasLocalAdminAccount,
+  checkAdminAccountExists,
+  isAuthorizedAdminPasskey,
+  isAuthorizedStaffPasskey,
 } from "../utils/auth";
 import { supabase } from "../utils/supabaseClient";
 
@@ -71,42 +74,104 @@ const FEATURES = [
 export const LoginScreen: React.FC<Props> = ({
   onLoginSuccess,
   initialMode,
+  onClearRecovery,
 }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode || "signin");
   const [fullName, setFullName] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState("");
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem("km100_remembered_email"));
+    } catch {
+      return false;
+    }
+  });
+  const [email, setEmail] = useState<string>(() => {
+    try {
+      return localStorage.getItem("km100_remembered_email") || "";
+    } catch {
+      return "";
+    }
+  });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("staff");
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Clear any previously persisted email from localStorage so fields are never prefilled
-  useEffect(() => {
-    try {
-      localStorage.removeItem("km100_remembered_email");
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        roleDropdownRef.current &&
-        !roleDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsRoleDropdownOpen(false);
-      }
-    };
-    if (isRoleDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isRoleDropdownOpen]);
+  // Check whether an admin account has already been created
+  const [adminExists, setAdminExists] = useState<boolean>(() =>
+    hasLocalAdminAccount(),
+  );
+  // If admin already exists, registration defaults to and is locked to "staff"
+  const [role, setRole] = useState<UserRole>(() =>
+    hasLocalAdminAccount() ? "staff" : "admin",
+  );
   const [passkey, setPasskey] = useState("");
   const [showPasskey, setShowPasskey] = useState(false);
+
+  // Automatic synchronized admin status resolver (avoids flipping user's explicit choice unless admin slot becomes taken)
+  const syncAdminStatus = useCallback(async () => {
+    try {
+      const exists = await checkAdminAccountExists();
+      setAdminExists((prevExists) => {
+        if (exists) {
+          setRole("staff");
+        } else if (prevExists && !exists) {
+          setRole("admin");
+        }
+        return exists;
+      });
+    } catch {
+      // Best-effort network sync
+    }
+  }, []);
+
+  // 1. Initial check & check on auth mode change
+  useEffect(() => {
+    syncAdminStatus();
+  }, [mode, syncAdminStatus]);
+
+  // 2. Automatically sync when the browser tab gains focus or visibility
+  // (e.g. user deleted an account in Supabase dashboard and switched back to the app)
+  useEffect(() => {
+    const handleFocusOrVisibility = () => {
+      if (document.visibilityState === "visible") {
+        syncAdminStatus();
+      }
+    };
+
+    window.addEventListener("focus", handleFocusOrVisibility);
+    document.addEventListener("visibilitychange", handleFocusOrVisibility);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusOrVisibility);
+      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
+    };
+  }, [syncAdminStatus]);
+
+  // 3. Realtime Supabase change listener & background auto-poll while on create account
+  useEffect(() => {
+    if (mode !== "signup") return;
+
+    // Listen for realtime postgres changes on profiles table
+    const channel = supabase
+      .channel("realtime-profiles-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          syncAdminStatus();
+        },
+      )
+      .subscribe();
+
+    // Auto-poll every 2.5 seconds to detect external admin additions or deletions instantly
+    const interval = setInterval(() => {
+      syncAdminStatus();
+    }, 2500);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [mode, syncAdminStatus]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -269,16 +334,31 @@ export const LoginScreen: React.FC<Props> = ({
 
   const switchMode = (next: AuthMode) => {
     if (next === mode) return;
+    if (mode === "reset" && next !== "reset") {
+      onClearRecovery?.();
+    }
     setMode(next);
     setErrorMessage(null);
     setSuccessMessage(null);
-    setEmail("");
+    if (next !== "signin") {
+      setEmail("");
+    } else {
+      try {
+        setEmail(localStorage.getItem("km100_remembered_email") || "");
+      } catch {
+        setEmail("");
+      }
+    }
     setFullName("");
     setPassword("");
     setConfirmPassword("");
     setPasskey("");
     setShowPassword(false);
     setShowConfirmPassword(false);
+    checkAdminAccountExists().then((exists) => {
+      setAdminExists(exists);
+      setRole(exists ? "staff" : "admin");
+    });
   };
 
   const handleForgotPassword = () => {
@@ -290,6 +370,10 @@ export const LoginScreen: React.FC<Props> = ({
     const cleanEmail = email.trim();
     if (!cleanEmail) {
       setErrorMessage("Please enter your employee email address.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage("Please enter a valid email address.");
       return;
     }
 
@@ -322,9 +406,9 @@ export const LoginScreen: React.FC<Props> = ({
 
   const handleResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (metRequirements < requirements.length) {
+    if (mandatoryMet < totalMandatory) {
       setErrorMessage(
-        "Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols.",
+        "Password must be at least 8 characters and include uppercase, lowercase, and numbers.",
       );
       return;
     }
@@ -383,7 +467,11 @@ export const LoginScreen: React.FC<Props> = ({
       const res = await loginWithCredentials(email, password);
       if (res.success && res.user) {
         try {
-          localStorage.removeItem("km100_remembered_email");
+          if (rememberMe) {
+            localStorage.setItem("km100_remembered_email", email.trim());
+          } else {
+            localStorage.removeItem("km100_remembered_email");
+          }
         } catch {}
         onLoginSuccess(res.user, false);
       } else {
@@ -421,11 +509,30 @@ export const LoginScreen: React.FC<Props> = ({
       setErrorMessage("Passwords do not match. Please re-enter them.");
       return;
     }
+    if (adminExists && role === "admin") {
+      setErrorMessage(
+        "A Property Custodian account has already been created. You can only create an account as Staff.",
+      );
+      setRole("staff");
+      return;
+    }
     if (!passkey.trim()) {
       setErrorMessage(
         role === "admin"
-          ? "Please enter the official Custodian Authorization Passkey (e.g. KM100-ADMIN-2026)."
-          : "Please enter the official KM100 Institutional Passkey (e.g. KM100-STAFF-2026).",
+          ? "Please enter the official Custodian Authorization Passkey."
+          : "Please enter the official Staff Authorization Passkey.",
+      );
+      return;
+    }
+    if (role === "admin" && !isAuthorizedAdminPasskey(passkey.trim())) {
+      setErrorMessage(
+        "Invalid Custodian Passkey. Custodian registration requires the authorized KM100 Admin passkey.",
+      );
+      return;
+    }
+    if (role === "staff" && !isAuthorizedStaffPasskey(passkey.trim())) {
+      setErrorMessage(
+        "Invalid Staff Passkey. Staff registration requires the authorized KM100 Staff passkey.",
       );
       return;
     }
@@ -451,6 +558,7 @@ export const LoginScreen: React.FC<Props> = ({
       });
 
       if (res.success && res.user) {
+        setAdminExists(hasLocalAdminAccount());
         try {
           localStorage.setItem(
             `km100_first_time_user_${res.user.id}`,
@@ -535,7 +643,7 @@ export const LoginScreen: React.FC<Props> = ({
                     key={feature.title}
                     className="flex items-start gap-3 group"
                   >
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 shadow-2xs group-hover:scale-105 transition-transform">
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 shadow-sm group-hover:scale-105 transition-transform">
                       <Icon size={15} />
                     </span>
                     <span className="min-w-0">
@@ -584,7 +692,10 @@ export const LoginScreen: React.FC<Props> = ({
             <div className="mb-5">
               <h2 className="text-xl sm:text-2xl font-heading font-extrabold tracking-tight text-slate-900 dark:text-white">
                 {mode === "signin" && "Sign in to your workspace"}
-                {mode === "signup" && "Create your staff account"}
+                {mode === "signup" &&
+                  (adminExists
+                    ? "Create Staff Account"
+                    : "Create Custodian Account")}
                 {mode === "forgot" && "Reset your password"}
                 {mode === "reset" && "Set a new password"}
               </h2>
@@ -592,7 +703,9 @@ export const LoginScreen: React.FC<Props> = ({
                 {mode === "signin" &&
                   "Enter your employee credentials to access the inventory register."}
                 {mode === "signup" &&
-                  "Register authorized staff credentials to manage training facility equipment."}
+                  (adminExists
+                    ? "A Property Custodian account has already been created. Register your authorized Staff account."
+                    : "No registered account detected. Register as the Property Custodian to establish your facility register.")}
                 {mode === "forgot" &&
                   "Enter your registered employee email to receive a secure Supabase recovery link."}
                 {mode === "reset" &&
@@ -686,7 +799,7 @@ export const LoginScreen: React.FC<Props> = ({
             {successMessage && (
               <div
                 role="status"
-                className="mb-4 flex items-start gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/90 p-3 text-xs text-slate-800 dark:text-slate-200 shadow-2xs animate-slide-down"
+                className="mb-4 flex items-start gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/90 p-3 text-xs text-slate-800 dark:text-slate-200 shadow-sm animate-slide-down"
               >
                 <CheckCircle2
                   size={15}
@@ -867,149 +980,57 @@ export const LoginScreen: React.FC<Props> = ({
                     </div>
                   </div>
 
+                  {/* Institutional Role Selection / Locked Staff Indicator */}
                   <div>
-                    <label id="signup-role-label" className={labelBase}>
-                      Institutional Account Role
-                    </label>
-                    <div className="relative" ref={roleDropdownRef}>
-                      <button
-                        type="button"
-                        id="signup-role"
-                        aria-haspopup="listbox"
-                        aria-expanded={isRoleDropdownOpen}
-                        aria-labelledby="signup-role-label"
-                        onClick={() => setIsRoleDropdownOpen((prev) => !prev)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            setIsRoleDropdownOpen(false);
-                          } else if (
-                            e.key === "ArrowDown" ||
-                            e.key === "ArrowUp"
-                          ) {
-                            e.preventDefault();
-                            if (!isRoleDropdownOpen) {
-                              setIsRoleDropdownOpen(true);
-                            } else {
-                              setRole((prev) =>
-                                prev === "staff" ? "admin" : "staff",
-                              );
-                            }
-                          }
-                        }}
-                        className={`${inputWithIcon} flex items-center justify-between cursor-pointer pr-3 text-left`}
-                      >
-                        <span className="flex items-center gap-2 truncate">
-                          <Shield
-                            size={16}
-                            className="text-slate-400 dark:text-slate-500 shrink-0"
-                          />
-                          <span className="text-slate-900 dark:text-white font-medium">
-                            {role === "admin"
-                              ? "Property Custodian (Admin)"
-                              : "Training Instructor / Staff"}
+                    <label className={labelBase}>Institutional Role</label>
+                    {adminExists ? (
+                      /* When Property Custodian is already registered, users CANNOT choose admin; locked to Staff */
+                      <div className="flex items-center justify-between rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800 p-3 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-800 dark:text-amber-300">
+                            <Shield size={15} />
                           </span>
-                        </span>
-                        <ChevronDown
-                          size={16}
-                          className={`text-slate-400 transition-transform duration-150 shrink-0 ${isRoleDropdownOpen ? "rotate-180 text-amber-600" : ""}`}
-                        />
-                      </button>
-
-                      {isRoleDropdownOpen && (
-                        <div
-                          role="listbox"
-                          aria-labelledby="signup-role-label"
-                          className="absolute left-0 right-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-xl ring-1 ring-black/5"
-                        >
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={role === "staff"}
-                            onClick={() => {
-                              setRole("staff");
-                              setIsRoleDropdownOpen(false);
-                            }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs transition-colors cursor-pointer ${
-                              role === "staff"
-                                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200 font-semibold"
-                                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Shield
-                                size={15}
-                                className={
-                                  role === "staff"
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-slate-400"
-                                }
-                              />
-                              <div className="text-left">
-                                <p className="font-semibold leading-tight">
-                                  Training Instructor / Staff
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
-                                  Standard operational access &amp; quick count
-                                  updates
-                                </p>
-                              </div>
-                            </div>
-                            {role === "staff" && (
-                              <Check
-                                size={14}
-                                className="text-amber-600 dark:text-amber-400 shrink-0"
-                              />
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={role === "admin"}
-                            onClick={() => {
-                              setRole("admin");
-                              setIsRoleDropdownOpen(false);
-                            }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs transition-colors cursor-pointer mt-1 ${
-                              role === "admin"
-                                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200 font-semibold"
-                                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <ShieldCheck
-                                size={15}
-                                className={
-                                  role === "admin"
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-slate-400"
-                                }
-                              />
-                              <div className="text-left">
-                                <p className="font-semibold leading-tight">
-                                  Property Custodian (Admin)
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
-                                  Full governance, schema control, and room
-                                  management
-                                </p>
-                              </div>
-                            </div>
-                            {role === "admin" && (
-                              <Check
-                                size={14}
-                                className="text-amber-600 dark:text-amber-400 shrink-0"
-                              />
-                            )}
-                          </button>
+                          <div className="text-left">
+                            <p className="font-semibold text-slate-900 dark:text-white leading-tight">
+                              Staff
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                              Custodian exists. New registration is set to
+                              Staff.
+                            </p>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md shrink-0">
+                          Staff Only
+                        </span>
+                      </div>
+                    ) : (
+                      /* Initial setup: No registered account detected. Allow Property Custodian to register */
+                      <div className="flex items-center justify-between rounded-xl border border-amber-300/80 dark:border-amber-800/80 bg-amber-50/60 dark:bg-amber-950/30 p-3 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                            <ShieldCheck size={16} />
+                          </span>
+                          <div className="text-left">
+                            <p className="font-semibold text-slate-900 dark:text-white leading-tight">
+                              Property Custodian (Admin)
+                            </p>
+                            <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">
+                              No registered account detected. Establishing
+                              primary custodian.
+                            </p>
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md shrink-0">
+                          Primary Admin
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Institutional Security Passkey */}
+                  {/* Institutional Security Passkey Field */}
                   <div>
-                    <div className="mb-1.5">
+                    <div className="mb-1.5 flex items-center justify-between">
                       <label
                         htmlFor="signup-passkey"
                         className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5"
@@ -1035,12 +1056,12 @@ export const LoginScreen: React.FC<Props> = ({
                         autoComplete="off"
                         placeholder={
                           role === "admin"
-                            ? "e.g. KM100-ADMIN-2026"
-                            : "e.g. KM100-STAFF-2026"
+                            ? "Enter Custodian Authorization Passkey"
+                            : "Enter Staff Authorization Passkey"
                         }
                         value={passkey}
                         onChange={(e) => setPasskey(e.target.value)}
-                        className={`${inputWithAction} font-mono tracking-wider`}
+                        className={`${inputWithAction} font-sans font-medium tracking-wide`}
                       />
                       <button
                         type="button"
@@ -1054,11 +1075,6 @@ export const LoginScreen: React.FC<Props> = ({
                         {showPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
                       </button>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      {role === "admin"
-                        ? "Enter the official Custodian Authorization Passkey (e.g. KM100-ADMIN-2026)."
-                        : "Enter the official Institutional Passkey (e.g. KM100-STAFF-2026)."}
-                    </p>
                   </div>
 
                   <div>
@@ -1219,74 +1235,62 @@ export const LoginScreen: React.FC<Props> = ({
 
                   {/* Institutional Personnel Declaration Card */}
                   <div
-                    onClick={() => {
-                      if (!hasReadPolicy) {
-                        setShowPolicyModal(true);
-                      } else {
-                        setAcceptedTerms((prev) => !prev);
-                      }
-                    }}
-                    className={`group relative rounded-xl border p-3.5 transition-all duration-200 cursor-pointer select-none ${
+                    className={`relative rounded-xl border p-3.5 transition-all duration-200 cursor-default ${
                       acceptedTerms
-                        ? "border-amber-500/80 bg-amber-50/60 dark:border-amber-600/70 dark:bg-amber-950/25 shadow-xs ring-1 ring-amber-500/20"
-                        : hasReadPolicy
-                          ? "border-slate-300 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 hover:border-amber-400 dark:hover:border-amber-600"
-                          : "border-amber-300/80 dark:border-amber-800/70 bg-amber-50/30 dark:bg-amber-950/15 hover:border-amber-500 dark:hover:border-amber-600 hover:bg-amber-50/50"
+                        ? "border-amber-500/80 bg-amber-50/50 dark:border-amber-600/70 dark:bg-amber-950/20 shadow-xs"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40"
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Custom Checkbox Toggle */}
-                      <div
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-150 ${
+                      {/* Checkbox Button */}
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={acceptedTerms}
+                        onClick={() => {
+                          if (!hasReadPolicy) {
+                            setShowPolicyModal(true);
+                          } else {
+                            setAcceptedTerms((prev) => !prev);
+                          }
+                        }}
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 ${
                           acceptedTerms
                             ? "border-amber-700 bg-amber-700 dark:border-amber-600 dark:bg-amber-600 text-white shadow-xs"
                             : hasReadPolicy
-                              ? "border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-900 group-hover:border-amber-600 dark:group-hover:border-amber-400 shadow-2xs"
-                              : "border-amber-500/70 bg-amber-50 dark:border-amber-700/60 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400"
+                              ? "border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-900 hover:border-amber-600 dark:hover:border-amber-400 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
+                              : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-amber-600 dark:hover:border-amber-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
+                        aria-label={
+                          acceptedTerms
+                            ? "Acknowledged KM100 acceptable use policy"
+                            : hasReadPolicy
+                              ? "Acknowledge KM100 acceptable use policy"
+                              : "Open and read institutional acceptable use policy"
+                        }
+                        title={
+                          hasReadPolicy
+                            ? "Click to acknowledge"
+                            : "Click to open and read policy"
+                        }
                       >
-                        {acceptedTerms ? (
+                        {acceptedTerms && (
                           <Check
                             size={13}
                             strokeWidth={3}
                             className="text-white animate-in zoom-in-75 duration-100"
                           />
-                        ) : !hasReadPolicy ? (
-                          <FileText size={10} strokeWidth={2.5} />
-                        ) : null}
-                      </div>
-
-                      <input
-                        type="checkbox"
-                        checked={acceptedTerms}
-                        disabled={!hasReadPolicy}
-                        onChange={(e) => {
-                          if (hasReadPolicy) {
-                            setAcceptedTerms(e.target.checked);
-                          } else {
-                            setShowPolicyModal(true);
-                          }
-                        }}
-                        className="sr-only"
-                        aria-label="Confirm KM100 authorized personnel declaration"
-                      />
+                        )}
+                      </button>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                             Personnel Declaration
                           </span>
-                          {acceptedTerms ? (
+                          {acceptedTerms && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
                               <Check size={10} strokeWidth={2.5} /> Acknowledged
-                            </span>
-                          ) : hasReadPolicy ? (
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                              Click to check
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                              Read Policy Required
                             </span>
                           )}
                         </div>
@@ -1298,8 +1302,7 @@ export const LoginScreen: React.FC<Props> = ({
                               agree to the{" "}
                               <button
                                 type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onClick={() => {
                                   setShowPolicyModal(true);
                                 }}
                                 className="inline-flex items-center gap-0.5 font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
@@ -1314,8 +1317,7 @@ export const LoginScreen: React.FC<Props> = ({
                               You must read the{" "}
                               <button
                                 type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onClick={() => {
                                   setShowPolicyModal(true);
                                 }}
                                 className="inline-flex items-center gap-0.5 font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
@@ -1344,7 +1346,9 @@ export const LoginScreen: React.FC<Props> = ({
                     ) : (
                       <>
                         <UserPlus size={16} />
-                        Register Staff Account
+                        {role === "admin"
+                          ? "Register Custodian Account"
+                          : "Register Staff Account"}
                       </>
                     )}
                   </button>
@@ -1622,12 +1626,16 @@ export const LoginScreen: React.FC<Props> = ({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          aria-labelledby="policy-modal-title"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setShowPolicyModal(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal"
           onClick={() => setShowPolicyModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]"
+            className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-modal flex flex-col max-h-[90vh]"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50/70 dark:bg-slate-800/40">
@@ -1636,7 +1644,10 @@ export const LoginScreen: React.FC<Props> = ({
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3
+                    id="policy-modal-title"
+                    className="text-sm font-bold text-slate-900 dark:text-white"
+                  >
                     Institutional Acceptable Use Policy
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -1722,13 +1733,8 @@ export const LoginScreen: React.FC<Props> = ({
               </div>
 
               {/* Reading Progress Notice */}
-              <div className="pt-2 text-center">
-                {hasScrolledToBottom ? (
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/80 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 animate-in fade-in">
-                    <Check size={12} strokeWidth={2.5} />
-                    Full policy reviewed
-                  </div>
-                ) : (
+              {!hasScrolledToBottom && (
+                <div className="pt-2 text-center">
                   <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
                     <span>Scroll to bottom to read all conditions</span>
                     <ChevronDown
@@ -1736,52 +1742,33 @@ export const LoginScreen: React.FC<Props> = ({
                       className="animate-bounce shrink-0"
                     />
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-3.5 bg-slate-50/70 dark:bg-slate-800/40">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                {hasScrolledToBottom ? (
-                  <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                    Policy complete
-                  </span>
-                ) : (
-                  "Scroll to bottom to enable"
-                )}
-              </span>
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowPolicyModal(false)}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  disabled={!hasScrolledToBottom}
-                  onClick={() => {
-                    setHasReadPolicy(true);
-                    setAcceptedTerms(true);
-                    setShowPolicyModal(false);
-                  }}
-                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all shadow-xs ${
-                    hasScrolledToBottom
-                      ? "bg-amber-700 hover:bg-amber-800 text-white cursor-pointer active:scale-[0.98]"
-                      : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
-                  }`}
-                  title={
-                    hasScrolledToBottom
-                      ? "Acknowledge policy"
-                      : "Scroll to bottom to read all policy terms"
-                  }
-                >
-                  <Check size={14} />
-                  <span>I Understand &amp; Acknowledge</span>
-                </button>
-              </div>
+            <div className="flex items-center justify-end border-t border-slate-200 dark:border-slate-800 px-6 py-3.5 bg-slate-50/70 dark:bg-slate-800/40">
+              <button
+                type="button"
+                disabled={!hasScrolledToBottom}
+                onClick={() => {
+                  setHasReadPolicy(true);
+                  setAcceptedTerms(true);
+                  setShowPolicyModal(false);
+                }}
+                className={`flex items-center justify-center rounded-xl px-4 py-2 text-xs font-semibold transition-all shadow-xs ${
+                  hasScrolledToBottom
+                    ? "bg-amber-700 hover:bg-amber-800 text-white cursor-pointer active:scale-[0.98]"
+                    : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                }`}
+                title={
+                  hasScrolledToBottom
+                    ? "Acknowledge policy"
+                    : "Scroll to bottom to read all policy terms"
+                }
+              >
+                <span>I Understand &amp; Acknowledge</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1792,7 +1779,7 @@ export const LoginScreen: React.FC<Props> = ({
 
 // ── Organized Auth Styles (Placed Below Component for Easy Debugging)
 const inputBase =
-  "w-full rounded-xl border border-slate-300/80 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/80 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all focus:border-amber-600 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-2xs disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-slate-300/80 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/80 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all focus:border-amber-600 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-sm disabled:cursor-not-allowed disabled:opacity-60";
 
 const inputWithIcon = `${inputBase} pl-10`;
 

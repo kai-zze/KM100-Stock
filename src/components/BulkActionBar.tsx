@@ -31,13 +31,14 @@ export const BulkActionBar: React.FC<Props> = React.memo(
         aria-label="Bulk actions for selected inventory items"
       >
         <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-700 text-white font-bold text-xs tabular-nums shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-700 text-white font-bold text-xs tabular-nums shadow-sm whitespace-nowrap">
             <CheckCircle2 size={13} />
-            {count} Selected
+            {count.toLocaleString()} Selected
           </span>
           <button
+            type="button"
             onClick={onClear}
-            className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium transition-colors"
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium transition-colors cursor-pointer"
             title="Clear selection (Esc)"
           >
             Deselect all
@@ -50,17 +51,18 @@ export const BulkActionBar: React.FC<Props> = React.memo(
               size={14}
               className="text-amber-700 dark:text-amber-400 shrink-0"
             />
-            <span className="text-xs font-semibold text-slate-500">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
               Move to:
             </span>
             <select
               defaultValue=""
+              aria-label="Move selected items to room"
               onChange={(e) => {
                 const val = e.target.value;
                 e.target.value = "";
                 if (val) onMove(val);
               }}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
+              className="bg-transparent dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
             >
               <option value="">Choose Room...</option>
               {rooms.map((r) => (
@@ -81,12 +83,13 @@ export const BulkActionBar: React.FC<Props> = React.memo(
             </span>
             <select
               defaultValue=""
+              aria-label="Set status for selected items"
               onChange={(e) => {
                 const val = e.target.value;
                 e.target.value = "";
                 if (val) onSetStatus(val);
               }}
-              className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
               <option value="">Set Status...</option>
               {STATUS_OPTIONS.map((status) => (
@@ -99,8 +102,9 @@ export const BulkActionBar: React.FC<Props> = React.memo(
 
           {onExportExcel && (
             <button
+              type="button"
               onClick={onExportExcel}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors cursor-pointer"
               title="Export selected items to Excel"
             >
               <FileSpreadsheet size={13} />
@@ -109,17 +113,19 @@ export const BulkActionBar: React.FC<Props> = React.memo(
           )}
 
           <button
+            type="button"
             onClick={onDelete}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors cursor-pointer"
             title={`Delete ${count} selected items`}
           >
             <Trash2 size={13} />
-            <span>Delete ({count})</span>
+            <span>Delete ({count.toLocaleString()})</span>
           </button>
 
           <button
+            type="button"
             onClick={onClear}
-            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg"
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg cursor-pointer"
             title="Dismiss selection"
             aria-label="Dismiss selection"
           >

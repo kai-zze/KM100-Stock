@@ -16,7 +16,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   return (
     <div
       id="institutional-splash-screen"
-      className={`fixed inset-0 z-50 flex h-[100dvh] w-full select-none flex-col items-center justify-center bg-white px-6 text-center font-heading transition-opacity duration-400 ease-out ${
+      className={`fixed inset-0 z-50 flex h-[100dvh] w-full select-none flex-col items-center justify-center bg-white dark:bg-slate-950 px-6 text-center font-heading transition-opacity duration-[400ms] ease-out ${
         isFading ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
       role="status"
@@ -35,17 +35,20 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           className="h-[clamp(52px,8vw,72px)] w-[clamp(52px,8vw,72px)] shrink-0 rounded-full object-contain mb-3 sm:mb-4 filter drop-shadow-md"
         />
 
-        <h1 className="splash-title text-[clamp(1.15rem,2.2vw,1.75rem)] font-extrabold tracking-tight text-slate-900 leading-tight">
+        <h1 className="splash-title text-[clamp(1.15rem,2.2vw,1.75rem)] font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
           KM100 SKILLS AND TRAINING CENTER, INC.
         </h1>
 
-        <p className="mt-1.5 sm:mt-2 font-sans text-[clamp(0.8rem,1.4vw,0.95rem)] font-medium text-slate-500 leading-relaxed max-w-md">
+        <p className="mt-1.5 sm:mt-2 font-sans text-[clamp(0.8rem,1.4vw,0.95rem)] font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
           Property Custody &amp; Inventory Management System
         </p>
       </div>
 
       {/* Uiverse.io Scrolling Loader (Adaptive Across All Screen Sizes & Devices) */}
-      <div className="mt-8 sm:mt-12 md:mt-14 flex justify-center w-full overflow-hidden px-4">
+      <div
+        className="mt-8 sm:mt-12 md:mt-14 flex justify-center w-full overflow-hidden px-4"
+        aria-hidden="true"
+      >
         <ScrollingLoader text="Loading" />
       </div>
     </div>

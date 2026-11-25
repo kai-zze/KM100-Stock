@@ -246,4 +246,57 @@ describe("exportInventoryToStyledExcel", () => {
     expect(ok).toBe(false);
     expect(mockWriteBuffer).not.toHaveBeenCalled();
   });
+
+  it("handles <= 3 columns and duplicate room names without invalid merge ranges", async () => {
+    installExcelJsMock(true);
+    const { exportInventoryToStyledExcel } =
+      await import("../excelStyledExport");
+
+    const twoCols: ColumnDefinition[] = [
+      {
+        id: "name",
+        label: "ITEM NAME",
+        type: "text",
+        isSystem: true,
+        order: 1,
+      },
+      {
+        id: "quantity",
+        label: "QUANTITY",
+        type: "number",
+        isSystem: true,
+        order: 2,
+      },
+    ];
+    const dupRooms: Room[] = [
+      { id: "r1", name: "Very Long Training Laboratory Number One" },
+      { id: "r2", name: "Very Long Training Laboratory Number Two" },
+    ];
+
+    const ok = await exportInventoryToStyledExcel({
+      mode: "multi",
+      rooms: dupRooms,
+      items,
+      currentItems: items,
+      columns: twoCols,
+    });
+
+    expect(ok).toBe(true);
+    // 1 master + 2 deduplicated room sheets
+    expect(mockAddWorksheet).toHaveBeenCalledTimes(3);
+    const sheetNames = mockAddWorksheet.mock.calls.map((c: any[]) => c[0]);
+    expect(new Set(sheetNames.map((n: string) => n.toLowerCase())).size).toBe(
+      3,
+    );
+
+    // Verify no inverted or single-cell merges like B2:A2 or B1:B1
+    const firstSheet = mockAddWorksheet.mock.results[0].value;
+    const merges: string[] = firstSheet.mergeCells.mock.calls.map(
+      (c: any[]) => c[0],
+    );
+    merges.forEach((range) => {
+      const [start, end] = range.split(":");
+      expect(start).not.toBe(end);
+    });
+  });
 });

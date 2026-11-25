@@ -12,6 +12,7 @@ interface Props {
   rooms: Room[];
   /** Current facility scope name (e.g. specific room or "All Facilities") */
   facilityName: string;
+  facilityId?: string;
 }
 
 // ── 2. Static Constants & Pure Data Transformers (Module Scope) ──────────────
@@ -89,6 +90,7 @@ export const PrintReport: React.FC<Props> = ({
   items,
   rooms,
   facilityName,
+  facilityId,
 }) => {
   // Clean, normalized items for the audit table
   const reportItems = useMemo(() => normalizeReportInventory(items), [items]);
@@ -107,15 +109,11 @@ export const PrintReport: React.FC<Props> = ({
 
   const totalItems = reportItems.length;
 
-  const auditDate = useMemo(
-    () =>
-      new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
-    [],
-  );
+  const auditDate = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   const docRef = useMemo(() => {
     const now = new Date();
@@ -124,7 +122,22 @@ export const PrintReport: React.FC<Props> = ({
     const d = String(now.getDate()).padStart(2, "0");
     const rand = Math.floor(Math.random() * 9000) + 1000;
     return `KM100-AIR-${y}-${m}${d}-${rand}`;
-  }, []);
+  }, [facilityId, facilityName, reportItems.length]);
+
+  const institutionName = useMemo(() => {
+    if (facilityId === "PETC" || facilityId === "fac-petc")
+      return "KM100 PRIVATE EMISSION TESTING CENTER (PETC)";
+    if (facilityId === "KNOAH_MARI" || facilityId === "fac-knoah-mari")
+      return "KNOAH MARI CAFÉ & EVENTS";
+    if (facilityId === "RED_GOOSE" || facilityId === "fac-red-goose")
+      return "RED GOOSE RESTO & CAFÉ";
+    if (facilityId === "STC" || facilityId === "fac-km100-stc")
+      return "KM100 SKILLS AND TRAINING CENTER, INC.";
+    if (facilityName && facilityName !== "All Facilities") {
+      return `${facilityName.toUpperCase()} — PROPERTY CUSTODY`;
+    }
+    return "KM100 ENTERPRISE — MULTI-FACILITY PROPERTY CUSTODY";
+  }, [facilityId, facilityName]);
 
   const scopeDisplay =
     !facilityName ||
@@ -153,7 +166,7 @@ export const PrintReport: React.FC<Props> = ({
           />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-black">
-              KM100 SKILLS AND TRAINING CENTER, INC.
+              {institutionName}
             </h1>
             <p className="text-xs text-gray-700">
               Official Physical Asset &amp; Property Inventory System
@@ -174,7 +187,10 @@ export const PrintReport: React.FC<Props> = ({
             Doc. Ref.: <strong className="text-black">{docRef}</strong>
           </div>
           <div>
-            Catalog Items: <strong className="text-black">{totalItems}</strong>{" "}
+            Catalog Items:{" "}
+            <strong className="text-black">
+              {totalItems.toLocaleString()}
+            </strong>{" "}
             &middot; Total Units:{" "}
             <strong className="text-black">
               {totalUnits.toLocaleString()}
@@ -272,10 +288,10 @@ export const PrintReport: React.FC<Props> = ({
               TOTALS
             </td>
             <td className="border border-black p-1.5 text-center font-bold tabular-nums text-black">
-              {totalUnits}
+              {totalUnits.toLocaleString()}
             </td>
             <td className="border border-black p-1.5 text-center font-bold tabular-nums text-black">
-              {totalItems}
+              {totalItems.toLocaleString()} items
             </td>
             <td
               className="border border-black p-1.5 text-center"

@@ -79,7 +79,7 @@ export const SplashAssembly3D: React.FC<SplashAssembly3DProps> = ({
       {/* ── Shockwave Pulse on Mechanical Lock ──────────────────────── */}
       {isLocked && (
         <div
-          className="pointer-events-none absolute h-72 w-72 sm:h-88 sm:w-88 rounded-full border-2 border-[#F37021] animate-km100-shockwave"
+          className="pointer-events-none absolute h-72 w-72 sm:h-[22rem] sm:w-[22rem] rounded-full border-2 border-[#F37021] animate-ping opacity-30"
           style={{
             boxShadow:
               "0 0 30px rgba(243, 112, 33, 0.6), inset 0 0 20px rgba(243, 112, 33, 0.4)",
@@ -350,10 +350,10 @@ export const SplashAssembly3D: React.FC<SplashAssembly3DProps> = ({
           style={{ transform: "translateZ(50px)" }}
         >
           <div
-            className={`absolute -inset-full h-[300%] w-[80px] bg-gradient-to-r from-transparent via-white/70 to-transparent transition-transform duration-800 ease-in-out ${
+            className={`absolute -inset-full h-[300%] w-[80px] bg-gradient-to-r from-transparent via-white/70 to-transparent transition-transform duration-[800ms] ease-in-out ${
               isSheen
-                ? "translate-x-[650px] rotate-25"
-                : "-translate-x-full rotate-25"
+                ? "translate-x-[650px] rotate-[25deg]"
+                : "-translate-x-full rotate-[25deg]"
             }`}
           />
         </div>
@@ -361,7 +361,7 @@ export const SplashAssembly3D: React.FC<SplashAssembly3DProps> = ({
 
       {/* ── Institutional Identity & Verification Footnote ───────────── */}
       <div
-        className="mt-6 flex flex-col items-center space-y-2.5 transition-all duration-800 ease-out"
+        className="mt-6 flex flex-col items-center space-y-2.5 transition-all duration-[800ms] ease-out"
         style={{
           transform: isLocked ? "translateY(0)" : "translateY(20px)",
           opacity: isLocked ? 1 : 0,
@@ -378,8 +378,11 @@ export const SplashAssembly3D: React.FC<SplashAssembly3DProps> = ({
           </span>
         </div>
 
-        <div className="pt-2 flex justify-center w-full overflow-hidden">
-          <ScrollingLoader text="Loading" />
+        <div
+          className="pt-2 flex justify-center w-full overflow-hidden"
+          aria-hidden="true"
+        >
+          <ScrollingLoader text="Loading" textColor="#f8fafc" />
         </div>
       </div>
     </div>

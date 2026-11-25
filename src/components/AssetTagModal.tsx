@@ -17,20 +17,28 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.classList.remove("print-asset-tag");
+    };
   }, [onClose]);
 
   const handlePrint = () => {
-    // The global print stylesheet hides dialogs, so opt this one back in.
+    // Opt this overlay into printing; clean up on afterprint (with safety timeout fallback).
+    const cleanup = () => {
+      document.body.classList.remove("print-asset-tag");
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
     document.body.classList.add("print-asset-tag");
     window.print();
-    window.setTimeout(
-      () => document.body.classList.remove("print-asset-tag"),
-      800,
-    );
+    window.setTimeout(cleanup, 10000);
   };
 
   return (
@@ -54,9 +62,10 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close asset tag dialog"
-            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -81,17 +90,17 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
           </div>
 
           <div className="space-y-1 text-[11px]">
-            <div>
+            <div className="break-all">
               Property ID:{" "}
               <strong className="font-mono text-xs">{item.id}</strong>
             </div>
-            <div>
+            <div className="break-words">
               Item: <strong>{item.name}</strong>
             </div>
-            <div>
+            <div className="break-words">
               Category: <span className="text-gray-800">{item.category}</span>
             </div>
-            <div>
+            <div className="break-words">
               Location: <strong>{roomName}</strong>
             </div>
             <div>
@@ -117,14 +126,16 @@ export const AssetTagModal: React.FC<Props> = ({ item, rooms, onClose }) => {
 
         <div className="asset-tag-controls flex items-center justify-end gap-2 pt-2">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Close
           </button>
           <button
+            type="button"
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white cursor-pointer"
           >
             <Printer size={14} /> Print sticker
           </button>

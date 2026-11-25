@@ -9,12 +9,21 @@ import React, {
 } from "react";
 import {
   ColumnDefinition,
-  ColumnType,
   InventoryItem,
   Room,
   ITEM_STATUSES,
   AppUser,
+  Facility,
+  DEFAULT_FACILITIES,
+  DEFAULT_FACILITY_ID,
+  getFacility,
+  normalizeFacilityId,
 } from "./types/inventory";
+import {
+  DEFAULT_ROOMS,
+  DEFAULT_ITEMS,
+  DEFAULT_COLUMNS,
+} from "./data/defaultData";
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
 import { MobileNav } from "./components/MobileNav";
@@ -24,11 +33,7 @@ import { BulkActionBar } from "./components/BulkActionBar";
 import { ColumnsVisibilityMenu } from "./components/ColumnsVisibilityMenu";
 import { LoginScreen } from "./components/LoginScreen";
 import { SplashScreen } from "./components/SplashScreen";
-import {
-  AppShellSkeleton,
-  DashboardSkeleton,
-  ModalSkeleton,
-} from "./components/SkeletonLoader";
+import { ModalSkeleton } from "./components/SkeletonLoader";
 import { getStoredUser, logoutCurrentSession } from "./utils/auth";
 import { supabase } from "./utils/supabaseClient";
 import { inventoryService } from "./services/inventoryService";
@@ -46,6 +51,10 @@ const ColumnsSchemaModal = lazyNamed(
 const RoomModal = lazyNamed(
   () => import("./components/RoomModal"),
   "RoomModal",
+);
+const FacilityModal = lazyNamed(
+  () => import("./components/FacilityModal"),
+  "FacilityModal",
 );
 const AssetTagModal = lazyNamed(
   () => import("./components/AssetTagModal"),
@@ -65,7 +74,7 @@ import {
   isOutOfStockOrEmpty,
   normalizeStatus,
 } from "./utils/status";
-import { generateItemId, generateRoomId } from "./utils/ids";
+import { generateRoomId } from "./utils/ids";
 import {
   Search,
   Filter,
@@ -76,11 +85,8 @@ import {
   Check,
   Sparkles,
   PackageX,
-  ShieldCheck,
   Package,
   Layers,
-  ArrowUpDown,
-  Building,
   Trash2,
   LogOut,
 } from "lucide-react";
@@ -89,24 +95,73 @@ const STORAGE_KEY_ROOMS = "km100_inventory_rooms_v1";
 const STORAGE_KEY_ITEMS = "km100_inventory_items_v1";
 const STORAGE_KEY_COLUMNS = "km100_inventory_columns_v1";
 const STORAGE_KEY_HIDDEN_COLS = "km100_hidden_columns_v1";
+const STORAGE_KEY_FACILITIES = "km100_facilities_v1";
 const STORAGE_KEY_TUTORIAL_COMPLETED = "km100_tutorial_completed_v1";
-
-// Module-level deduplication for initial cloud data fetch (prevents duplicate requests in React StrictMode)
-let initialCloudFetchPromise: Promise<[any, any, any]> | null = null;
 
 export function App() {
   // ── State Initialization ──────────────────────────────────────────
   // defaultData.ts (43KB) is lazy-loaded below — only fetched when localStorage is empty
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [columns, setColumns] = useState<ColumnDefinition[]>([]);
-  const [hiddenColumnIds, setHiddenColumnIds] = useState<string[]>([]);
-  const [defaultsLoaded, setDefaultsLoaded] = useState(false);
+  const [facilities, setFacilities] = useState<Facility[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_FACILITIES);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_FACILITIES;
+  });
+  const [rooms, setRooms] = useState<Room[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_ROOMS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_ROOMS;
+  });
+  const [items, setItems] = useState<InventoryItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_ITEMS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_ITEMS;
+  });
+  const [columns, setColumns] = useState<ColumnDefinition[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_COLUMNS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_COLUMNS;
+  });
+  const [hiddenColumnIds, setHiddenColumnIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() =>
     getStoredUser(),
   );
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const localMutationVersionRef = useRef(0);
+  const toastTimerRef = useRef<number | null>(null);
+  const itemsRef = useRef<InventoryItem[]>(items);
+  itemsRef.current = items;
 
   // ── Institutional Splash Screen Delay & Graceful Fade ──────────────────
   const [isSplashVisible, setIsSplashVisible] = useState(true);
@@ -115,11 +170,11 @@ export function App() {
   useEffect(() => {
     const fadeTimer = setTimeout(() => {
       setIsSplashFading(true);
-    }, 1800);
+    }, 800);
 
     const removeTimer = setTimeout(() => {
       setIsSplashVisible(false);
-    }, 2200);
+    }, 1200);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -127,13 +182,15 @@ export function App() {
     };
   }, []);
 
-  // ── Listen for Supabase Password Recovery Events & Direct Link Activation ──
+  // ── Listen for Supabase Password Recovery & Auth Events ───────────────
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsPasswordRecovery(true);
+      } else if (event === "SIGNED_OUT") {
+        setIsPasswordRecovery(false);
       }
     });
 
@@ -148,83 +205,132 @@ export function App() {
     };
   }, []);
 
-  // ── Initial Data Load: Local Cache Fast-Render + Live Supabase Fetch ─
+  // ── Background Data Reconciliation & Real-Time Multi-Device Sync ──
   useEffect(() => {
-    if (defaultsLoaded) return;
-
+    if (!currentUser) return;
     let isMounted = true;
+    const mutationVersionAtStart = localMutationVersionRef.current;
 
-    async function initializeInventory() {
-      // 1. Instant optimistic load from local cache if available
+    async function syncCloudData() {
       try {
-        const rawRooms = localStorage.getItem(STORAGE_KEY_ROOMS);
-        const rawItems = localStorage.getItem(STORAGE_KEY_ITEMS);
-        const rawColumns = localStorage.getItem(STORAGE_KEY_COLUMNS);
-        const rawHidden = localStorage.getItem(STORAGE_KEY_HIDDEN_COLS);
+        const [roomsRes, itemsRes, colsRes, facRes] = await Promise.all([
+          inventoryService.fetchRoomsWithStatus(),
+          inventoryService.fetchItemsWithStatus(),
+          inventoryService.fetchColumnsWithStatus(),
+          inventoryService.fetchFacilitiesWithStatus(),
+        ]);
 
-        if (rawRooms) setRooms(JSON.parse(rawRooms));
-        if (rawItems) setItems(JSON.parse(rawItems));
-        if (rawColumns) setColumns(JSON.parse(rawColumns));
-        if (rawHidden) setHiddenColumnIds(JSON.parse(rawHidden));
-      } catch {
-        // ignore cache parse errors
-      }
-
-      // 2. Fetch official cloud data directly from Supabase (deduplicated across rapid mounts)
-      try {
-        if (!initialCloudFetchPromise) {
-          initialCloudFetchPromise = Promise.all([
-            inventoryService.fetchRooms(),
-            inventoryService.fetchItems(),
-            inventoryService.fetchColumns(),
-          ]);
+        // Guard against clobbering optimistic local edits made while the fetch was in flight
+        if (
+          !isMounted ||
+          localMutationVersionRef.current !== mutationVersionAtStart
+        ) {
+          return;
         }
 
-        const [supaRooms, supaItems, supaColumns] =
-          await initialCloudFetchPromise;
-
-        if (isMounted) {
-          if (supaRooms && supaRooms.length > 0) {
-            setRooms(supaRooms);
-          }
-          if (supaItems && supaItems.length > 0) {
-            setItems(supaItems);
-          }
-          if (supaColumns && supaColumns.length > 0) {
-            setColumns(supaColumns);
-          }
-          setDefaultsLoaded(true);
+        if (facRes.ok && facRes.data.length > 0) {
+          setFacilities(facRes.data);
+        }
+        if (roomsRes.ok && roomsRes.data.length > 0) {
+          setRooms(roomsRes.data);
+        }
+        if (itemsRes.ok && itemsRes.data.length > 0) {
+          setItems(itemsRes.data);
+        }
+        if (colsRes.ok && colsRes.data.length > 0) {
+          setColumns(colsRes.data);
         }
       } catch (err) {
-        console.warn("Supabase initial load error, using cache/defaults:", err);
-        if (isMounted) {
-          // If both cache and Supabase failed, fallback to seed
-          import("./data/defaultData").then(
-            ({ DEFAULT_ROOMS, DEFAULT_ITEMS, DEFAULT_COLUMNS }) => {
-              if (isMounted) {
-                setRooms((prev) => (prev.length > 0 ? prev : DEFAULT_ROOMS));
-                setItems((prev) => (prev.length > 0 ? prev : DEFAULT_ITEMS));
-                setColumns((prev) =>
-                  prev.length > 0 ? prev : DEFAULT_COLUMNS,
-                );
-                setDefaultsLoaded(true);
-              }
-            },
-          );
-        }
+        console.warn("Supabase background synchronization notice:", err);
       }
     }
 
-    initializeInventory();
+    syncCloudData();
+
+    const unsubscribeRealtime = inventoryService.subscribeToRealtimeChanges({
+      onItemUpsert: (incomingItem) => {
+        if (!isMounted) return;
+        setItems((prev) => {
+          const exists = prev.some((it) => it.id === incomingItem.id);
+          if (exists) {
+            return prev.map((it) =>
+              it.id === incomingItem.id ? incomingItem : it,
+            );
+          }
+          return [incomingItem, ...prev];
+        });
+      },
+      onItemDelete: (deletedId) => {
+        if (!isMounted) return;
+        setItems((prev) => prev.filter((it) => it.id !== deletedId));
+        setSelectedIds((prev) => prev.filter((id) => id !== deletedId));
+      },
+      onRoomUpsert: (incomingRoom) => {
+        if (!isMounted) return;
+        setRooms((prev) => {
+          const exists = prev.some((r) => r.id === incomingRoom.id);
+          if (exists) {
+            return prev.map((r) =>
+              r.id === incomingRoom.id ? incomingRoom : r,
+            );
+          }
+          return [...prev, incomingRoom];
+        });
+      },
+      onRoomDelete: (deletedRoomId) => {
+        if (!isMounted) return;
+        setRooms((prev) => prev.filter((r) => r.id !== deletedRoomId));
+        setSelectedRoomId((prev) => (prev === deletedRoomId ? "ALL" : prev));
+      },
+      onColumnsChanged: async () => {
+        const res = await inventoryService.fetchColumnsWithStatus();
+        if (isMounted && res.ok && res.data.length > 0) {
+          setColumns(res.data);
+        }
+      },
+      onFacilityUpsert: (incomingFac) => {
+        if (!isMounted) return;
+        setFacilities((prev) => {
+          const exists = prev.some((f) => f.id === incomingFac.id);
+          if (exists) {
+            return prev.map((f) => (f.id === incomingFac.id ? incomingFac : f));
+          }
+          return [...prev, incomingFac];
+        });
+      },
+      onFacilityDelete: (deletedFacId) => {
+        if (!isMounted) return;
+        setFacilities((prev) => prev.filter((f) => f.id !== deletedFacId));
+        setSelectedFacilityId((prev) => (prev === deletedFacId ? "ALL" : prev));
+      },
+    });
 
     return () => {
       isMounted = false;
+      unsubscribeRealtime();
     };
-  }, [defaultsLoaded]);
+  }, [currentUser?.id]);
 
   // ── Filtering, Search & Sorting ──────────────────────────────────
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string>("ALL");
   const [selectedRoomId, setSelectedRoomId] = useState<string>("ALL");
   const mainContentRef = useRef<HTMLElement>(null);
+
+  const handleSelectFacility = useCallback(
+    (facId: string) => {
+      setSelectedFacilityId(facId);
+      if (selectedRoomId !== "ALL") {
+        const activeRoom = rooms.find((r) => r.id === selectedRoomId);
+        if (
+          facId !== "ALL" &&
+          normalizeFacilityId(activeRoom?.facility, facilities) !== facId
+        ) {
+          setSelectedRoomId("ALL");
+        }
+      }
+    },
+    [rooms, selectedRoomId, facilities],
+  );
 
   // Smoothly reset scroll position to top on room/view switch
   useEffect(() => {
@@ -250,6 +356,8 @@ export function App() {
   const [isColumnsModalOpen, setIsColumnsModalOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
+  const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [assetTagItem, setAssetTagItem] = useState<InventoryItem | null>(null);
   const [importAnalysis, setImportAnalysis] = useState<ImportAnalysis | null>(
@@ -304,106 +412,72 @@ export function App() {
     }
   }, []);
 
-  // ── Persistence Effects (Only save after initial defaults are loaded) ─
+  // ── Persistence Effects (Safe against quota/private-mode errors) ─
   useEffect(() => {
-    if (!defaultsLoaded) return;
-    localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(rooms));
-  }, [rooms, defaultsLoaded]);
-
-  useEffect(() => {
-    if (!defaultsLoaded) return;
-    localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
-  }, [items, defaultsLoaded]);
+    try {
+      localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(rooms));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [rooms]);
 
   useEffect(() => {
-    if (!defaultsLoaded) return;
-    localStorage.setItem(STORAGE_KEY_COLUMNS, JSON.stringify(columns));
-  }, [columns, defaultsLoaded]);
+    try {
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [items]);
 
   useEffect(() => {
-    if (!defaultsLoaded) return;
-    localStorage.setItem(
-      STORAGE_KEY_HIDDEN_COLS,
-      JSON.stringify(hiddenColumnIds),
-    );
-  }, [hiddenColumnIds, defaultsLoaded]);
+    try {
+      localStorage.setItem(STORAGE_KEY_COLUMNS, JSON.stringify(columns));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [columns]);
 
-  // ── Keyboard Shortcuts (Standard Pro Operator Shortcuts) ────────
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Focus search: press '/' when not typing in form fields
-      if (e.key === "/" && !e.isComposing) {
-        const target = e.target as HTMLElement;
-        const inInput =
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT";
-        if (!inInput) {
-          e.preventDefault();
-          searchInputRef.current?.focus();
-        }
-      }
+    try {
+      localStorage.setItem(
+        STORAGE_KEY_HIDDEN_COLS,
+        JSON.stringify(hiddenColumnIds),
+      );
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [hiddenColumnIds]);
 
-      // Quick add item: Alt + N
-      if (e.altKey && (e.key === "n" || e.key === "N")) {
-        e.preventDefault();
-        setEditingItem(null);
-        setIsItemModalOpen(true);
-      }
-
-      // Toggle sidebar: Ctrl + B or Cmd + B
-      if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B")) {
-        e.preventDefault();
-        toggleSidebar();
-      }
-
-      // Escape key clears selection or closes overlay
-      if (e.key === "Escape" && !e.isComposing) {
-        if (selectedIds.length > 0) {
-          setSelectedIds([]);
-        } else if (confirmDialog) {
-          setConfirmDialog(null);
-        } else if (isOnboardingOpen) {
-          handleCloseOnboarding();
-        } else if (assetTagItem) {
-          setAssetTagItem(null);
-        } else if (importAnalysis) {
-          setImportAnalysis(null);
-        } else if (isItemModalOpen) {
-          setIsItemModalOpen(false);
-        } else if (isColumnsModalOpen) {
-          setIsColumnsModalOpen(false);
-        } else if (isRoomModalOpen) {
-          setIsRoomModalOpen(false);
-        } else if (isMobileNavOpen) {
-          setIsMobileNavOpen(false);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    selectedIds,
-    confirmDialog,
-    assetTagItem,
-    importAnalysis,
-    isItemModalOpen,
-    isColumnsModalOpen,
-    isRoomModalOpen,
-    isMobileNavOpen,
-    toggleSidebar,
-  ]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_FACILITIES, JSON.stringify(facilities));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [facilities]);
 
   // ── Toast Helper ────────────────────────────────────────────────
   const showToast = useCallback(
     (message: string, type: "success" | "error" | "info" = "success") => {
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
+      }
       setToast({ message, type });
-      setTimeout(() => {
+      toastTimerRef.current = window.setTimeout(() => {
         setToast(null);
+        toastTimerRef.current = null;
       }, 3500);
     },
     [],
   );
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // ── Derived Data ────────────────────────────────────────────────
   const currentRoom = useMemo(() => {
@@ -449,11 +523,34 @@ export function App() {
     return Array.from(set);
   }, [columns, items]);
 
+  // Facility-scoped rooms & items
+  const facilityScopedRooms = useMemo(() => {
+    if (selectedFacilityId === "ALL") return rooms;
+    return rooms.filter(
+      (r) => normalizeFacilityId(r.facility, facilities) === selectedFacilityId,
+    );
+  }, [rooms, selectedFacilityId, facilities]);
+
+  const facilityRoomIdSet = useMemo(() => {
+    return new Set(facilityScopedRooms.map((r) => r.id));
+  }, [facilityScopedRooms]);
+
+  const facilityScopedItems = useMemo(() => {
+    if (selectedFacilityId === "ALL") return items;
+    return items.filter(
+      (it) =>
+        (it.facility &&
+          normalizeFacilityId(it.facility, facilities) ===
+            selectedFacilityId) ||
+        facilityRoomIdSet.has(it.roomId),
+    );
+  }, [items, selectedFacilityId, facilityRoomIdSet, facilities]);
+
   // Items in active room view (prior to text/status filters)
   const roomScopedItems = useMemo(() => {
-    if (selectedRoomId === "ALL") return items;
+    if (selectedRoomId === "ALL") return facilityScopedItems;
     return items.filter((it) => it.roomId === selectedRoomId);
-  }, [items, selectedRoomId]);
+  }, [facilityScopedItems, items, selectedRoomId]);
 
   // Quick KPI metrics for current view
   const attentionCount = useMemo(() => {
@@ -473,8 +570,17 @@ export function App() {
   const filteredItems = useMemo(() => {
     return items
       .filter((item) => {
-        if (selectedRoomId !== "ALL" && item.roomId !== selectedRoomId)
-          return false;
+        if (selectedRoomId !== "ALL") {
+          if (item.roomId !== selectedRoomId) return false;
+        } else if (selectedFacilityId !== "ALL") {
+          const matchesItemFacility =
+            Boolean(item.facility) &&
+            normalizeFacilityId(item.facility, facilities) ===
+              selectedFacilityId;
+          if (!facilityRoomIdSet.has(item.roomId) && !matchesItemFacility) {
+            return false;
+          }
+        }
         if (categoryFilter !== "ALL" && item.category !== categoryFilter)
           return false;
         if (
@@ -522,6 +628,9 @@ export function App() {
   }, [
     items,
     selectedRoomId,
+    selectedFacilityId,
+    facilityRoomIdSet,
+    facilities,
     categoryFilter,
     conditionFilter,
     needsAttentionFilter,
@@ -561,42 +670,50 @@ export function App() {
   // ── Item Quantity Direct Manipulation ───────────────────────────
   const handleQuantityChange = useCallback(
     async (itemId: string, delta: number) => {
+      const target = itemsRef.current.find((it) => it.id === itemId);
+      if (!target) return;
+      const newQty = Math.max(0, (Number(target.quantity) || 0) + delta);
+      const now = new Date().toISOString();
+      localMutationVersionRef.current += 1;
+
       setItems((prev) =>
-        prev.map((it) => {
-          if (it.id === itemId) {
-            const newQty = Math.max(0, (Number(it.quantity) || 0) + delta);
-            inventoryService.updateQuantity(itemId, newQty);
-            return {
-              ...it,
-              quantity: newQty,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return it;
-        }),
+        prev.map((it) =>
+          it.id === itemId ? { ...it, quantity: newQty, updatedAt: now } : it,
+        ),
       );
+
+      const ok = await inventoryService.updateQuantity(itemId, newQty);
+      if (!ok && currentUser) {
+        showToast(
+          "Saved locally, but cloud quantity sync failed. Check connection.",
+          "error",
+        );
+      }
     },
-    [],
+    [currentUser, showToast],
   );
 
   const handleSetQuantity = useCallback(
     async (itemId: string, newQty: number) => {
-      const val = Math.max(0, newQty || 0);
-      inventoryService.updateQuantity(itemId, val);
+      const val = Math.max(0, Number.isFinite(newQty) ? newQty : 0);
+      const now = new Date().toISOString();
+      localMutationVersionRef.current += 1;
+
       setItems((prev) =>
-        prev.map((it) => {
-          if (it.id === itemId) {
-            return {
-              ...it,
-              quantity: val,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return it;
-        }),
+        prev.map((it) =>
+          it.id === itemId ? { ...it, quantity: val, updatedAt: now } : it,
+        ),
       );
+
+      const ok = await inventoryService.updateQuantity(itemId, val);
+      if (!ok && currentUser) {
+        showToast(
+          "Saved locally, but cloud quantity sync failed. Check connection.",
+          "error",
+        );
+      }
     },
-    [],
+    [currentUser, showToast],
   );
 
   // ── Bulk Selection Handlers ─────────────────────────────────────
@@ -623,54 +740,86 @@ export function App() {
     [],
   );
 
-  const handleBulkMove = (targetRoomId: string) => {
-    const count = selectedIds.length;
+  const handleBulkMove = async (targetRoomId: string) => {
+    const idsSnapshot = [...selectedIds];
+    const count = idsSnapshot.length;
     if (count === 0) return;
+    const idSet = new Set(idsSnapshot);
     const targetRoom = rooms.find((r) => r.id === targetRoomId);
     const roomName = targetRoom?.name || "room";
+    const targetFacility = normalizeFacilityId(
+      targetRoom?.facility,
+      facilities,
+    );
     const now = new Date().toISOString();
+    localMutationVersionRef.current += 1;
 
-    inventoryService.bulkMoveRoom(selectedIds, targetRoomId);
-
+    const updatedSubset: InventoryItem[] = [];
     setItems((prev) =>
       prev.map((it) => {
-        if (selectedIds.indexOf(it.id) !== -1) {
-          return {
+        if (idSet.has(it.id)) {
+          const updated: InventoryItem = {
             ...it,
             roomId: targetRoomId,
             room: roomName,
+            facility: targetFacility,
             updatedAt: now,
           };
+          updatedSubset.push(updated);
+          return updated;
         }
         return it;
       }),
     );
-    showToast(`Transferred ${count} items to "${roomName}"`, "success");
     setSelectedIds([]);
+
+    const ok = await inventoryService.upsertItemsBatch(updatedSubset);
+    if (ok) {
+      showToast(`Transferred ${count} items to "${roomName}"`, "success");
+    } else {
+      showToast(
+        `Transferred ${count} items locally, but cloud sync failed.`,
+        "error",
+      );
+    }
   };
 
-  const handleBulkSetStatus = (newStatus: string) => {
-    const count = selectedIds.length;
+  const handleBulkSetStatus = async (newStatus: string) => {
+    const idsSnapshot = [...selectedIds];
+    const count = idsSnapshot.length;
     if (count === 0) return;
+    const idSet = new Set(idsSnapshot);
+    const canonicalStatus = normalizeStatus(newStatus);
     const now = new Date().toISOString();
-
-    inventoryService.bulkUpdateStatus(selectedIds, newStatus);
+    localMutationVersionRef.current += 1;
 
     setItems((prev) =>
       prev.map((it) => {
-        if (selectedIds.indexOf(it.id) !== -1) {
+        if (idSet.has(it.id)) {
           return {
             ...it,
-            status: newStatus,
-            condition: newStatus,
+            status: canonicalStatus,
+            condition: canonicalStatus,
             updatedAt: now,
           };
         }
         return it;
       }),
     );
-    showToast(`Updated status to "${newStatus}" for ${count} items`, "success");
     setSelectedIds([]);
+
+    const ok = await inventoryService.bulkUpdateStatus(
+      idsSnapshot,
+      canonicalStatus,
+    );
+    if (ok) {
+      showToast(
+        `Updated status to "${canonicalStatus}" for ${count} items`,
+        "success",
+      );
+    } else {
+      showToast(`Updated status locally, but cloud sync failed.`, "error");
+    }
   };
 
   // ── Excel export: styled ExcelJS writer with SheetJS fallback ──────────
@@ -679,51 +828,73 @@ export function App() {
     exportItems: InventoryItem[],
     selectedRoom?: Room,
   ) => {
-    const { exportInventoryToStyledExcel } =
-      await import("./utils/excelStyledExport");
-    const styledOk = await exportInventoryToStyledExcel({
-      mode,
-      rooms,
-      items,
-      currentItems: exportItems,
-      columns,
-      selectedRoom,
-    });
-    if (!styledOk) {
-      // Fallback to the plain SheetJS writer when ExcelJS is unavailable.
-      const { exportInventoryToExcel } = await import("./utils/excelExport");
-      exportInventoryToExcel(mode, rooms, exportItems, columns, selectedRoom);
+    try {
+      const { exportInventoryToStyledExcel } =
+        await import("./utils/excelStyledExport");
+      const styledOk = await exportInventoryToStyledExcel({
+        mode,
+        rooms,
+        items,
+        currentItems: exportItems,
+        columns,
+        selectedRoom,
+      });
+      if (!styledOk) {
+        // Fallback to the plain SheetJS writer when ExcelJS is unavailable.
+        const { exportInventoryToExcel } = await import("./utils/excelExport");
+        exportInventoryToExcel(mode, rooms, exportItems, columns, selectedRoom);
+      }
+      return true;
+    } catch (err) {
+      console.error("Excel export failed:", err);
+      showToast(
+        `Excel export failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+        "error",
+      );
+      return false;
     }
   };
 
   const handleBulkExportExcel = async () => {
     const selected = items.filter((it) => selectedIds.indexOf(it.id) !== -1);
     if (selected.length === 0) return;
-    await exportToExcel("current", selected, currentRoom);
-    showToast(`Exported ${selected.length} items to Excel`, "success");
+    const ok = await exportToExcel("current", selected, currentRoom);
+    if (ok) {
+      showToast(`Exported ${selected.length} items to Excel`, "success");
+    }
   };
 
   const handleExportExcel = async (mode: "multi" | "current") => {
-    await exportToExcel(mode, items, currentRoom);
+    const scopeItems = mode === "current" ? filteredItems : items;
+    await exportToExcel(mode, scopeItems, currentRoom);
   };
 
   const handleBulkDelete = () => {
-    const count = selectedIds.length;
+    const idsSnapshot = [...selectedIds];
+    const count = idsSnapshot.length;
     if (count === 0) return;
+    const idSet = new Set(idsSnapshot);
     setConfirmDialog({
       title: `Delete ${count} Selected Items`,
       message: `Are you sure you want to delete ${count} inventory ${
         count === 1 ? "item" : "items"
       }? This action removes them from the catalog.`,
       isDestructive: true,
-      onConfirm: () => {
-        selectedIds.forEach((id) => inventoryService.deleteItem(id));
-        setItems((prev) =>
-          prev.filter((it) => selectedIds.indexOf(it.id) === -1),
-        );
-        showToast(`Deleted ${count} items`, "success");
-        setSelectedIds([]);
+      onConfirm: async () => {
+        localMutationVersionRef.current += 1;
+        setItems((prev) => prev.filter((it) => !idSet.has(it.id)));
+        setSelectedIds((prev) => prev.filter((id) => !idSet.has(id)));
         setConfirmDialog(null);
+
+        const ok = await inventoryService.deleteItemsBatch(idsSnapshot);
+        if (ok) {
+          showToast(`Deleted ${count} items`, "success");
+        } else {
+          showToast(
+            `Deleted ${count} items locally, but cloud deletion failed.`,
+            "error",
+          );
+        }
       },
     });
   };
@@ -744,11 +915,20 @@ export function App() {
         title: "Delete Inventory Item",
         message: `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
         isDestructive: true,
-        onConfirm: () => {
-          inventoryService.deleteItem(item.id);
+        onConfirm: async () => {
+          localMutationVersionRef.current += 1;
           setItems((prev) => prev.filter((i) => i.id !== item.id));
-          showToast(`Deleted "${item.name}"`, "success");
+          setSelectedIds((prev) => prev.filter((id) => id !== item.id));
           setConfirmDialog(null);
+          const ok = await inventoryService.deleteItem(item.id);
+          if (ok) {
+            showToast(`Deleted "${item.name}"`, "success");
+          } else {
+            showToast(
+              `Deleted "${item.name}" locally, but cloud deletion failed.`,
+              "error",
+            );
+          }
         },
       });
     },
@@ -757,20 +937,37 @@ export function App() {
 
   const confirmDeleteRoom = useCallback(
     (room: Room) => {
-      const count = items.filter((i) => i.roomId === room.id).length;
+      const associatedItems = items.filter((i) => i.roomId === room.id);
+      const count = associatedItems.length;
+      const associatedIdSet = new Set(associatedItems.map((i) => i.id));
       setConfirmDialog({
         title: `Delete room: ${room.name}`,
         message: `Deleting this room will also remove its ${count} associated inventory ${
           count === 1 ? "item" : "items"
         }. This action cannot be undone. Proceed?`,
         isDestructive: true,
-        onConfirm: () => {
-          inventoryService.deleteRoom(room.id);
+        onConfirm: async () => {
+          localMutationVersionRef.current += 1;
           setRooms((prev) => prev.filter((r) => r.id !== room.id));
           setItems((prev) => prev.filter((i) => i.roomId !== room.id));
+          setSelectedIds((prev) =>
+            prev.filter((id) => !associatedIdSet.has(id)),
+          );
           if (selectedRoomId === room.id) setSelectedRoomId("ALL");
-          showToast(`Room "${room.name}" deleted`, "success");
           setConfirmDialog(null);
+
+          const [itemsOk, roomOk] = await Promise.all([
+            inventoryService.deleteItemsBatch(Array.from(associatedIdSet)),
+            inventoryService.deleteRoom(room.id),
+          ]);
+          if (itemsOk && roomOk) {
+            showToast(`Room "${room.name}" deleted`, "success");
+          } else {
+            showToast(
+              `Deleted "${room.name}" locally, but cloud sync failed.`,
+              "error",
+            );
+          }
         },
       });
     },
@@ -805,11 +1002,14 @@ export function App() {
     input.click();
   };
 
-  const handleImportDirect = () => {
+  const handleImportDirect = async () => {
     if (!importAnalysis) return;
+    const activeFacility =
+      selectedFacilityId !== "ALL" ? selectedFacilityId : DEFAULT_FACILITY_ID;
     const existingRoomNames = new Map(
       rooms.map((r) => [r.name.trim().toLowerCase(), r.id]),
     );
+    const addedRooms: Room[] = [];
     const newRooms: Room[] = [...rooms];
 
     importAnalysis.roomsList.forEach((roomName) => {
@@ -817,79 +1017,179 @@ export function App() {
       if (!existingRoomNames.has(key)) {
         const id = generateRoomId();
         existingRoomNames.set(key, id);
-        newRooms.push({ id, name: roomName });
+        const createdRoom: Room = {
+          id,
+          name: roomName,
+          facility: activeFacility,
+        };
+        addedRooms.push(createdRoom);
+        newRooms.push(createdRoom);
       }
     });
 
-    const fallbackRoomId = rooms[0]?.id || "room-ccs";
-    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
-      ...it,
-      roomId:
-        existingRoomNames.get(it.room?.trim().toLowerCase()) || fallbackRoomId,
-    }));
+    const fallbackRoom = facilityScopedRooms[0] || newRooms[0] || rooms[0];
+    const fallbackRoomId = fallbackRoom?.id || "room-ccs";
+    const roomById = new Map(newRooms.map((r) => [r.id, r]));
 
-    newRooms.forEach((r) => inventoryService.upsertRoom(r));
-    mappedItems.forEach((it) => inventoryService.upsertItem(it));
+    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => {
+      const resolvedRoomId =
+        existingRoomNames.get(it.room?.trim().toLowerCase()) || fallbackRoomId;
+      const resolvedRoom = roomById.get(resolvedRoomId);
+      return {
+        ...it,
+        roomId: resolvedRoomId,
+        room: resolvedRoom?.name || it.room || "",
+        facility: normalizeFacilityId(
+          resolvedRoom?.facility || activeFacility,
+          facilities,
+        ),
+      };
+    });
+
+    localMutationVersionRef.current += 1;
     setRooms(newRooms);
     setItems((prev) => [...mappedItems, ...prev]);
-    showToast(
-      `Successfully imported ${mappedItems.length} items across ${importAnalysis.roomsList.length} rooms`,
-      "success",
-    );
     setImportAnalysis(null);
+
+    const [roomsOk, itemsOk] = await Promise.all([
+      inventoryService.upsertRoomsBatch(addedRooms),
+      inventoryService.upsertItemsBatch(mappedItems),
+    ]);
+    if (roomsOk && itemsOk) {
+      showToast(
+        `Successfully imported ${mappedItems.length} items across ${importAnalysis.roomsList.length} rooms`,
+        "success",
+      );
+    } else {
+      showToast(
+        `Imported ${mappedItems.length} items locally, but cloud sync failed.`,
+        "error",
+      );
+    }
   };
 
-  const handleImportCurrentRoom = () => {
+  const handleImportCurrentRoom = async () => {
     if (!importAnalysis) return;
+    const fallbackRoom = facilityScopedRooms[0] || rooms[0];
     const targetRoomId =
-      selectedRoomId !== "ALL" ? selectedRoomId : rooms[0]?.id || "room-ccs";
-    const targetRoomName =
-      rooms.find((r) => r.id === targetRoomId)?.name || "Current Room";
+      selectedRoomId !== "ALL" ? selectedRoomId : fallbackRoom?.id;
+    if (!targetRoomId) {
+      showToast("Create a room before importing items.", "error");
+      return;
+    }
+    const targetRoom = rooms.find((r) => r.id === targetRoomId);
+    const targetRoomName = targetRoom?.name || "Current Room";
+    const targetFacility = normalizeFacilityId(
+      targetRoom?.facility,
+      facilities,
+    );
 
     const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
       ...it,
       roomId: targetRoomId,
       room: targetRoomName,
+      facility: targetFacility,
     }));
 
-    mappedItems.forEach((it) => inventoryService.upsertItem(it));
+    localMutationVersionRef.current += 1;
     setItems((prev) => [...mappedItems, ...prev]);
-    showToast(
-      `Added ${mappedItems.length} items to "${targetRoomName}"`,
-      "success",
-    );
     setImportAnalysis(null);
+
+    const ok = await inventoryService.upsertItemsBatch(mappedItems);
+    if (ok) {
+      showToast(
+        `Added ${mappedItems.length} items to "${targetRoomName}"`,
+        "success",
+      );
+    } else {
+      showToast(
+        `Added ${mappedItems.length} items locally, but cloud sync failed.`,
+        "error",
+      );
+    }
   };
 
   const handleReplaceAll = () => {
     if (!importAnalysis) return;
-    const existingRoomNames = new Map<string, string>();
-    const newRooms: Room[] = [];
+    const snapshot = importAnalysis;
+    setConfirmDialog({
+      title: "Replace Entire Inventory Catalog",
+      message: `This will permanently delete all ${rooms.length.toLocaleString()} existing rooms and ${items.length.toLocaleString()} items and replace them with ${snapshot.totalItems.toLocaleString()} imported items. This action cannot be undone.`,
+      confirmLabel: "Replace Entire Database",
+      isDestructive: true,
+      onConfirm: async () => {
+        const activeFacility =
+          selectedFacilityId !== "ALL"
+            ? selectedFacilityId
+            : DEFAULT_FACILITY_ID;
+        const existingRoomNames = new Map<string, string>();
+        const newRooms: Room[] = [];
 
-    importAnalysis.roomsList.forEach((roomName) => {
-      const key = roomName.trim().toLowerCase();
-      const id = generateRoomId();
-      existingRoomNames.set(key, id);
-      newRooms.push({ id, name: roomName });
+        snapshot.roomsList.forEach((roomName) => {
+          const key = roomName.trim().toLowerCase();
+          const id = generateRoomId();
+          existingRoomNames.set(key, id);
+          newRooms.push({ id, name: roomName, facility: activeFacility });
+        });
+
+        if (newRooms.length === 0) {
+          const defaultId = generateRoomId();
+          existingRoomNames.set("general storage", defaultId);
+          newRooms.push({
+            id: defaultId,
+            name: "General Storage",
+            facility: activeFacility,
+          });
+        }
+
+        const fallbackRoomId = newRooms[0].id;
+        const roomById = new Map(newRooms.map((r) => [r.id, r]));
+        const mappedItems: InventoryItem[] = snapshot.items.map((it) => {
+          const resolvedRoomId =
+            existingRoomNames.get(it.room?.trim().toLowerCase()) ||
+            fallbackRoomId;
+          const resolvedRoom = roomById.get(resolvedRoomId);
+          return {
+            ...it,
+            roomId: resolvedRoomId,
+            room: resolvedRoom?.name || it.room || "",
+            facility: normalizeFacilityId(
+              resolvedRoom?.facility || activeFacility,
+              facilities,
+            ),
+          };
+        });
+
+        const obsoleteRoomIds = rooms.map((r) => r.id);
+        const obsoleteItemIds = items.map((it) => it.id);
+
+        localMutationVersionRef.current += 1;
+        setRooms(newRooms);
+        setItems(mappedItems);
+        setSelectedIds([]);
+        setSelectedRoomId("ALL");
+        setImportAnalysis(null);
+        setConfirmDialog(null);
+
+        const ok = await inventoryService.replaceAllInCloud(
+          newRooms,
+          mappedItems,
+          obsoleteRoomIds,
+          obsoleteItemIds,
+        );
+        if (ok) {
+          showToast(
+            `Replaced entire catalog with ${mappedItems.length} items from spreadsheet`,
+            "success",
+          );
+        } else {
+          showToast(
+            `Replaced catalog locally, but cloud replacement failed.`,
+            "error",
+          );
+        }
+      },
     });
-
-    const fallbackRoomId = newRooms[0]?.id || "room-ccs";
-    const mappedItems: InventoryItem[] = importAnalysis.items.map((it) => ({
-      ...it,
-      roomId:
-        existingRoomNames.get(it.room?.trim().toLowerCase()) || fallbackRoomId,
-    }));
-
-    newRooms.forEach((r) => inventoryService.upsertRoom(r));
-    mappedItems.forEach((it) => inventoryService.upsertItem(it));
-    setRooms(newRooms);
-    setItems(mappedItems);
-    setSelectedRoomId("ALL");
-    showToast(
-      `Replaced entire catalog with ${mappedItems.length} items from spreadsheet`,
-      "success",
-    );
-    setImportAnalysis(null);
   };
 
   const handleSort = useCallback(
@@ -915,17 +1215,41 @@ export function App() {
 
   const handleAddItem = useCallback(
     (preselectedRoomId?: string) => {
-      if (rooms.length === 0) {
-        showToast("Create a room before adding items.", "error");
+      if (facilityScopedRooms.length === 0) {
+        showToast(
+          "Create a room in this facility before adding items.",
+          "error",
+        );
         return;
       }
       if (preselectedRoomId && preselectedRoomId !== "ALL") {
         setSelectedRoomId(preselectedRoomId);
+      } else if (
+        selectedRoomId === "ALL" &&
+        selectedFacilityId !== "ALL" &&
+        facilityScopedRooms.length > 0
+      ) {
+        // Default ItemModal to a room within the currently selected facility
+        setEditingItem({
+          id: "",
+          roomId: facilityScopedRooms[0].id,
+          facility: selectedFacilityId,
+          name: "",
+          category: "General",
+          quantity: 1,
+          units: "pcs",
+          status: "Working",
+          condition: "Working",
+          createdAt: "",
+          updatedAt: "",
+        });
+        setIsItemModalOpen(true);
+        return;
       }
       setEditingItem(null);
       setIsItemModalOpen(true);
     },
-    [rooms.length, showToast],
+    [facilityScopedRooms, selectedRoomId, selectedFacilityId, showToast],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -946,9 +1270,110 @@ export function App() {
     setIsRoomModalOpen(true);
   }, []);
 
+  const handleAddFacility = useCallback(() => {
+    if (currentUser?.role !== "admin") {
+      showToast("Action restricted: Only Admins can add facilities.", "error");
+      return;
+    }
+    setEditingFacility(null);
+    setIsFacilityModalOpen(true);
+  }, [currentUser?.role, showToast]);
+
+  const handleEditFacility = useCallback(
+    (facility: Facility) => {
+      if (currentUser?.role !== "admin") {
+        showToast(
+          "Action restricted: Only Admins can modify facilities.",
+          "error",
+        );
+        return;
+      }
+      setEditingFacility(facility);
+      setIsFacilityModalOpen(true);
+    },
+    [currentUser?.role, showToast],
+  );
+
+  const handleSaveFacility = useCallback(
+    async (savedFacility: Facility) => {
+      localMutationVersionRef.current += 1;
+      setFacilities((prev) => {
+        const index = prev.findIndex((f) => f.id === savedFacility.id);
+        if (index >= 0) {
+          const next = [...prev];
+          next[index] = savedFacility;
+          return next;
+        }
+        return [...prev, savedFacility];
+      });
+      setIsFacilityModalOpen(false);
+      await inventoryService.upsertFacility(savedFacility);
+      showToast(
+        `Facility "${savedFacility.name}" saved successfully!`,
+        "success",
+      );
+    },
+    [showToast],
+  );
+
+  const confirmDeleteFacility = useCallback(
+    (facility: Facility) => {
+      if (facility.isSystem) {
+        showToast("System default facilities cannot be deleted.", "error");
+        return;
+      }
+      const assignedRooms = rooms.filter(
+        (r) => normalizeFacilityId(r.facility, facilities) === facility.id,
+      );
+      const assignedItems = items.filter(
+        (it) =>
+          it.facility &&
+          normalizeFacilityId(it.facility, facilities) === facility.id,
+      );
+      if (assignedRooms.length > 0 || assignedItems.length > 0) {
+        showToast(
+          `Cannot delete "${facility.name}": ${assignedRooms.length} room(s) and ${assignedItems.length} item(s) are assigned to it. Reassign or delete them first.`,
+          "error",
+        );
+        return;
+      }
+      setConfirmDialog({
+        title: `Delete Facility "${facility.name}"?`,
+        message: `Are you sure you want to delete the facility "${facility.name}"? This action cannot be undone.`,
+        isDestructive: true,
+        confirmLabel: "Delete Facility",
+        onConfirm: async () => {
+          localMutationVersionRef.current += 1;
+          setFacilities((prev) => prev.filter((f) => f.id !== facility.id));
+          if (selectedFacilityId === facility.id) {
+            setSelectedFacilityId("ALL");
+          }
+          setConfirmDialog(null);
+          setIsFacilityModalOpen(false);
+          await inventoryService.deleteFacility(facility.id);
+          showToast(`Deleted facility "${facility.name}"`, "success");
+        },
+      });
+    },
+    [rooms, items, facilities, selectedFacilityId, showToast],
+  );
+
   const handleSignOut = async () => {
     await logoutCurrentSession();
     setCurrentUser(null);
+    setSelectedRoomId("ALL");
+    setSelectedFacilityId("ALL");
+    setSelectedIds([]);
+    handleResetFilters();
+    setIsItemModalOpen(false);
+    setIsColumnsModalOpen(false);
+    setIsRoomModalOpen(false);
+    setIsFacilityModalOpen(false);
+    setIsProfileModalOpen(false);
+    setAssetTagItem(null);
+    setImportAnalysis(null);
+    setIsMobileNavOpen(false);
+    setIsOnboardingOpen(false);
     showToast("Signed out of KM100 System", "info");
   };
 
@@ -1004,12 +1429,87 @@ export function App() {
     }
   }, [currentUser]);
 
+  // ── Keyboard Shortcuts (Standard Pro Operator Shortcuts) ────────
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Focus search: press '/' when not typing in form fields
+      if (e.key === "/" && !e.isComposing) {
+        const target = e.target as HTMLElement;
+        const inInput =
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT";
+        if (!inInput) {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+
+      // Quick add item: Alt + N
+      if (e.altKey && (e.key === "n" || e.key === "N")) {
+        e.preventDefault();
+        handleAddItem();
+      }
+
+      // Toggle sidebar: Ctrl + B or Cmd + B
+      if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B")) {
+        e.preventDefault();
+        toggleSidebar();
+      }
+
+      // Escape key closes topmost overlay first, then clears row selection
+      if (e.key === "Escape" && !e.isComposing && !e.defaultPrevented) {
+        if (confirmDialog) {
+          setConfirmDialog(null);
+        } else if (isOnboardingOpen) {
+          handleCloseOnboarding();
+        } else if (isProfileModalOpen) {
+          setIsProfileModalOpen(false);
+        } else if (assetTagItem) {
+          setAssetTagItem(null);
+        } else if (importAnalysis) {
+          setImportAnalysis(null);
+        } else if (isItemModalOpen) {
+          setIsItemModalOpen(false);
+        } else if (isColumnsModalOpen) {
+          setIsColumnsModalOpen(false);
+        } else if (isRoomModalOpen) {
+          setIsRoomModalOpen(false);
+        } else if (isFacilityModalOpen) {
+          setIsFacilityModalOpen(false);
+        } else if (isMobileNavOpen) {
+          setIsMobileNavOpen(false);
+        } else if (selectedIds.length > 0) {
+          setSelectedIds([]);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    selectedIds,
+    confirmDialog,
+    isOnboardingOpen,
+    handleCloseOnboarding,
+    isProfileModalOpen,
+    assetTagItem,
+    importAnalysis,
+    isItemModalOpen,
+    isColumnsModalOpen,
+    isRoomModalOpen,
+    isFacilityModalOpen,
+    isMobileNavOpen,
+    handleAddItem,
+    toggleSidebar,
+  ]);
+
   // ── Authentication Guard (Institutional Login & Password Recovery) ─────────
   if (!currentUser || isPasswordRecovery) {
     return (
       <>
         <LoginScreen
           initialMode={isPasswordRecovery ? "reset" : undefined}
+          onClearRecovery={() => setIsPasswordRecovery(false)}
           onLoginSuccess={(user, isFirstTimeRegistration) => {
             setIsPasswordRecovery(false);
             const cleanUser = {
@@ -1035,16 +1535,6 @@ export function App() {
     );
   }
 
-  // ── Institutional Skeleton Loader (Enterprise Fast-Boot Mirror) ─────────
-  if (!defaultsLoaded) {
-    return (
-      <>
-        <AppShellSkeleton />
-        {isSplashVisible && <SplashScreen isFading={isSplashFading} />}
-      </>
-    );
-  }
-
   return (
     <div className="flex h-screen flex-col bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100">
       {/* ── Global Institutional Header ─────────────────────────────── */}
@@ -1060,13 +1550,15 @@ export function App() {
           setIsColumnsModalOpen(true);
         }}
         onExportExcel={handleExportExcel}
-        onExportCsv={() => downloadInventoryCsv(items, rooms, columns)}
+        onExportCsv={() => downloadInventoryCsv(filteredItems, rooms, columns)}
         onTriggerUploadExcel={handleTriggerUploadExcel}
         onOpenMobileMenu={() => setIsMobileNavOpen(true)}
         onToggleSidebar={toggleSidebar}
         isSidebarCollapsed={isSidebarCollapsed}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         selectedRoomId={selectedRoomId}
+        selectedFacilityId={selectedFacilityId}
+        facilities={facilities}
         currentRoom={currentRoom}
         currentUser={currentUser}
         onSignOut={handleRequestSignOut}
@@ -1077,12 +1569,18 @@ export function App() {
         {!isSidebarCollapsed && (
           <Sidebar
             rooms={rooms}
+            facilities={facilities}
             selectedRoomId={selectedRoomId}
+            selectedFacilityId={selectedFacilityId}
+            onSelectFacility={handleSelectFacility}
+            onAddFacility={handleAddFacility}
+            onEditFacility={handleEditFacility}
+            onDeleteFacility={confirmDeleteFacility}
             onSelectRoom={setSelectedRoomId}
             onAddRoom={handleAddRoom}
             onEditRoom={handleEditRoom}
             onDeleteRoom={confirmDeleteRoom}
-            totalItemsCount={items.length}
+            totalItemsCount={facilityScopedItems.length}
             roomItemCounts={roomItemCounts}
             roomAttentionCounts={roomAttentionCounts}
             userRole={currentUser?.role}
@@ -1101,15 +1599,32 @@ export function App() {
             {/* Overview Dashboard (When "All Rooms" is selected) */}
             {selectedRoomId === "ALL" && (
               <OverviewDashboard
-                rooms={rooms}
-                items={items}
+                rooms={facilityScopedRooms}
+                items={facilityScopedItems}
                 roomItemCounts={roomItemCounts}
                 onSelectRoom={setSelectedRoomId}
                 onAddItem={handleAddItem}
+                selectedFacilityId={selectedFacilityId}
+                facilities={facilities}
               />
             )}
 
             {/* Individual Room Header */}
+            {selectedRoomId !== "ALL" && !currentRoom && (
+              <div className="p-3 sm:p-4 bg-amber-50/70 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/50 flex items-center justify-between gap-3">
+                <p className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200">
+                  The selected room is no longer available.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRoomId("ALL")}
+                  className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold cursor-pointer shrink-0"
+                >
+                  Back to All Rooms
+                </button>
+              </div>
+            )}
+
             {selectedRoomId !== "ALL" && currentRoom && (
               <div className="p-3 sm:p-4 lg:p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1119,7 +1634,7 @@ export function App() {
                         onClick={() => setSelectedRoomId("ALL")}
                         className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold"
                       >
-                        Rooms
+                        {getFacility(currentRoom.facility, facilities).name}
                       </button>
                       <span className="text-slate-400 text-xs">/</span>
                       <h2 className="text-lg sm:text-xl font-heading font-bold tracking-tight text-slate-900 dark:text-white">
@@ -1208,12 +1723,15 @@ export function App() {
                       <Package size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
                         Items
                       </span>
                       <span className="mt-0.5 flex items-baseline gap-1">
-                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-slate-900 dark:text-white">
-                          {roomScopedItems.length}
+                        <span
+                          className="text-base sm:text-lg font-bold leading-none tabular-nums text-slate-900 dark:text-white truncate"
+                          title={`${roomScopedItems.length.toLocaleString()} items`}
+                        >
+                          {roomScopedItems.length.toLocaleString()}
                         </span>
                       </span>
                     </span>
@@ -1231,11 +1749,19 @@ export function App() {
                       <Layers size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
                         Units in stock
                       </span>
                       <span className="mt-0.5 flex items-baseline gap-1">
-                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-emerald-600 dark:text-emerald-400">
+                        <span
+                          className="text-base sm:text-lg font-bold leading-none tabular-nums text-emerald-600 dark:text-emerald-400 truncate"
+                          title={`${roomScopedItems
+                            .reduce(
+                              (acc, it) => acc + (Number(it.quantity) || 0),
+                              0,
+                            )
+                            .toLocaleString()} units`}
+                        >
                           {roomScopedItems
                             .reduce(
                               (acc, it) => acc + (Number(it.quantity) || 0),
@@ -1264,12 +1790,15 @@ export function App() {
                       <AlertTriangle size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
                         Need attention
                       </span>
                       <span className="mt-0.5 flex items-baseline gap-1">
-                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-rose-600 dark:text-rose-400">
-                          {attentionCount}
+                        <span
+                          className="text-base sm:text-lg font-bold leading-none tabular-nums text-rose-600 dark:text-rose-400 truncate"
+                          title={`${attentionCount.toLocaleString()} items needing attention`}
+                        >
+                          {attentionCount.toLocaleString()}
                         </span>
                       </span>
                     </span>
@@ -1292,12 +1821,15 @@ export function App() {
                       <PackageX size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="block text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
                         Out of stock
                       </span>
                       <span className="mt-0.5 flex items-baseline gap-1">
-                        <span className="text-base sm:text-lg font-bold leading-none tabular-nums text-amber-700 dark:text-amber-400">
-                          {outOfStockCount}
+                        <span
+                          className="text-base sm:text-lg font-bold leading-none tabular-nums text-amber-700 dark:text-amber-400 truncate"
+                          title={`${outOfStockCount.toLocaleString()} out of stock items`}
+                        >
+                          {outOfStockCount.toLocaleString()}
                         </span>
                       </span>
                     </span>
@@ -1324,8 +1856,11 @@ export function App() {
                     />
                     {searchQuery && (
                       <button
+                        type="button"
                         onClick={() => setSearchQuery("")}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                        aria-label="Clear search query"
+                        title="Clear search"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         <X size={15} />
                       </button>
@@ -1381,8 +1916,10 @@ export function App() {
                           columns={columns}
                           hiddenColumnIds={hiddenColumnIds}
                           onToggleColumn={handleToggleColumn}
-                          onOpenSchemaBuilder={() =>
-                            setIsColumnsModalOpen(true)
+                          onOpenSchemaBuilder={
+                            currentUser?.role === "admin"
+                              ? () => setIsColumnsModalOpen(true)
+                              : undefined
                           }
                         />
                       </div>
@@ -1441,6 +1978,7 @@ export function App() {
                     onSetQuantity={handleSetQuantity}
                     onEditItem={handleEditItem}
                     onDeleteItem={confirmDeleteItem}
+                    onPrintAssetTag={handlePrintAssetTag}
                     onAddItem={handleAddItem}
                     onResetFilters={handleResetFilters}
                     isFiltered={isFiltered}
@@ -1459,8 +1997,13 @@ export function App() {
       {isMobileNavOpen && (
         <MobileNav
           rooms={rooms}
+          facilities={facilities}
           selectedRoomId={selectedRoomId}
-          totalItemsCount={items.length}
+          selectedFacilityId={selectedFacilityId}
+          onSelectFacility={handleSelectFacility}
+          onAddFacility={handleAddFacility}
+          onEditFacility={handleEditFacility}
+          totalItemsCount={facilityScopedItems.length}
           roomItemCounts={roomItemCounts}
           roomAttentionCounts={roomAttentionCounts}
           onSelectRoom={(id) => {
@@ -1480,6 +2023,7 @@ export function App() {
             confirmDeleteRoom(room);
           }}
           onClose={() => setIsMobileNavOpen(false)}
+          userRole={currentUser?.role}
         />
       )}
 
@@ -1487,44 +2031,73 @@ export function App() {
       {isItemModalOpen && (
         <Suspense fallback={null}>
           <ItemModal
+            key={editingItem && editingItem.id ? editingItem.id : "new-item"}
             isOpen={isItemModalOpen}
             onClose={() => setIsItemModalOpen(false)}
             editingItem={editingItem}
             columns={columns}
             rooms={rooms}
+            facilities={facilities}
             selectedRoomId={selectedRoomId}
             onSave={async (savedItem) => {
-              inventoryService.upsertItem(savedItem);
-              if (editingItem) {
+              const isEdit = Boolean(editingItem && editingItem.id);
+              localMutationVersionRef.current += 1;
+              if (isEdit) {
                 setItems((prev) =>
                   prev.map((i) => (i.id === savedItem.id ? savedItem : i)),
                 );
-                showToast(`Updated item "${savedItem.name}"`, "success");
               } else {
                 setItems((prev) => [savedItem, ...prev]);
-                showToast(`Added item "${savedItem.name}"`, "success");
               }
               setIsItemModalOpen(false);
+              const ok = await inventoryService.upsertItem(savedItem);
+              if (ok) {
+                showToast(
+                  isEdit
+                    ? `Updated item "${savedItem.name}"`
+                    : `Added item "${savedItem.name}"`,
+                  "success",
+                );
+              } else {
+                showToast(
+                  `Saved "${savedItem.name}" locally, but cloud sync failed.`,
+                  "error",
+                );
+              }
             }}
           />
         </Suspense>
       )}
 
-      {/* ── Schema Builder Modal ────────────────────────────────────── */}
-      {isColumnsModalOpen && (
+      {/* ── Schema Builder Modal (Admin Only) ───────────────────────── */}
+      {isColumnsModalOpen && currentUser?.role === "admin" && (
         <Suspense fallback={<ModalSkeleton size="lg" />}>
           <ColumnsSchemaModal
             isOpen={isColumnsModalOpen}
             onClose={() => setIsColumnsModalOpen(false)}
             columns={columns}
             onSave={async (newCols) => {
-              inventoryService.saveColumns(newCols);
+              localMutationVersionRef.current += 1;
               setColumns(newCols);
-              showToast(
-                "Inventory column schema updated successfully!",
-                "success",
-              );
+              try {
+                localStorage.setItem(
+                  STORAGE_KEY_COLUMNS,
+                  JSON.stringify(newCols),
+                );
+              } catch {}
               setIsColumnsModalOpen(false);
+              const ok = await inventoryService.saveColumns(newCols);
+              if (ok) {
+                showToast(
+                  "Inventory column schema updated successfully!",
+                  "success",
+                );
+              } else {
+                showToast(
+                  "Updated schema locally, but cloud sync failed.",
+                  "error",
+                );
+              }
             }}
           />
         </Suspense>
@@ -1538,21 +2111,87 @@ export function App() {
             isOpen={isRoomModalOpen}
             onClose={() => setIsRoomModalOpen(false)}
             editingRoom={editingRoom}
+            facilities={facilities}
+            defaultFacility={
+              selectedFacilityId !== "ALL"
+                ? selectedFacilityId
+                : facilities[0]?.id || DEFAULT_FACILITY_ID
+            }
             onDelete={(room) => confirmDeleteRoom(room)}
             onSave={async (savedRoom) => {
-              inventoryService.upsertRoom(savedRoom);
+              localMutationVersionRef.current += 1;
+              const normalizedFac = normalizeFacilityId(
+                savedRoom.facility,
+                facilities,
+              );
+              const canonicalRoom: Room = {
+                ...savedRoom,
+                facility: normalizedFac,
+              };
+              const updatedItems: InventoryItem[] = [];
+
               if (editingRoom) {
                 setRooms((prev) =>
-                  prev.map((r) => (r.id === savedRoom.id ? savedRoom : r)),
+                  prev.map((r) =>
+                    r.id === canonicalRoom.id ? canonicalRoom : r,
+                  ),
                 );
-                showToast(`Renamed room to "${savedRoom.name}"`, "success");
+                // Propagate updated room name & facility to items inside this room
+                const now = new Date().toISOString();
+                setItems((prev) =>
+                  prev.map((it) => {
+                    if (it.roomId === canonicalRoom.id) {
+                      const nextItem: InventoryItem = {
+                        ...it,
+                        room: canonicalRoom.name,
+                        facility: normalizedFac,
+                        updatedAt: now,
+                      };
+                      updatedItems.push(nextItem);
+                      return nextItem;
+                    }
+                    return it;
+                  }),
+                );
               } else {
-                setRooms((prev) => [...prev, savedRoom]);
-                setSelectedRoomId(savedRoom.id);
-                showToast(`Created room "${savedRoom.name}"`, "success");
+                setRooms((prev) => [...prev, canonicalRoom]);
+                setSelectedRoomId(canonicalRoom.id);
               }
               setIsRoomModalOpen(false);
+
+              const [roomOk, itemsOk] = await Promise.all([
+                inventoryService.upsertRoom(canonicalRoom),
+                updatedItems.length > 0
+                  ? inventoryService.upsertItemsBatch(updatedItems)
+                  : Promise.resolve(true),
+              ]);
+              if (roomOk && itemsOk) {
+                showToast(
+                  editingRoom
+                    ? `Updated room "${canonicalRoom.name}"`
+                    : `Created room "${canonicalRoom.name}"`,
+                  "success",
+                );
+              } else {
+                showToast(
+                  `Saved "${canonicalRoom.name}" locally, but cloud sync failed.`,
+                  "error",
+                );
+              }
             }}
+          />
+        </Suspense>
+      )}
+
+      {/* ── Facility Add / Edit Modal ─────────────────────────────── */}
+      {isFacilityModalOpen && (
+        <Suspense fallback={<ModalSkeleton size="sm" />}>
+          <FacilityModal
+            isOpen={isFacilityModalOpen}
+            onClose={() => setIsFacilityModalOpen(false)}
+            editingFacility={editingFacility}
+            onSave={handleSaveFacility}
+            onDelete={confirmDeleteFacility}
           />
         </Suspense>
       )}
@@ -1586,12 +2225,30 @@ export function App() {
       <PrintReport
         items={filteredItems}
         rooms={rooms}
-        facilityName={currentRoom ? currentRoom.name : "All Facilities"}
+        facilityName={
+          currentRoom
+            ? `${currentRoom.name} (${getFacility(currentRoom.facility, facilities).name})`
+            : selectedFacilityId !== "ALL"
+              ? getFacility(selectedFacilityId, facilities).fullName
+              : "All Facilities"
+        }
+        facilityId={
+          currentRoom?.facility
+            ? normalizeFacilityId(currentRoom.facility, facilities)
+            : selectedFacilityId !== "ALL"
+              ? selectedFacilityId
+              : undefined
+        }
       />
 
       {/* ── Action Confirmation Dialog ──────────────────────────────── */}
       {confirmDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-modal"
+        >
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div
@@ -1603,7 +2260,10 @@ export function App() {
               >
                 {confirmDialog.icon || <AlertTriangle size={22} />}
               </div>
-              <h3 className="text-base font-heading font-bold text-slate-900 dark:text-white">
+              <h3
+                id="confirm-dialog-title"
+                className="text-base font-heading font-bold text-slate-900 dark:text-white"
+              >
                 {confirmDialog.title}
               </h3>
             </div>
@@ -1612,14 +2272,16 @@ export function App() {
             </p>
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
+                type="button"
                 onClick={() => setConfirmDialog(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition-all active:scale-[0.98] ${
+                className={`px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer ${
                   confirmDialog.isDestructive
                     ? "bg-rose-600 hover:bg-rose-700"
                     : "bg-amber-700 hover:bg-amber-800"
@@ -1680,6 +2342,8 @@ export function App() {
       {/* ── Toast Notifications ─────────────────────────────────────── */}
       {toast && (
         <div
+          role="status"
+          aria-live="polite"
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl animate-toast ${
             toast.type === "success"
               ? "bg-emerald-600 text-white"

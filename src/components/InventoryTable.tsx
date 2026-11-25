@@ -1,8 +1,83 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Tag } from "lucide-react";
 import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
 import { ConditionBadge } from "./ConditionBadge";
 import { TableSkeleton } from "./SkeletonLoader";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+
+interface QuantityInputProps {
+  value: number;
+  itemName: string;
+  onCommit: (nextQty: number) => void;
+}
+
+const QuantityInput: React.FC<QuantityInputProps> = ({
+  value,
+  itemName,
+  onCommit,
+}) => {
+  const [draft, setDraft] = useState(String(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setDraft(String(value));
+    }
+  }, [value, isFocused]);
+
+  const commitDraft = (raw: string) => {
+    const trimmed = raw.trim();
+    if (trimmed === "") {
+      setDraft(String(value));
+      return;
+    }
+    const parsed = Math.max(0, parseInt(trimmed, 10) || 0);
+    setDraft(String(parsed));
+    if (parsed !== value) {
+      onCommit(parsed);
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={isFocused ? draft : String(value)}
+      onFocus={(e) => {
+        setIsFocused(true);
+        setDraft(String(value));
+        e.target.select();
+      }}
+      onChange={(e) => {
+        const digitsOnly = e.target.value.replace(/[^0-9]/g, "");
+        setDraft(digitsOnly);
+        if (digitsOnly !== "") {
+          const parsed = Math.max(0, parseInt(digitsOnly, 10) || 0);
+          onCommit(parsed);
+        }
+      }}
+      onBlur={() => {
+        setIsFocused(false);
+        commitDraft(draft);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          (e.target as HTMLInputElement).blur();
+        } else if (e.key === "Escape") {
+          setDraft(String(value));
+          setIsFocused(false);
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      aria-label={`Manual quantity input for ${itemName}`}
+      title="Click to type or edit quantity directly"
+      style={{
+        width: `${Math.max(3, (isFocused ? draft : String(value)).length + 1)}ch`,
+      }}
+      className="min-w-[2.75rem] max-w-[6rem] px-1.5 py-0.5 text-center font-bold tabular-nums text-xs sm:text-sm text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-all"
+    />
+  );
+};
 
 interface Props {
   /** All items to display continuously. */
@@ -18,6 +93,7 @@ interface Props {
   onSetQuantity?: (itemId: string, qty: number) => void;
   onEditItem: (item: InventoryItem) => void;
   onDeleteItem: (item: InventoryItem) => void;
+  onPrintAssetTag?: (item: InventoryItem) => void;
   onAddItem: () => void;
   onResetFilters: () => void;
   isFiltered: boolean;
@@ -40,6 +116,7 @@ export const InventoryTable: React.FC<Props> = ({
   onSetQuantity,
   onEditItem,
   onDeleteItem,
+  onPrintAssetTag,
   onAddItem,
   onResetFilters,
   isFiltered,
@@ -48,46 +125,19 @@ export const InventoryTable: React.FC<Props> = ({
   onToggleSelectAll = () => {},
   isLoading = false,
 }) => {
+  // Always execute Hooks unconditionally before any early return (Rules of Hooks)
+  const itemIds = useMemo(() => items.map((item) => item.id), [items]);
+  const allSelected =
+    itemIds.length > 0 && itemIds.every((id) => selectedIds.indexOf(id) !== -1);
+  const someSelected =
+    !allSelected && itemIds.some((id) => selectedIds.indexOf(id) !== -1);
+
   if (isLoading) {
     return <TableSkeleton rows={8} />;
   }
-  const [pageSize, setPageSize] = useState<number>(25);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Reset to page 1 whenever items count or room selection changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [items.length, selectedRoomId]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(items.length / (pageSize === -1 ? items.length || 1 : pageSize)),
-  );
-
-  // Clamp current page if total pages reduced
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
-
-  const paginatedItems = useMemo(() => {
-    if (pageSize === -1) return items;
-    const start = (currentPage - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-  }, [items, currentPage, pageSize]);
-
-  const pageIds = useMemo(
-    () => paginatedItems.map((item) => item.id),
-    [paginatedItems],
-  );
-  const allPageSelected =
-    pageIds.length > 0 && pageIds.every((id) => selectedIds.indexOf(id) !== -1);
-  const somePageSelected =
-    !allPageSelected && pageIds.some((id) => selectedIds.indexOf(id) !== -1);
 
   const setHeaderCheckbox = (node: HTMLInputElement | null) => {
-    if (node) node.indeterminate = somePageSelected;
+    if (node) node.indeterminate = someSelected;
   };
 
   return (
@@ -98,7 +148,7 @@ export const InventoryTable: React.FC<Props> = ({
           <span>↔</span> Swipe horizontally to view all columns &amp; actions
         </span>
         <span className="font-bold text-amber-600 dark:text-amber-400">
-          ({items.length} items)
+          ({items.length.toLocaleString()} items)
         </span>
       </div>
 
@@ -106,13 +156,16 @@ export const InventoryTable: React.FC<Props> = ({
         <table className="w-full text-left border-collapse text-sm min-w-[720px] lg:min-w-full">
           <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-10">
             <tr>
-              <th className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap">
+              <th
+                scope="col"
+                className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap"
+              >
                 <input
                   ref={setHeaderCheckbox}
                   type="checkbox"
-                  checked={allPageSelected}
-                  onChange={(e) => onToggleSelectAll(pageIds, e.target.checked)}
-                  aria-label="Select all items on current page"
+                  checked={allSelected}
+                  onChange={(e) => onToggleSelectAll(itemIds, e.target.checked)}
+                  aria-label="Select all items"
                   className="rounded border-slate-300 text-amber-700 focus:ring-amber-600 cursor-pointer"
                 />
               </th>
@@ -161,7 +214,7 @@ export const InventoryTable: React.FC<Props> = ({
           </thead>
 
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {paginatedItems.map((item, itemIdx) => {
+            {items.map((item, itemIdx) => {
               const itemRoom = rooms.find((room) => room.id === item.roomId);
               const isSelected = selectedIds.indexOf(item.id) !== -1;
 
@@ -190,7 +243,7 @@ export const InventoryTable: React.FC<Props> = ({
                       <button
                         onClick={() => onSelectRoom(item.roomId)}
                         className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-950/40 hover:text-amber-800 dark:hover:text-amber-300 cursor-pointer transition-colors"
-                        title="Jump to this room"
+                        title="Jump to home facility room"
                       >
                         {itemRoom?.name || "Unassigned"}
                       </button>
@@ -198,19 +251,21 @@ export const InventoryTable: React.FC<Props> = ({
                   )}
 
                   {columns.map((col) => {
-                    const val = item[col.id];
+                    const val =
+                      item[col.id] !== undefined
+                        ? item[col.id]
+                        : item.custom_fields?.[col.id];
 
                     if (col.id === "condition" || col.id === "status") {
+                      const condVal =
+                        val || item.status || item.condition || "Working";
+
                       return (
                         <td
                           key={col.id}
                           className="py-2.5 sm:py-3.5 px-3 sm:px-4 whitespace-nowrap"
                         >
-                          <ConditionBadge
-                            condition={
-                              val || item.status || item.condition || "Working"
-                            }
-                          />
+                          <ConditionBadge condition={condVal} />
                         </td>
                       );
                     }
@@ -231,41 +286,33 @@ export const InventoryTable: React.FC<Props> = ({
                             className="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5 sm:p-1"
                           >
                             <button
+                              type="button"
                               onClick={() => onQuantityChange(item.id, -1)}
                               aria-label={`Decrease quantity for ${item.name}`}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40 font-bold select-none text-xs sm:text-sm"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors disabled:opacity-40 font-bold select-none text-xs sm:text-sm cursor-pointer disabled:cursor-not-allowed"
                               disabled={numVal <= 0}
                               title="Decrease quantity by 1"
                             >
                               −
                             </button>
 
-                            <input
-                              type="number"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              min={0}
+                            <QuantityInput
                               value={numVal}
-                              onChange={(e) => {
-                                const parsed = Math.max(
-                                  0,
-                                  parseInt(e.target.value, 10) || 0,
-                                );
+                              itemName={item.name}
+                              onCommit={(parsed) => {
                                 if (onSetQuantity) {
                                   onSetQuantity(item.id, parsed);
                                 } else {
                                   onQuantityChange(item.id, parsed - numVal);
                                 }
                               }}
-                              aria-label={`Manual quantity input for ${item.name}`}
-                              title="Click to type or edit quantity directly"
-                              className="w-11 sm:w-14 px-1 py-0.5 text-center font-bold tabular-nums text-xs sm:text-sm text-slate-900 dark:text-white bg-transparent border-0 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-amber-500 rounded transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
 
                             <button
+                              type="button"
                               onClick={() => onQuantityChange(item.id, 1)}
                               aria-label={`Increase quantity for ${item.name}`}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-bold select-none text-xs sm:text-sm"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-bold select-none text-xs sm:text-sm cursor-pointer"
                               title="Increase quantity by 1"
                             >
                               +
@@ -281,17 +328,30 @@ export const InventoryTable: React.FC<Props> = ({
                         className="py-2.5 sm:py-3.5 px-3 sm:px-4"
                       >
                         {col.id === "name" ? (
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block min-w-[120px]">
+                          <button
+                            type="button"
+                            onClick={() => onEditItem(item)}
+                            className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm text-left hover:text-amber-700 dark:hover:text-amber-400 hover:underline transition-colors cursor-pointer"
+                            title="Click to edit item"
+                          >
                             {val || "—"}
-                          </span>
+                          </button>
                         ) : col.id === "category" ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs sm:text-sm font-semibold whitespace-nowrap ${
+                              val === "Deployed" || val === "Deploy"
+                                ? "bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                            }`}
+                          >
                             {val || "—"}
                           </span>
                         ) : (
                           <span className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium whitespace-nowrap">
                             {val !== undefined && val !== null && val !== ""
-                              ? String(val)
+                              ? Array.isArray(val)
+                                ? val.join(", ")
+                                : String(val)
                               : "—"}
                           </span>
                         )}
@@ -302,20 +362,33 @@ export const InventoryTable: React.FC<Props> = ({
                   <td className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-right whitespace-nowrap">
                     <div
                       id={itemIdx === 0 ? "tour-row-actions" : undefined}
-                      className="flex items-center justify-end gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold"
+                      className="flex items-center justify-end gap-1 sm:gap-1.5 text-xs sm:text-sm font-semibold"
                     >
+                      {onPrintAssetTag && (
+                        <button
+                          type="button"
+                          onClick={() => onPrintAssetTag(item)}
+                          aria-label={`Print asset tag for ${item.name}`}
+                          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          title="Print Asset Tag Sticker"
+                        >
+                          <Tag size={14} />
+                        </button>
+                      )}
                       <button
+                        type="button"
                         onClick={() => onEditItem(item)}
                         aria-label={`Edit ${item.name}`}
-                        className="px-2 py-1 text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                        className="px-2 py-1 text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
                         title="Edit Item"
                       >
                         Edit
                       </button>
                       <button
+                        type="button"
                         onClick={() => onDeleteItem(item)}
                         aria-label={`Delete ${item.name}`}
-                        className="px-2 py-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
+                        className="px-2 py-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
                         title="Delete Item"
                       >
                         Delete
@@ -328,87 +401,6 @@ export const InventoryTable: React.FC<Props> = ({
           </tbody>
         </table>
       </div>
-
-      {/* ── Table Footer Pagination Bar ────────────────────────────── */}
-      {items.length > 0 && (
-        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 px-3.5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-3">
-            <span>
-              Showing{" "}
-              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
-                {items.length === 0
-                  ? 0
-                  : pageSize === -1
-                    ? 1
-                    : (currentPage - 1) * pageSize + 1}
-              </strong>{" "}
-              to{" "}
-              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
-                {pageSize === -1
-                  ? items.length
-                  : Math.min(currentPage * pageSize, items.length)}
-              </strong>{" "}
-              of{" "}
-              <strong className="font-heading font-bold tabular-nums text-slate-900 dark:text-white">
-                {items.length}
-              </strong>{" "}
-              items
-            </span>
-
-            {/* Page Size Selector */}
-            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700">
-              <span className="hidden sm:inline text-slate-500">Rows:</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
-                aria-label="Select number of rows per page"
-              >
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={-1}>All ({items.length})</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Page Navigation Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                aria-label="Previous page"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={14} />
-                <span className="hidden sm:inline">Prev</span>
-              </button>
-
-              <span className="px-2 font-heading tabular-nums text-xs font-bold text-slate-700 dark:text-slate-300">
-                {currentPage} / {totalPages}
-              </span>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage >= totalPages}
-                aria-label="Next page"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {items.length === 0 && (
         <div className="py-16 px-4 text-center">

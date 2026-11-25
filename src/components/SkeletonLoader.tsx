@@ -71,7 +71,7 @@ export const DashboardSkeleton: React.FC = () => {
             </div>
 
             {/* Legend Pills Skeleton */}
-            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900 shadow-2xs">
+            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900 shadow-sm">
               <SkeletonBone className="h-6 w-24" rounded="md" />
               <SkeletonBone className="h-6 w-28" rounded="md" />
               <SkeletonBone className="h-6 w-20" rounded="md" />
@@ -79,7 +79,7 @@ export const DashboardSkeleton: React.FC = () => {
           </div>
 
           {/* Active Rooms Grid */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
@@ -91,11 +91,11 @@ export const DashboardSkeleton: React.FC = () => {
 
                   {/* 2-Column Stats Grid */}
                   <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-2xs">
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-sm">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
                       <SkeletonBone className="h-9 w-12 mx-auto" />
                     </div>
-                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-2xs">
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50/90 py-3 px-2 dark:border-slate-800 dark:bg-slate-800/80 space-y-1.5 text-center shadow-sm">
                       <SkeletonBone className="h-3 w-10 mx-auto" />
                       <SkeletonBone className="h-9 w-16 mx-auto" />
                     </div>
@@ -284,11 +284,11 @@ export const AppShellSkeleton: React.FC = () => {
 
           {/* 2-Box Stat Counters (Rooms & Items) */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-2xs">
+            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
               <SkeletonBone className="h-3 w-10 mx-auto" />
               <SkeletonBone className="h-9 w-12 mx-auto" />
             </div>
-            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-2xs">
+            <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 py-3 px-2 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
               <SkeletonBone className="h-3 w-10 mx-auto" />
               <SkeletonBone className="h-9 w-16 mx-auto" />
             </div>

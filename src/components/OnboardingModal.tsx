@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
 interface Props {
@@ -33,7 +39,6 @@ export const OnboardingModal: React.FC<Props> = ({
   onClose,
   userRole = "staff",
   onToggleMobileNav,
-  isMobileNavOpen,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -45,94 +50,111 @@ export const OnboardingModal: React.FC<Props> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-  const TOUR_STEPS: TourStep[] = [
-    {
-      id: "facilities",
-      targetId: "tour-sidebar",
-      fallbackTargetId: "tour-mobile-drawer",
-      section: "FACILITIES",
-      title: "Facility & Workshop Navigation",
-      description: isMobile
-        ? "This slide-in drawer displays all training rooms and labs. Tap any room to view its equipment, or 'All rooms' for the master register."
-        : "Switch between training rooms, labs, and workshops. Click 'All rooms' for the institution-wide register, or '+ Add room' to register a new facility.",
-      tip: isMobile
-        ? "You can reopen this rooms drawer anytime by tapping the ☰ Menu button in the top left."
-        : "Shortcut: Press Ctrl + B (or Cmd + B) to toggle the sidebar.",
-      preferredPlacement: isMobile ? "bottom" : "right",
-    },
-    {
-      id: "add-item",
-      targetId: "tour-add-item",
-      fallbackTargetId: "tour-add-item-overview",
-      section: "ENROLLMENT",
-      title: "Registering New Equipment",
-      description:
-        "Click '+ Add item' to enroll new tools, machinery, computers, or consumables with model names, initial quantities, and condition grades.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "kpis",
-      targetId: "tour-kpis",
-      section: "METRICS & KPIS",
-      title: "Equipment Overview & Live Counters",
-      description:
-        "Real-time tally of your room inventory across 4 live counters: Items, Cumulative Units, Items Needing Attention (repairs/disposal), and Out of Stock.",
-      tip: "Click any KPI card (e.g. 'Need attention' or 'Out of stock') to instantly filter the table.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "search-filters",
-      targetId: "tour-search-filters",
-      section: "SEARCH & FILTERS",
-      title: "Search & Attribute Filtering",
-      description:
-        "Search equipment names, remarks, or serial numbers in real time without reloading. Filter by category, condition, or reset active filters with one click.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "schema-columns",
-      targetId: "tour-schema-columns-btn",
-      fallbackTargetId: "tour-header-tools",
-      section: "SCHEMA MANAGEMENT",
-      title: "Customize Columns & Fields",
-      description:
-        "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
-      tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
-      preferredPlacement: "bottom",
-    },
-    {
-      id: "row-controls",
-      targetId: "tour-table-row",
-      fallbackTargetId: "tour-quantity-stepper",
-      section: "TABLE CONTROLS",
-      title: "Stock Steppers & Row Actions",
-      description:
-        "Adjust stock on the spot using '+' and '−' steppers (or click the number to type exact counts). Use 'Edit' to update item specs or room assignments, and 'Delete' to remove decommissioned equipment.",
-      tip: "Quantity edits sync instantly to the cloud. Deletions always require explicit confirmation.",
-      preferredPlacement: "top",
-    },
-    {
-      id: "reports",
-      targetId: "tour-header-tools",
-      section: "AUDIT EXPORTS",
-      title: "Printable Sheets & Multi-Sheet Excel",
-      description:
-        "Export complete multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks.",
-      tip: "Physical inventory sheets automatically format for letter-size print.",
-      preferredPlacement: "bottom",
-    },
-    {
+  // Reset to step 0 whenever opened
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(0);
+    }
+  }, [isOpen]);
+
+  const TOUR_STEPS = useMemo<TourStep[]>(() => {
+    const steps: TourStep[] = [
+      {
+        id: "facilities",
+        targetId: "tour-sidebar",
+        fallbackTargetId: "tour-mobile-drawer",
+        section: "FACILITIES",
+        title: "Multi-Facility & Room Navigation",
+        description: isMobile
+          ? "Switch between facilities (STC, PETC, Knoah Mari, Red Goose) and tap any training room or lab to view its equipment."
+          : "Switch between facilities (STC, PETC, Knoah Mari, Red Goose) and navigate training rooms, labs, and workshops. Select 'All rooms' for the institution-wide register.",
+        tip: isMobile
+          ? "You can reopen this rooms drawer anytime by tapping the Menu button in the top left."
+          : "Shortcut: Press Ctrl + B (or Cmd + B) to toggle this sidebar.",
+        preferredPlacement: isMobile ? "bottom" : "right",
+      },
+      {
+        id: "add-item",
+        targetId: "tour-add-item",
+        fallbackTargetId: "tour-add-item-overview",
+        section: "ENROLLMENT",
+        title: "Registering New Equipment",
+        description:
+          "Click '+ Add item' to enroll new tools, machinery, computers, or consumables with categories, initial counts, and condition grades.",
+        tip: "Supports standard units (pcs, sets, units) and custom specifications.",
+        preferredPlacement: "bottom",
+      },
+      {
+        id: "kpis",
+        targetId: "tour-kpis",
+        section: "METRICS & KPIS",
+        title: "Live Inventory Counters",
+        description:
+          "Real-time summary of your inventory across 4 live counters: Items, Cumulative Units, Items Flagged for Attention (defective/repairs), and Out of Stock.",
+        tip: "Click any KPI counter card to instantly filter the table to those items.",
+        preferredPlacement: "bottom",
+      },
+      {
+        id: "search-filters",
+        targetId: "tour-search-filters",
+        section: "SEARCH & FILTERS",
+        title: "Instant Search & Attribute Filtering",
+        description:
+          "Search equipment names, remarks, or serial numbers in real time without reloading. Filter by category, condition, or reset active filters with one click.",
+        tip: "Search operates instantly as you type with zero layout shift.",
+        preferredPlacement: "bottom",
+      },
+      {
+        id: "row-controls",
+        targetId: "tour-table-row",
+        fallbackTargetId: "tour-quantity-stepper",
+        section: "STOCK CONTROLS",
+        title: "High-Density Quantity Steppers",
+        description:
+          "Adjust stock on the spot using '+' and '−' steppers, or click the number to type exact counts directly. Use 'Edit' to update item specs or room assignments.",
+        tip: "All quantity adjustments sync instantly to the cloud database.",
+        preferredPlacement: "top",
+      },
+      {
+        id: "reports",
+        targetId: "tour-header-tools",
+        section: "AUDIT EXPORTS",
+        title: "Printable Custody Sheets & Excel",
+        description:
+          "Export styled multi-sheet Excel workbooks, or generate official physical custody sign-off sheets with verified 3-signature blocks (Prepared, Audited, Approved).",
+        tip: "Official physical inventory sheets format automatically for standard letter/A4 printing.",
+        preferredPlacement: "bottom",
+      },
+    ];
+
+    if (userRole === "admin") {
+      steps.push({
+        id: "schema-columns",
+        targetId: "tour-schema-columns-btn",
+        fallbackTargetId: "tour-header-tools",
+        section: "CUSTOM FIELDS",
+        title: "Customize Schema Columns",
+        description:
+          "Custodians can configure custom database columns (such as Serial Number, Brand, or Calibration Date) that instantly appear across tables and Excel sheets.",
+        tip: "Custom columns allow your institution to track specialized workshop equipment attributes.",
+        preferredPlacement: "bottom",
+      });
+    }
+
+    steps.push({
       id: "account",
       targetId: "tour-header-profile",
-      section: "SECURITY",
-      title: "Profile & Passkeys",
+      section: "SECURITY & PASSKEYS",
+      title: "Profile & Institutional Passkeys",
       description:
         userRole === "admin"
-          ? "Update your profile or manage institutional passkeys (KM100-ADMIN / KM100-STAFF) to restrict unauthorized user registration."
+          ? "Update your profile or manage institutional passkeys to restrict unauthorized user registration."
           : "Update your account details, manage your password, and securely sign out.",
       preferredPlacement: "bottom",
-    },
-  ];
+    });
+
+    return steps;
+  }, [isMobile, userRole]);
 
   const activeStep = TOUR_STEPS[currentStep];
 
@@ -319,10 +341,13 @@ export const OnboardingModal: React.FC<Props> = ({
       });
     } else {
       setTargetRect(null);
-      // Fallback position in bottom right if target element cannot be found
+      // Fallback position safely clamped within viewport
       setPosition({
-        top: window.innerHeight - 240,
-        left: Math.max(16, window.innerWidth - 380),
+        top: Math.max(16, window.innerHeight - 240),
+        left: Math.max(
+          16,
+          Math.min(window.innerWidth - 380, window.innerWidth - 376),
+        ),
         placement: "top",
       });
     }
@@ -350,8 +375,15 @@ export const OnboardingModal: React.FC<Props> = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") {
-        setCurrentStep((prev) => Math.min(prev + 1, TOUR_STEPS.length - 1));
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        handleClose();
+      } else if (e.key === "ArrowRight") {
+        if (currentStep === TOUR_STEPS.length - 1) {
+          handleClose();
+        } else {
+          setCurrentStep((prev) => Math.min(prev + 1, TOUR_STEPS.length - 1));
+        }
       } else if (e.key === "ArrowLeft") {
         setCurrentStep((prev) => Math.max(prev - 1, 0));
       }
@@ -359,7 +391,7 @@ export const OnboardingModal: React.FC<Props> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, TOUR_STEPS.length]);
+  }, [isOpen, currentStep, TOUR_STEPS.length, handleClose]);
 
   if (!isOpen) return null;
 
@@ -382,11 +414,13 @@ export const OnboardingModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-[60] overflow-hidden no-print">
-      {/* Background Dim Backdrop (backdrop clicks disabled: only Skip Tour dismisses) */}
-      <div
-        className="fixed inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity cursor-default"
-        aria-hidden="true"
-      />
+      {/* Background Dim Backdrop (only when no spotlight cutout is rendering its own ring shadow) */}
+      {!targetRect && (
+        <div
+          className="fixed inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity cursor-default"
+          aria-hidden="true"
+        />
+      )}
 
       {/* Target Element Spotlight Cutout Ring */}
       {targetRect && (
@@ -408,7 +442,7 @@ export const OnboardingModal: React.FC<Props> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-tour-title"
-        className="fixed z-50 w-[calc(100vw-24px)] sm:w-[360px] bg-white dark:bg-black text-black dark:text-white rounded-2xl shadow-2xl border border-neutral-300 dark:border-neutral-800 p-4 sm:p-4.5 space-y-3 transition-all duration-200 animate-modal"
+        className="fixed z-50 w-[calc(100vw-24px)] sm:w-[360px] bg-white dark:bg-black text-black dark:text-white rounded-2xl shadow-2xl border border-neutral-300 dark:border-neutral-800 p-4 sm:p-5 space-y-3 transition-all duration-200 animate-modal"
         style={{
           top: position.top,
           left: position.left,
@@ -453,7 +487,7 @@ export const OnboardingModal: React.FC<Props> = ({
           <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200">
             {activeStep.section}
           </span>
-          <span className="text-[11px] font-mono font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+          <span className="text-[11px] font-sans font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
             {currentStep + 1} / {TOUR_STEPS.length}
           </span>
         </div>

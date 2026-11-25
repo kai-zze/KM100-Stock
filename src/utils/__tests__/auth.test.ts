@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   registerAccount,
   loginWithCredentials,
@@ -10,7 +10,49 @@ import {
   getInstitutionalPasskeys,
   updateInstitutionalPasskeys,
   resetInstitutionalPasskeys,
+  hasLocalAdminAccount,
+  checkAdminAccountExists,
+  clearLocalAdminAccounts,
 } from "../auth";
+
+// Mock Supabase so unit tests never hit the live database or create dummy accounts in cloud Auth
+vi.mock("../supabaseClient", () => {
+  return {
+    supabase: {
+      auth: {
+        signUp: vi.fn().mockResolvedValue({
+          data: { user: { id: "mock-user-id" } },
+          error: null,
+        }),
+        signInWithPassword: vi.fn().mockResolvedValue({
+          data: { user: null },
+          error: new Error("Mock auth error"),
+        }),
+        signOut: vi.fn().mockResolvedValue({ error: null }),
+        updateUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "mock-user-id" } },
+          error: null,
+        }),
+        resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        ilike: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+      rpc: vi.fn().mockResolvedValue({ data: false, error: null }),
+    },
+    SUPABASE_CONFIG: {
+      url: "https://mock.supabase.co",
+      anonKey: "mock-key",
+    },
+  };
+});
 
 describe("KM100 Authentication System with Institutional Passkeys", () => {
   beforeEach(() => {
@@ -33,42 +75,31 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
       expect(getStoredUser()?.email).toBe("msantos@km100.edu.ph");
     });
 
-    it("blocks random user registration when passkey is missing or invalid", async () => {
+    it("allows open registration without a passkey", async () => {
       const randomUser = await registerAccount({
         fullName: "Random Stranger",
         email: "random@gmail.com",
         password: "Password123",
         role: "staff",
-        passkey: "random-passkey-123",
       });
 
-      expect(randomUser.success).toBe(false);
-      expect(randomUser.error).toContain("Invalid Institutional Passkey");
-      expect(getStoredUser()).toBeNull();
+      expect(randomUser.success).toBe(true);
+      expect(randomUser.user?.role).toBe("staff");
+      expect(randomUser.user?.fullName).toBe("Random Stranger");
+      expect(getStoredUser()?.email).toBe("random@gmail.com");
     });
 
-    it("requires official Custodian Passkey for Admin registration", async () => {
-      // Trying to register as Admin with only a staff passkey
-      const staffKeyForAdmin = await registerAccount({
-        fullName: "Fake Admin",
-        email: "fakeadmin@km100.edu.ph",
-        password: "Password123",
-        role: "admin",
-        passkey: "KM100-STAFF-2026",
-      });
-      expect(staffKeyForAdmin.success).toBe(false);
-      expect(staffKeyForAdmin.error).toContain("Custodian Passkey");
-
-      // Registering with official Admin passkey
-      const validAdmin = await registerAccount({
-        fullName: "Authorized Custodian",
+    it("allows admin registration without a passkey", async () => {
+      // Non-members can register as Custodian/Admin without an authorization passkey
+      const adminReg = await registerAccount({
+        fullName: "New Custodian",
         email: "custodian@km100.edu.ph",
         password: "Password123",
         role: "admin",
-        passkey: "KM100-ADMIN-2026",
       });
-      expect(validAdmin.success).toBe(true);
-      expect(validAdmin.user?.role).toBe("admin");
+      expect(adminReg.success).toBe(true);
+      expect(adminReg.user?.role).toBe("admin");
+      expect(adminReg.user?.fullName).toBe("New Custodian");
     });
 
     it("prevents duplicate registration of institutional demo accounts", async () => {
@@ -81,6 +112,61 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
       });
       expect(demoDup.success).toBe(false);
       expect(demoDup.error).toContain("already exists");
+    });
+
+    it("blocks second admin registration once a Custodian already exists and directs to Staff", async () => {
+      // 1. Initial state: no admin created yet
+      expect(hasLocalAdminAccount()).toBe(false);
+
+      // 2. First admin creates account successfully
+      const firstAdmin = await registerAccount({
+        fullName: "First Custodian",
+        email: "custodian1@km100.edu.ph",
+        password: "Password123",
+        role: "admin",
+        passkey: "KM100-ADMIN-2026",
+      });
+      expect(firstAdmin.success).toBe(true);
+      expect(firstAdmin.user?.role).toBe("admin");
+      expect(hasLocalAdminAccount()).toBe(true);
+
+      // 3. Second user tries to create an account as admin: STRICTLY BLOCKED
+      const secondAdminAttempt = await registerAccount({
+        fullName: "Second Admin Attempt",
+        email: "custodian2@km100.edu.ph",
+        password: "Password123",
+        role: "admin",
+        passkey: "KM100-ADMIN-2026",
+      });
+      expect(secondAdminAttempt.success).toBe(false);
+      expect(secondAdminAttempt.error).toContain("already been registered");
+      expect(secondAdminAttempt.error).toContain("Staff");
+
+      // 4. Second user creates account as Staff: SUCCEEDS
+      const staffRegistration = await registerAccount({
+        fullName: "Second User Staff",
+        email: "staff2@km100.edu.ph",
+        password: "Password123",
+        role: "staff",
+        passkey: "KM100-STAFF-2026",
+      });
+      expect(staffRegistration.success).toBe(true);
+      expect(staffRegistration.user?.role).toBe("staff");
+
+      // 5. When the admin account is deleted, admin slot re-opens
+      clearLocalAdminAccounts();
+      expect(hasLocalAdminAccount()).toBe(false);
+
+      const replacementAdmin = await registerAccount({
+        fullName: "New Replacement Custodian",
+        email: "newcustodian@km100.edu.ph",
+        password: "Password123",
+        role: "admin",
+        passkey: "KM100-ADMIN-2026",
+      });
+      expect(replacementAdmin.success).toBe(true);
+      expect(replacementAdmin.user?.role).toBe("admin");
+      expect(hasLocalAdminAccount()).toBe(true);
     });
   });
 

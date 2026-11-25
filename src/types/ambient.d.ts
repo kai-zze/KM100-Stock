@@ -125,6 +125,7 @@ declare namespace React {
   export const StrictMode: any;
   export const Fragment: any;
   export const Suspense: any;
+  export const Component: any;
 }
 
 declare namespace ReactDOM {

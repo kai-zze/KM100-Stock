@@ -1,5 +1,7 @@
 import * as XLSX from "xlsx";
 import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
+import { normalizeStatus } from "./status";
+import { makeUniqueSheetName, sanitizeFormulaCell } from "./spreadsheetSafety";
 
 export function exportInventoryToExcel(
   mode: "multi" | "current",
@@ -31,9 +33,11 @@ export function exportInventoryToExcel(
     isStatus?: boolean;
   }[] = [];
   let hasRoomCol = false;
+  let hasStatusCol = false;
 
   activeCols.forEach((col) => {
     if (col.id === "room" || col.id === "roomId" || col.id === "roomLocation") {
+      if (hasRoomCol) return;
       hasRoomCol = true;
       exportCols.push({ id: "_room", label: col.label || "ROOM", width: 32 });
     } else if (col.id === "name") {
@@ -58,6 +62,8 @@ export function exportInventoryToExcel(
     } else if (col.id === "units") {
       exportCols.push({ id: "units", label: col.label || "UNITS", width: 20 });
     } else if (col.id === "status" || col.id === "condition") {
+      if (hasStatusCol) return;
+      hasStatusCol = true;
       exportCols.push({
         id: "status",
         label: col.label || "Status",
@@ -95,22 +101,27 @@ export function exportInventoryToExcel(
     roomItems: InventoryItem[],
     defaultRoomName: string,
   ) => {
-    const rows: (string | number)[][] = [exportCols.map((c) => c.label)];
+    const rows: (string | number)[][] = [
+      exportCols.map((c) => sanitizeFormulaCell(c.label)),
+    ];
 
     let totalQty = 0;
     roomItems.forEach((item) => {
       const roomObj = rooms.find((r) => r.id === item.roomId);
-      const roomName = item.room || (roomObj ? roomObj.name : defaultRoomName);
+      const roomName = roomObj?.name || item.room || defaultRoomName;
       const q = Number(item.quantity) || 0;
       totalQty += q;
 
       const rowValues = exportCols.map((col) => {
-        if (col.id === "_room") return roomName;
+        if (col.id === "_room") return sanitizeFormulaCell(roomName);
         if (col.id === "quantity") return q;
         if (col.id === "status")
-          return item.status || item.condition || "Working";
-        if (col.id === "units") return item.units || "pcs";
-        return item[col.id] !== undefined ? item[col.id] : "";
+          return normalizeStatus(item.status || item.condition);
+        if (col.id === "units") return sanitizeFormulaCell(item.units || "pcs");
+        const raw = item[col.id];
+        if (raw === undefined || raw === null) return "";
+        if (typeof raw === "number") return raw;
+        return sanitizeFormulaCell(String(raw));
       });
       rows.push(rowValues);
     });
@@ -148,9 +159,9 @@ export function exportInventoryToExcel(
         let val = "";
         if (c.id === "_room") {
           const roomObj = rooms.find((r) => r.id === item.roomId);
-          val = item.room || (roomObj ? roomObj.name : "");
+          val = roomObj?.name || item.room || "";
         } else if (c.id === "status") {
-          val = item.status || item.condition || "";
+          val = normalizeStatus(item.status || item.condition);
         } else {
           val = item[c.id] !== undefined ? String(item[c.id]) : "";
         }
@@ -165,21 +176,25 @@ export function exportInventoryToExcel(
     return ws;
   };
 
+  const usedSheetNames = new Set<string>();
+
   if (mode === "multi") {
     // 1. Master Sheet matching system template
     const masterRows = buildRoomRows(items, "All Rooms");
     const wsMaster = createStyledSheet(masterRows, items);
-    XLSX.utils.book_append_sheet(wb, wsMaster, "KM100 Inventory");
+    const masterName = makeUniqueSheetName(
+      "KM100 Inventory",
+      "Master",
+      usedSheetNames,
+    );
+    XLSX.utils.book_append_sheet(wb, wsMaster, masterName);
 
     // 2. Individual Room Sheets
     rooms.forEach((room) => {
       const roomItems = items.filter((it) => it.roomId === room.id);
       const rows = buildRoomRows(roomItems, room.name);
       const ws = createStyledSheet(rows, roomItems);
-      const safeName = (room.name.replace(/[:\\/?*\[\]]/g, "") || "Room").slice(
-        0,
-        31,
-      );
+      const safeName = makeUniqueSheetName(room.name, "Room", usedSheetNames);
       XLSX.utils.book_append_sheet(wb, ws, safeName);
     });
   } else {
@@ -189,9 +204,11 @@ export function exportInventoryToExcel(
       : items;
     const rows = buildRoomRows(roomItems, roomName);
     const ws = createStyledSheet(rows, roomItems);
-    const safeName = (
-      roomName.replace(/[:\\/?*\[\]]/g, "") || "KM100 Inventory"
-    ).slice(0, 31);
+    const safeName = makeUniqueSheetName(
+      roomName,
+      "KM100 Inventory",
+      usedSheetNames,
+    );
     XLSX.utils.book_append_sheet(wb, ws, safeName);
   }
 

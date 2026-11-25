@@ -21,6 +21,7 @@ interface Props {
 
 const DEFAULT_CATEGORY_OPTIONS = [
   "Tools",
+  "Deployed",
   "Consumables and Maintenance",
   "Peripherals and Storage",
   "PC Hardware and Components",
@@ -34,6 +35,7 @@ const DEFAULT_CATEGORY_OPTIONS = [
 const DEFAULT_UNIT_OPTIONS = ["pcs", "case", "box", "bag", "set", "roll"];
 const DEFAULT_STATUS_OPTIONS = [
   "Working",
+  "Deployed",
   "Empty",
   "Defective",
   "Used",
@@ -42,10 +44,36 @@ const DEFAULT_STATUS_OPTIONS = [
 
 const ensureColumnOptions = (cols: ColumnDefinition[]): ColumnDefinition[] => {
   return cols.map((col) => {
-    if (col.type === "dropdown" && (!col.options || col.options.length === 0)) {
-      if (col.id === "category") {
-        return { ...col, options: [...DEFAULT_CATEGORY_OPTIONS] };
+    if (col.id === "category" && col.type === "dropdown") {
+      const currentOpts =
+        col.options && col.options.length > 0
+          ? [...col.options]
+          : [...DEFAULT_CATEGORY_OPTIONS];
+      if (
+        !currentOpts.includes("Deployed") &&
+        !currentOpts.includes("Deploy")
+      ) {
+        currentOpts.splice(1, 0, "Deployed");
       }
+      return { ...col, options: currentOpts };
+    }
+    if (
+      (col.id === "status" || col.id === "condition") &&
+      col.type === "dropdown"
+    ) {
+      const currentOpts =
+        col.options && col.options.length > 0
+          ? [...col.options]
+          : [...DEFAULT_STATUS_OPTIONS];
+      if (
+        !currentOpts.includes("Deployed") &&
+        !currentOpts.includes("Deploy")
+      ) {
+        currentOpts.splice(1, 0, "Deployed");
+      }
+      return { ...col, options: currentOpts };
+    }
+    if (col.type === "dropdown" && (!col.options || col.options.length === 0)) {
       if (col.id === "units") {
         return { ...col, options: [...DEFAULT_UNIT_OPTIONS] };
       }
@@ -73,24 +101,43 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
   const [newOptionInputs, setNewOptionInputs] = useState<
     Record<string, string>
   >({});
+  const [schemaError, setSchemaError] = useState("");
 
   const [newColLabel, setNewColLabel] = useState("");
   const [newColType, setNewColType] = useState<ColumnType>("text");
   const [newColOptions, setNewColOptions] = useState(
     "Option 1, Option 2, Option 3",
   );
+  const [newColRequired, setNewColRequired] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalCols(ensureColumnOptions(JSON.parse(JSON.stringify(columns))));
+      setExpandedColId(null);
+      setBulkEditColId(null);
+      setBulkEditText("");
+      setNewOptionInputs({});
+      setNewColLabel("");
+      setNewColType("text");
+      setNewColOptions("Option 1, Option 2, Option 3");
+      setNewColRequired(false);
+      setSchemaError("");
+    }
+  }, [isOpen, columns]);
 
   // Close modal on Escape key press
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [isOpen, onClose]);
-  const [newColRequired, setNewColRequired] = useState(false);
 
   if (!isOpen) return null;
 
@@ -237,8 +284,21 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
   };
 
   const handleSave = () => {
-    const reindexed = localCols.map((c, i) => ({ ...c, order: i + 1 }));
-    onSave(reindexed);
+    const cleaned = localCols.map((c, i) => ({
+      ...c,
+      label: c.label.trim(),
+      options:
+        c.type === "dropdown"
+          ? (c.options || []).map((o) => o.trim()).filter(Boolean)
+          : c.options,
+      order: i + 1,
+    }));
+    if (cleaned.some((c) => !c.label)) {
+      setSchemaError("Every column must have a non-empty label.");
+      return;
+    }
+    setSchemaError("");
+    onSave(cleaned);
   };
 
   return (
@@ -279,6 +339,14 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
 
         {/* Content */}
         <div className="p-4 sm:p-6 overflow-y-auto overflow-x-hidden space-y-5 text-xs flex-1">
+          {schemaError && (
+            <div
+              role="alert"
+              className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-700 dark:text-rose-300"
+            >
+              {schemaError}
+            </div>
+          )}
           {/* Active Columns List */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -286,7 +354,8 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                 Active Table Columns ({localCols.length})
               </h4>
               <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                Click "Options" on any column to edit choices or data types
+                Click &ldquo;Configure&rdquo; on any column to edit choices or
+                data types
               </span>
             </div>
 
@@ -317,6 +386,12 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                           onChange={(e) =>
                             updateColumnLabel(col.id, e.target.value)
                           }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
                           className="px-2.5 py-1 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 flex-1 min-w-[120px]"
                         />
                         <span
@@ -539,7 +614,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                                   {options.map((opt, optIdx) => (
                                     <div
                                       key={`${col.id}-opt-${optIdx}`}
-                                      className="flex items-center justify-between gap-1.5 p-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xs group"
+                                      className="flex items-center justify-between gap-1.5 p-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm group"
                                     >
                                       <input
                                         type="text"
@@ -598,7 +673,10 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
           </div>
 
           {/* Add New Custom Column Section */}
-          <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-3">
+          <form
+            onSubmit={handleAddColumn}
+            className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-3"
+          >
             <h4 className="font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
               <Plus size={13} /> Add New Custom Column to Schema
             </h4>
@@ -660,8 +738,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
               </label>
 
               <button
-                type="button"
-                onClick={handleAddColumn}
+                type="submit"
                 disabled={!newColLabel.trim()}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white disabled:opacity-40 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
               >
@@ -669,7 +746,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                 <span>Insert Column to Schema</span>
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Footer */}

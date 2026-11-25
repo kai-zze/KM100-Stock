@@ -1,6 +1,13 @@
 import ExcelJS from "exceljs";
-import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
+import {
+  ColumnDefinition,
+  InventoryItem,
+  Room,
+  normalizeFacilityId,
+} from "../types/inventory";
+import { KM100_LOGO_BASE64 } from "../data/logoBase64";
 import { normalizeStatus } from "./status";
+import { makeUniqueSheetName, sanitizeFormulaCell } from "./spreadsheetSafety";
 
 interface ExportColumn {
   id: string;
@@ -30,6 +37,17 @@ const ROOM_TAB_COLORS: Record<string, string> = {
   "room-admin": "FF0D9488",
   "room-css": KM_AMBER,
   "room-bp": "FF9333EA",
+};
+
+const FACILITY_TAB_COLORS: Record<string, string> = {
+  "fac-petc": "FF2563EB",
+  "fac-knoah-mari": "FF059669",
+  "fac-red-goose": "FFE11D48",
+  "fac-km100-stc": KM_AMBER,
+  PETC: "FF2563EB",
+  KNOAH_MARI: "FF059669",
+  RED_GOOSE: "FFE11D48",
+  STC: KM_AMBER,
 };
 
 const FALLBACK_TAB_COLORS = ["FF64748B", "FF7C3AED", "FF0891B2", KM_AMBER];
@@ -145,34 +163,42 @@ function cellText(
   item: InventoryItem,
   roomName: string,
 ): string | number {
-  if (column.id === "_room") return roomName;
+  if (column.id === "_room") return sanitizeFormulaCell(roomName);
   if (column.id === "_status")
-    return normalizeStatus(item.status ?? item.condition);
+    return normalizeStatus(item.status || item.condition);
   if (column.id === "quantity") return Number(item.quantity) || 0;
-  if (column.id === "units") return item.units || "pcs";
+  if (column.id === "units") return sanitizeFormulaCell(item.units || "pcs");
   const value = item[column.id];
-  return value === undefined || value === null
-    ? ""
-    : (value as string | number);
+  if (value === undefined || value === null) return "";
+  if (typeof value === "number") return value;
+  return sanitizeFormulaCell(String(value));
 }
 
 async function loadLogoBase64(): Promise<string | null> {
   try {
     const response = await fetch("/logo.png");
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = String(reader.result || "");
-        resolve(result.replace(/^data:image\/[a-zA-Z0-9.+_-]+;base64,/, ""));
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(blob);
-    });
+    if (response.ok) {
+      const blob = await response.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.replace(/^data:image\/[a-zA-Z0-9.+_-]+;base64,/, ""));
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    }
   } catch {
-    return null;
+    // Fall back to bundled base64 logo
   }
+  if (KM100_LOGO_BASE64) {
+    return KM100_LOGO_BASE64.replace(
+      /^data:image\/[a-zA-Z0-9.+_-]+;base64,/,
+      "",
+    );
+  }
+  return null;
 }
 
 export interface StyledExportOptions {
@@ -225,7 +251,7 @@ export async function exportInventoryToStyledExcel(
     sheet.columns = exportColumns.map((col, idx) => {
       let longest = (col.label || "").length;
       sheetItems.forEach((item) => {
-        const roomName = item.room || roomNames.get(item.roomId) || "";
+        const roomName = roomNames.get(item.roomId) || item.room || "";
         const text = String(cellText(col, item, roomName));
         if (text.length > longest) longest = text.length;
       });
@@ -278,17 +304,9 @@ export async function exportInventoryToStyledExcel(
     }
 
     const leftCol = columnCount > 1 ? "B" : "A";
-    const rightSplitIdx = columnCount >= 3 ? columnCount - 1 : columnCount;
-    const rightSplitLetter = columnLetter(rightSplitIdx);
 
-    if (columnCount > 1) {
+    if (columnCount > 2) {
       sheet.mergeCells(`${leftCol}1:${lastLetter}1`);
-    }
-
-    if (columnCount >= 3) {
-      const midEndLetter = columnLetter(rightSplitIdx - 1);
-      sheet.mergeCells(`B2:${midEndLetter}2`);
-      sheet.mergeCells(`${rightSplitLetter}2:${lastLetter}2`);
     }
 
     // Row 1: Company Name & Inventory Report Title (no period or pipe)
@@ -302,28 +320,50 @@ export async function exportInventoryToStyledExcel(
     };
     titleCell.alignment = { vertical: "middle", horizontal: "left" };
 
-    // Row 2: Location on left, Records & Exported date on the very right
-    const locCell = sheet.getCell(`${leftCol}2`);
-    locCell.value = `Location: ${sheetTitle}`;
-    locCell.font = {
-      name: "Calibri",
-      size: 12,
-      bold: true,
-      color: { argb: MUTED },
-    };
-    locCell.alignment = { vertical: "middle", horizontal: "left" };
+    // Row 2: Location on left, Records & Exported date on the right (safe for any columnCount >= 1)
+    if (columnCount <= 2) {
+      const combinedCell = sheet.getCell(`${leftCol}2`);
+      combinedCell.value = `Location: ${sheetTitle}   |   Records: ${recordCount}   Exported: ${today}`;
+      combinedCell.font = {
+        name: "Calibri",
+        size: 11,
+        bold: true,
+        color: { argb: MUTED },
+      };
+      combinedCell.alignment = { vertical: "middle", horizontal: "left" };
+    } else {
+      const locEndIdx = Math.max(2, columnCount - 2);
+      const infoStartIdx = columnCount - 1;
+      const locEndLetter = columnLetter(locEndIdx);
+      const infoStartLetter = columnLetter(infoStartIdx);
 
-    const infoCell = sheet.getCell(
-      columnCount >= 3 ? `${rightSplitLetter}2` : `${lastLetter}2`,
-    );
-    infoCell.value = `Records: ${recordCount}   Exported: ${today}`;
-    infoCell.font = {
-      name: "Calibri",
-      size: 12,
-      bold: true,
-      color: { argb: MUTED },
-    };
-    infoCell.alignment = { vertical: "middle", horizontal: "right" };
+      if (locEndIdx > 2) {
+        sheet.mergeCells(`B2:${locEndLetter}2`);
+      }
+      if (columnCount > infoStartIdx) {
+        sheet.mergeCells(`${infoStartLetter}2:${lastLetter}2`);
+      }
+
+      const locCell = sheet.getCell("B2");
+      locCell.value = `Location: ${sheetTitle}`;
+      locCell.font = {
+        name: "Calibri",
+        size: 12,
+        bold: true,
+        color: { argb: MUTED },
+      };
+      locCell.alignment = { vertical: "middle", horizontal: "left" };
+
+      const infoCell = sheet.getCell(`${infoStartLetter}2`);
+      infoCell.value = `Records: ${recordCount}   Exported: ${today}`;
+      infoCell.font = {
+        name: "Calibri",
+        size: 12,
+        bold: true,
+        color: { argb: MUTED },
+      };
+      infoCell.alignment = { vertical: "middle", horizontal: "right" };
+    }
 
     for (let c = 1; c <= columnCount; c++) {
       sheet.getRow(2).getCell(c).border = {
@@ -331,7 +371,7 @@ export async function exportInventoryToStyledExcel(
       };
     }
 
-    if (logoId !== null) {
+    if (logoId !== null && columnCount > 1) {
       try {
         // 62x62px logo centered cleanly inside Rows 1–2 on the left
         sheet.addImage(logoId, {
@@ -385,7 +425,7 @@ export async function exportInventoryToStyledExcel(
       const row = sheet.getRow(rowNumber);
       row.height = 22;
 
-      const roomName = item.room || roomNames.get(item.roomId) || "Unassigned";
+      const roomName = roomNames.get(item.roomId) || item.room || "Unassigned";
       totalUnits += Number(item.quantity) || 0;
       row.values = exportColumns.map((col) => cellText(col, item, roomName));
 
@@ -517,24 +557,42 @@ export async function exportInventoryToStyledExcel(
     }
   };
 
-  const safeSheetName = (name: string, fallback: string) =>
-    (name.replace(/[:\\/?*[\]]/g, "") || fallback).slice(0, 31);
+  const usedSheetNames = new Set<string>();
 
   if (mode === "multi") {
-    const master = workbook.addWorksheet("Master Inventory");
+    const masterName = makeUniqueSheetName(
+      "Master Inventory",
+      "Master",
+      usedSheetNames,
+    );
+    const master = workbook.addWorksheet(masterName);
     populate(master, "All Facilities and Rooms", items, NAVY);
 
     rooms.forEach((room, index) => {
       const roomItems = items.filter((item) => item.roomId === room.id);
-      const sheet = workbook.addWorksheet(safeSheetName(room.name, "Room"));
+      const sheetName = makeUniqueSheetName(room.name, "Room", usedSheetNames);
+      const sheet = workbook.addWorksheet(sheetName);
+      const normalizedFac = room.facility
+        ? normalizeFacilityId(room.facility)
+        : undefined;
+      const facColor =
+        (room.facility && FACILITY_TAB_COLORS[room.facility]) ||
+        (normalizedFac && FACILITY_TAB_COLORS[normalizedFac]) ||
+        undefined;
       const tabColor =
         ROOM_TAB_COLORS[room.id] ||
+        facColor ||
         FALLBACK_TAB_COLORS[index % FALLBACK_TAB_COLORS.length];
       populate(sheet, room.name, roomItems, tabColor);
     });
   } else {
     const roomName = selectedRoom?.name || "All Rooms";
-    const sheet = workbook.addWorksheet(safeSheetName(roomName, "Inventory"));
+    const sheetName = makeUniqueSheetName(
+      roomName,
+      "Inventory",
+      usedSheetNames,
+    );
+    const sheet = workbook.addWorksheet(sheetName);
     const tabColor = selectedRoom
       ? ROOM_TAB_COLORS[selectedRoom.id] || NAVY
       : NAVY;

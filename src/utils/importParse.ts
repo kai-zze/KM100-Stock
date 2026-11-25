@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import { InventoryItem, ItemStatus } from "../types/inventory";
 import { generateItemId } from "./ids";
 import { normalizeStatus } from "./status";
-import { parseCsvText } from "./csvImport";
+import { parseCsvMatrix } from "./csvImport";
 
 export interface ParsedImportItem extends InventoryItem {
   /** Facility name discovered in the sheet. Resolved to a room id on import. */
@@ -135,12 +135,14 @@ function findHeaderRow(matrix: unknown[][]): HeaderMap | null {
 }
 
 function parseQuantity(raw: unknown): number {
-  const cleaned = String(raw ?? "")
-    .replace(/[^0-9.-]/g, "")
+  const str = String(raw ?? "")
+    .replace(/,/g, "")
     .trim();
-  if (!cleaned) return 1;
-  const parsed = parseFloat(cleaned);
-  if (Number.isNaN(parsed)) return 1;
+  if (!str) return 0;
+  const match = str.match(/-?\d+(?:\.\d+)?/);
+  if (!match) return 0;
+  const parsed = parseFloat(match[0]);
+  if (!Number.isFinite(parsed)) return 0;
   return Math.max(0, parsed);
 }
 
@@ -158,11 +160,20 @@ function buildItemsFromMatrix(
   const header = findHeaderRow(matrix);
   if (!header) return [];
 
-  const headerLabels = new Set(
-    (matrix[header.rowIndex] || [])
-      .map((cell) => normalizeKey(cell))
-      .filter(Boolean),
+  const headerRow = matrix[header.rowIndex] || [];
+  const headerNameKey = normalizeKey(cellAt(headerRow, header.columns.name));
+  const mappedIndices = new Set(
+    Object.values(header.columns).filter((i): i is number => i !== undefined),
   );
+
+  // Identify any unmapped columns so custom fields are preserved on import
+  const extraCols: Array<{ index: number; key: string }> = [];
+  headerRow.forEach((cell, idx) => {
+    if (mappedIndices.has(idx)) return;
+    const rawHeader = String(cell ?? "").trim();
+    if (!rawHeader) return;
+    extraCols.push({ index: idx, key: rawHeader });
+  });
 
   const items: ParsedImportItem[] = [];
   const fallbackRoom = isGenericSheetName(sheetName) ? "" : sheetName.trim();
@@ -171,8 +182,23 @@ function buildItemsFromMatrix(
     const row = matrix[r] || [];
     const name = cellAt(row, header.columns.name);
 
-    // Skip blank rows and repeated header rows mid-sheet.
-    if (!name || headerLabels.has(normalizeKey(name))) continue;
+    // Skip blank rows, repeated header rows, and summary total rows.
+    if (!name) continue;
+    const nameKey = normalizeKey(name);
+    if (nameKey === headerNameKey && header.columns.quantity !== undefined) {
+      const qtyRaw = normalizeKey(cellAt(row, header.columns.quantity));
+      const expectedQtyKey = normalizeKey(
+        cellAt(headerRow, header.columns.quantity),
+      );
+      if (qtyRaw === expectedQtyKey) continue;
+    }
+    if (
+      nameKey === "total" ||
+      nameKey === "totalinventorysummary" ||
+      nameKey === "totals"
+    ) {
+      continue;
+    }
 
     const status = normalizeStatus(
       cellAt(row, header.columns.status) || "Working",
@@ -180,8 +206,14 @@ function buildItemsFromMatrix(
 
     const room = cellAt(row, header.columns.room) || fallbackRoom;
     const now = new Date().toISOString();
+    const extraFields: Record<string, string> = {};
+    extraCols.forEach(({ index, key }) => {
+      const val = cellAt(row, index);
+      if (val) extraFields[key] = val;
+    });
 
     items.push({
+      ...extraFields,
       id: generateItemId(),
       roomId: "",
       name,
@@ -198,12 +230,6 @@ function buildItemsFromMatrix(
   }
 
   return items;
-}
-
-function csvObjectsToMatrix(rows: Record<string, string>[]): unknown[][] {
-  if (rows.length === 0) return [];
-  const header = Object.keys(rows[0]);
-  return [header, ...rows.map((row) => header.map((key) => row[key]))];
 }
 
 function summarize(
@@ -264,8 +290,8 @@ export async function analyzeSpreadsheet(file: File): Promise<ImportAnalysis> {
   if (isCsv) {
     const text = await readAsText(file);
     const parsed = buildItemsFromMatrix(
-      csvObjectsToMatrix(parseCsvText(text)),
-      file.name,
+      parseCsvMatrix(text),
+      file.name.replace(/\.csv$/i, ""),
     );
     items.push(...parsed);
     if (parsed.length > 0)

@@ -103,23 +103,6 @@
         } catch (e) {}
         document.documentElement.classList.remove("dark");
         document.documentElement.style.colorScheme = "light";
-
-        // Neutralize extension hooks (such as React DevTools installHook.js) from triggering forced layout reflows
-        try {
-          if (typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__ === "object") {
-            window.__REACT_DEVTOOLS_GLOBAL_HOOK__.isDisabled = true;
-            for (var prop in window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-              if (prop === "renderers") {
-                window.__REACT_DEVTOOLS_GLOBAL_HOOK__[prop] = new Map();
-              } else if (
-                typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__[prop] ===
-                "function"
-              ) {
-                window.__REACT_DEVTOOLS_GLOBAL_HOOK__[prop] = function () {};
-              }
-            }
-          }
-        } catch (e) {}
       })();
     </script>
 
@@ -137,8 +120,8 @@
     <link
       rel="preload"
       as="image"
-      href="/logo-sm.webp"
-      type="image/webp"
+      href="/logo-sm.png"
+      type="image/png"
       fetchpriority="high"
     />
     <link
@@ -554,7 +537,7 @@
         body.print-asset-tag #printable-report {
           display: none !important;
         }
-        body.print-asset-tag #root > div {
+        body.print-asset-tag #root > div > *:not(.asset-tag-overlay) {
           display: none !important;
         }
         body.print-asset-tag .asset-tag-overlay {
@@ -736,5 +719,12 @@
     </div>
 
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Institutional safety fallback: ensure preloader never hangs
+      setTimeout(function () {
+        var el = document.getElementById("initial-loading");
+        if (el) el.remove();
+      }, 1500);
+    </script>
   </body>
 </html>

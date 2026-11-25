@@ -1,6 +1,14 @@
 import React, { useState } from "react";
-import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
-import { Plus, Edit2, X } from "lucide-react";
+import {
+  ColumnDefinition,
+  InventoryItem,
+  Room,
+  Facility,
+  DEFAULT_FACILITIES,
+  DEFAULT_FACILITY_ID,
+  normalizeFacilityId,
+} from "../types/inventory";
+import { X } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -10,6 +18,7 @@ interface Props {
   rooms: Room[];
   selectedRoomId: string;
   onSave: (savedItem: InventoryItem) => void;
+  facilities?: Facility[];
 }
 
 export const ItemModal: React.FC<Props> = ({
@@ -20,36 +29,79 @@ export const ItemModal: React.FC<Props> = ({
   rooms,
   selectedRoomId,
   onSave,
+  facilities = DEFAULT_FACILITIES,
 }) => {
-  const defaultRoom =
-    selectedRoomId !== "ALL" ? selectedRoomId : rooms[0]?.id || "";
+  const [formError, setFormError] = useState("");
 
-  const [formData, setFormData] = useState<Record<string, any>>(() => {
-    if (editingItem) {
-      return { ...editingItem };
-    }
-    const initial: Record<string, any> = {
-      roomId: defaultRoom,
-      name: "",
-      quantity: 1,
-      units: "pcs",
-      status: "Working",
-      condition: "Working",
-      category: "Tools",
-      remarks: "",
-    };
-    columns.forEach((col) => {
-      if (initial[col.id] === undefined) {
-        initial[col.id] = col.type === "number" ? 0 : "";
+  const getInitialFormData = React.useCallback(
+    (item: InventoryItem | null) => {
+      const currentRoom =
+        selectedRoomId !== "ALL"
+          ? selectedRoomId
+          : item?.roomId || rooms[0]?.id || "";
+      if (item && item.id) {
+        const cond = item.status || item.condition || "Working";
+        const initial: Record<string, any> = {
+          ...item,
+          status: cond,
+          condition: cond,
+          deployedTo: item.deployedTo || item.deployedLocation || "",
+          deployedLocation: item.deployedLocation || item.deployedTo || "",
+        };
+        columns.forEach((col) => {
+          if (initial[col.id] === undefined) {
+            initial[col.id] =
+              item[col.id] !== undefined
+                ? item[col.id]
+                : item.custom_fields?.[col.id] !== undefined
+                  ? item.custom_fields[col.id]
+                  : col.type === "number"
+                    ? 0
+                    : "";
+          }
+        });
+        return initial;
       }
-    });
-    return initial;
-  });
+      const initial: Record<string, any> = {
+        roomId: currentRoom,
+        name: "",
+        quantity: 1,
+        units: "pcs",
+        status: "Working",
+        condition: "Working",
+        category: "Tools",
+        remarks: "",
+        deployedTo: "",
+        deployedLocation: "",
+      };
+      columns.forEach((col) => {
+        if (initial[col.id] === undefined) {
+          initial[col.id] = col.type === "number" ? 0 : "";
+        }
+      });
+      return initial;
+    },
+    [columns, rooms, selectedRoomId],
+  );
+
+  const [formData, setFormData] = useState<Record<string, any>>(() =>
+    getInitialFormData(editingItem),
+  );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData(getInitialFormData(editingItem));
+      setFormError("");
+    }
+  }, [editingItem, isOpen, getInitialFormData]);
 
   // Close modal on Escape key press
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -59,28 +111,59 @@ export const ItemModal: React.FC<Props> = ({
 
   if (!isOpen) return null;
 
+  const isEditing = Boolean(editingItem && editingItem.id);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name?.trim()) {
-      alert("Item Name is required.");
+      setFormError("Item Name is required.");
       return;
     }
     if (!formData.roomId) {
-      alert("Please select a facility room.");
+      setFormError("Please select a facility room.");
       return;
     }
 
+    for (const col of columns) {
+      if (col.required) {
+        const val = formData[col.id];
+        if (col.type === "number") {
+          if (
+            val === "" ||
+            val === undefined ||
+            val === null ||
+            Number(val) < 0
+          ) {
+            setFormError(`${col.label} must be a non-negative number.`);
+            return;
+          }
+        } else if (!String(val ?? "").trim()) {
+          setFormError(`${col.label} is required.`);
+          return;
+        }
+      }
+    }
+
     const now = new Date().toISOString();
+    const targetRoom = rooms.find((r) => r.id === formData.roomId);
+    const cond = formData.status || formData.condition || "Working";
+
     const payload: InventoryItem = {
       ...formData,
-      id: editingItem ? editingItem.id : `item-${Date.now()}`,
+      id: isEditing && editingItem ? editingItem.id : `item-${Date.now()}`,
       name: formData.name.trim(),
       roomId: formData.roomId,
+      room: targetRoom?.name || formData.room || "",
+      facility: normalizeFacilityId(
+        targetRoom?.facility || formData.facility || DEFAULT_FACILITY_ID,
+        facilities,
+      ),
       category: formData.category || "General",
-      condition: formData.condition || "Good",
-      quantity: Number(formData.quantity) || 0,
+      status: cond,
+      condition: cond,
+      quantity: Math.max(0, Number(formData.quantity) || 0),
       updatedAt: now,
-      createdAt: editingItem?.createdAt || now,
+      createdAt: (isEditing && editingItem?.createdAt) || now,
     };
 
     onSave(payload);
@@ -122,9 +205,10 @@ export const ItemModal: React.FC<Props> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -135,11 +219,23 @@ export const ItemModal: React.FC<Props> = ({
           onSubmit={handleSubmit}
           className="p-5 overflow-y-auto space-y-4 text-xs"
         >
+          {formError && (
+            <div
+              role="alert"
+              className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-700 dark:text-rose-300"
+            >
+              {formError}
+            </div>
+          )}
           <div>
-            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="item-room-select"
+              className="block font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Target Facility Room <span className="text-rose-500">*</span>
             </label>
             <select
+              id="item-room-select"
               value={formData.roomId}
               onChange={(e) =>
                 setFormData({ ...formData, roomId: e.target.value })
@@ -147,11 +243,41 @@ export const ItemModal: React.FC<Props> = ({
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
               required
             >
-              {rooms.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
+              {facilities.map((facility) => {
+                const facilityRooms = rooms.filter(
+                  (r) =>
+                    normalizeFacilityId(r.facility, facilities) === facility.id,
+                );
+                if (facilityRooms.length === 0) return null;
+                return (
+                  <optgroup key={facility.id} label={facility.name}>
+                    {facilityRooms.map((room) => (
+                      <option key={room.id} value={room.id}>
+                        {room.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
+              {(() => {
+                const knownFacIds = new Set(facilities.map((f) => f.id));
+                const unassigned = rooms.filter(
+                  (r) =>
+                    !knownFacIds.has(
+                      normalizeFacilityId(r.facility, facilities),
+                    ),
+                );
+                if (unassigned.length === 0) return null;
+                return (
+                  <optgroup label="Other Rooms">
+                    {unassigned.map((room) => (
+                      <option key={room.id} value={room.id}>
+                        {room.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })()}
             </select>
           </div>
 
@@ -159,15 +285,16 @@ export const ItemModal: React.FC<Props> = ({
             const val = formData[col.id] !== undefined ? formData[col.id] : "";
 
             if (col.type === "dropdown") {
-              const options =
+              let options =
                 col.options && col.options.length > 0
-                  ? col.options
+                  ? [...col.options]
                   : col.id === "status" || col.id === "condition"
                     ? ["Working", "Used", "Defective", "Empty", "Incomplete"]
                     : col.id === "units"
                       ? ["pcs", "set", "box", "roll", "pack"]
                       : [
                           "Tools",
+                          "Deployed",
                           "PC Hardware",
                           "Peripheral",
                           "Cables and Wires",
@@ -175,6 +302,27 @@ export const ItemModal: React.FC<Props> = ({
                           "Diagnostic",
                           "Networking",
                         ];
+
+              if (
+                col.id === "category" &&
+                !options.includes("Deployed") &&
+                !options.includes("Deploy")
+              ) {
+                options = ["Deployed", ...options];
+              }
+
+              if (
+                (col.id === "status" || col.id === "condition") &&
+                !options.includes("Deployed") &&
+                !options.includes("Deploy")
+              ) {
+                options = [
+                  "Working",
+                  "Deployed",
+                  ...options.filter((o) => o !== "Working"),
+                ];
+              }
+
               return (
                 <div key={col.id}>
                   <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -183,9 +331,19 @@ export const ItemModal: React.FC<Props> = ({
                   </label>
                   <select
                     value={val}
-                    onChange={(e) =>
-                      setFormData({ ...formData, [col.id]: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const nextVal = e.target.value;
+                      if (col.id === "status" || col.id === "condition") {
+                        setFormData({
+                          ...formData,
+                          status: nextVal,
+                          condition: nextVal,
+                          [col.id]: nextVal,
+                        });
+                      } else {
+                        setFormData({ ...formData, [col.id]: nextVal });
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-medium"
                     required={col.required}
                   >
@@ -214,7 +372,9 @@ export const ItemModal: React.FC<Props> = ({
                       setFormData({
                         ...formData,
                         [col.id]:
-                          e.target.value === "" ? "" : Number(e.target.value),
+                          e.target.value === ""
+                            ? ""
+                            : Math.max(0, Number(e.target.value) || 0),
                       })
                     }
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white tabular-nums"
@@ -248,15 +408,15 @@ export const ItemModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98]"
+              className="px-5 py-2 rounded-xl font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer"
             >
-              {editingItem ? "Save Changes" : "Create Item"}
+              {isEditing ? "Save Changes" : "Create Item"}
             </button>
           </div>
         </form>

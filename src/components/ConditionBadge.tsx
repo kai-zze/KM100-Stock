@@ -8,6 +8,10 @@ interface Props {
 const STYLES: Record<string, string> = {
   Working:
     "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700/80",
+  Deployed:
+    "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700/80",
+  Deploy:
+    "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700/80",
   Used: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700/80",
   Defective:
     "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-700/80",
@@ -27,6 +31,8 @@ const STYLES: Record<string, string> = {
 
 const DOT_COLORS: Record<string, string> = {
   Working: "bg-emerald-500",
+  Deployed: "bg-blue-500",
+  Deploy: "bg-blue-500",
   Used: "bg-amber-500",
   Defective: "bg-rose-500",
   Deffective: "bg-rose-500",
@@ -46,7 +52,7 @@ export const ConditionBadge: React.FC<Props> = React.memo(({ condition }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${baseClass}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap shrink-0 ${baseClass}`}
       title={`Condition: ${condition || "Unknown"}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />

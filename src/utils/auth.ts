@@ -4,6 +4,14 @@ import { supabase } from "./supabaseClient";
 const AUTH_STORAGE_KEY = "km100_auth_user_v1";
 const REGISTERED_ACCOUNTS_KEY = "km100_registered_accounts_v1";
 
+export function clearLocalAdminAccounts(): void {
+  try {
+    const accounts = readRegisteredAccounts();
+    const withoutAdmin = accounts.filter((a) => a.role !== "admin");
+    writeRegisteredAccounts(withoutAdmin);
+  } catch {}
+}
+
 interface RegisteredAccount {
   id: string;
   email: string;
@@ -93,7 +101,7 @@ export const DEMO_STAFF_ACCOUNTS: Array<{
     email: "staff@km100.edu.ph",
     pass: "km100staff2026",
     role: "staff",
-    name: "Training Staff / Instructor",
+    name: "Staff",
   },
 ];
 
@@ -141,7 +149,6 @@ export const VALID_STAFF_PASSKEYS = [
   "km100staff2026",
   "km100staff2025",
   "km100staff",
-  "km100",
 ];
 
 export const VALID_ADMIN_PASSKEYS = [
@@ -151,7 +158,6 @@ export const VALID_ADMIN_PASSKEYS = [
   "km100admin2025",
   "km100admin",
   "KM100ADMIN",
-  "km100",
 ];
 
 export interface InstitutionalPasskeys {
@@ -243,6 +249,17 @@ export function resetInstitutionalPasskeys(): InstitutionalPasskeys {
   return defaults;
 }
 
+function hasCustomPasskeys(): boolean {
+  try {
+    return (
+      typeof window !== "undefined" &&
+      Boolean(window.localStorage?.getItem(PASSKEYS_STORAGE_KEY))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function isAuthorizedStaffPasskey(key: string): boolean {
   const clean = (key || "").trim().replace(/[-\s]/g, "").toLowerCase();
   if (!clean) return false;
@@ -250,19 +267,12 @@ export function isAuthorizedStaffPasskey(key: string): boolean {
   const activeStaffClean = current.staffPasskey
     .replace(/[-\s]/g, "")
     .toLowerCase();
-  const activeAdminClean = current.adminPasskey
-    .replace(/[-\s]/g, "")
-    .toLowerCase();
 
-  return (
-    clean === activeStaffClean ||
-    clean === activeAdminClean ||
-    VALID_STAFF_PASSKEYS.some(
-      (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
-    ) ||
-    VALID_ADMIN_PASSKEYS.some(
-      (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
-    )
+  if (clean === activeStaffClean) return true;
+  if (hasCustomPasskeys()) return false;
+
+  return VALID_STAFF_PASSKEYS.some(
+    (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
   );
 }
 
@@ -274,12 +284,60 @@ export function isAuthorizedAdminPasskey(key: string): boolean {
     .replace(/[-\s]/g, "")
     .toLowerCase();
 
-  return (
-    clean === activeAdminClean ||
-    VALID_ADMIN_PASSKEYS.some(
-      (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
-    )
+  if (clean === activeAdminClean) return true;
+  if (hasCustomPasskeys()) return false;
+
+  return VALID_ADMIN_PASSKEYS.some(
+    (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
   );
+}
+
+export function hasLocalAdminAccount(): boolean {
+  const accounts = readRegisteredAccounts();
+  return accounts.some((a) => a.role === "admin");
+}
+
+export async function checkAdminAccountExists(): Promise<boolean> {
+  // 1. Cloud check: call the SECURITY DEFINER RPC (if deployed)
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "check_admin_registered",
+    );
+    if (!rpcError && typeof rpcData === "boolean") {
+      if (rpcData === false) {
+        clearLocalAdminAccounts();
+        return false;
+      }
+      return true;
+    }
+  } catch {
+    // RPC fallback
+  }
+
+  // 2. Cloud check: direct profiles query (when public read policy is applied)
+  try {
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("role", "admin");
+
+    if (!profileError && Array.isArray(profiles)) {
+      if (profiles.length > 0) {
+        return true;
+      } else {
+        // Cloud profiles query succeeded and found 0 admin profiles:
+        // That means the admin was deleted in Supabase.
+        // Synchronize local cache by clearing stale admin accounts.
+        clearLocalAdminAccounts();
+        return false;
+      }
+    }
+  } catch {
+    // Supabase offline / network error fallback
+  }
+
+  // 3. Fallback: inspect local registered accounts
+  return hasLocalAdminAccount();
 }
 
 export async function registerAccount(input: {
@@ -317,25 +375,6 @@ export async function registerAccount(input: {
     };
   }
 
-  // Institutional Passkey Security Verification: Strictly blocks random public users
-  if (role === "admin") {
-    if (!isAuthorizedAdminPasskey(passkey)) {
-      return {
-        success: false,
-        error:
-          "Invalid Custodian Passkey. Administrator registration requires the official KM100 Admin passkey (e.g. KM100-ADMIN-2026).",
-      };
-    }
-  } else {
-    if (!isAuthorizedStaffPasskey(passkey)) {
-      return {
-        success: false,
-        error:
-          "Invalid Institutional Passkey. Registration is restricted to authorized KM100 personnel with a valid passkey (e.g. KM100-STAFF-2026).",
-      };
-    }
-  }
-
   const isDemoAccount = DEMO_STAFF_ACCOUNTS.some(
     (account) => account.email.toLowerCase() === email,
   );
@@ -363,8 +402,6 @@ export async function registerAccount(input: {
         .maybeSingle();
 
       if (!profileErr && !profileCheck) {
-        // Account does not exist in Supabase profiles! It was deleted on the database.
-        // Prune the deleted account from localStorage so re-registration is unblocked.
         accounts = accounts.filter(
           (account) => account.email.toLowerCase() !== email,
         );
@@ -382,6 +419,39 @@ export async function registerAccount(input: {
       error:
         "An account with this email already exists. Please sign in instead.",
     };
+  }
+
+  // Institutional Single-Admin Governance: Only 1 Property Custodian account can be registered
+  if (role === "admin") {
+    const localAdminExists = accounts.some(
+      (account) =>
+        account.role === "admin" && account.email.toLowerCase() !== email,
+    );
+    const cloudAdminExists = localAdminExists
+      ? true
+      : await checkAdminAccountExists();
+    if (localAdminExists || cloudAdminExists) {
+      return {
+        success: false,
+        error:
+          "A Property Custodian account has already been registered. Additional accounts must be registered as Staff.",
+      };
+    }
+    if (passkey && !isAuthorizedAdminPasskey(passkey)) {
+      return {
+        success: false,
+        error:
+          "Invalid Custodian Passkey. Administrator registration requires the official KM100 Admin passkey (e.g. KM100-ADMIN-2026).",
+      };
+    }
+  } else {
+    if (passkey && !isAuthorizedStaffPasskey(passkey)) {
+      return {
+        success: false,
+        error:
+          "Invalid Staff Passkey. Staff registration requires the official KM100 Staff passkey (e.g. KM100-STAFF-2026).",
+      };
+    }
   }
 
   const salt = createSalt();
@@ -504,14 +574,8 @@ export async function loginWithCredentials(
   // 1. Direct match with official institutional demo accounts (Instant 0ms, offline-first)
   const exactMatch = DEMO_STAFF_ACCOUNTS.find(
     (acc) =>
-      (acc.email.toLowerCase() === cleanInput ||
-        acc.role === cleanInput ||
-        cleanInput.startsWith(acc.role)) &&
-      (acc.pass === cleanPass ||
-        cleanPass === "km100" ||
-        cleanPass === "admin" ||
-        cleanPass === "staff" ||
-        cleanPass === acc.pass),
+      (acc.email.toLowerCase() === cleanInput || acc.role === cleanInput) &&
+      acc.pass === cleanPass,
   );
 
   if (exactMatch) {
@@ -598,7 +662,7 @@ export async function loginWithCredentials(
         fullName:
           userMeta.full_name ||
           userMeta.name ||
-          (role === "admin" ? "Property Custodian" : "Instructor"),
+          (role === "admin" ? "Property Custodian" : "Staff"),
       };
 
       setStoredUser(appUser);
@@ -649,7 +713,14 @@ export async function updateUserProfile(params: {
     if (trimmedName) updatePayload.data = { full_name: trimmedName };
 
     if (Object.keys(updatePayload).length > 0) {
-      await supabase.auth.updateUser(updatePayload);
+      const { error: authUpdateError } =
+        await supabase.auth.updateUser(updatePayload);
+      if (authUpdateError) {
+        console.warn(
+          "Supabase auth.updateUser warning:",
+          authUpdateError.message,
+        );
+      }
 
       if (trimmedName) {
         await supabase
@@ -770,7 +841,7 @@ export async function completePasswordRecovery(
       fullName:
         userMeta.full_name ||
         userMeta.name ||
-        (role === "admin" ? "Property Custodian" : "Instructor"),
+        (role === "admin" ? "Property Custodian" : "Staff"),
     };
 
     // Synchronize local registered accounts if found

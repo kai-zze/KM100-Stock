@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Room } from "../types/inventory";
-import { Building, Trash2, X } from "lucide-react";
+import {
+  Room,
+  Facility,
+  DEFAULT_FACILITIES,
+  FacilityId,
+} from "../types/inventory";
+import { Trash2, X } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -8,6 +13,8 @@ interface Props {
   editingRoom: Room | null;
   onSave: (savedRoom: Room) => void;
   onDelete?: (room: Room) => void;
+  defaultFacility?: string;
+  facilities?: Facility[];
 }
 
 export const RoomModal: React.FC<Props> = ({
@@ -16,24 +23,42 @@ export const RoomModal: React.FC<Props> = ({
   editingRoom,
   onSave,
   onDelete,
+  defaultFacility = "fac-km100-stc",
+  facilities = DEFAULT_FACILITIES,
 }) => {
+  const fallbackFacility = (facilities[0]?.id || "fac-km100-stc") as FacilityId;
+  const resolvedDefault = (
+    defaultFacility && defaultFacility !== "ALL"
+      ? defaultFacility
+      : fallbackFacility
+  ) as FacilityId;
+
   const [name, setName] = useState(editingRoom ? editingRoom.name : "");
   const [description, setDescription] = useState(
     editingRoom ? editingRoom.description || "" : "",
   );
+  const [facility, setFacility] = useState<FacilityId>(
+    (editingRoom?.facility as FacilityId) || resolvedDefault,
+  );
+  const [error, setError] = useState("");
 
   // Synchronize state whenever editingRoom or isOpen changes
   useEffect(() => {
     if (isOpen) {
       setName(editingRoom ? editingRoom.name : "");
       setDescription(editingRoom ? editingRoom.description || "" : "");
+      setFacility((editingRoom?.facility as FacilityId) || resolvedDefault);
+      setError("");
     }
-  }, [isOpen, editingRoom]);
+  }, [isOpen, editingRoom, resolvedDefault]);
 
   // Close modal on Escape key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
     if (isOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -45,12 +70,16 @@ export const RoomModal: React.FC<Props> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError("Please enter a room name.");
+      return;
+    }
 
     onSave({
       id: editingRoom ? editingRoom.id : `room-${Date.now()}`,
       name: name.trim(),
       description: description.trim(),
+      facility,
     });
   };
 
@@ -84,7 +113,7 @@ export const RoomModal: React.FC<Props> = ({
                 {editingRoom ? "Rename Facility Room" : "Add New Facility Room"}
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                KM100 Skills and Training Center, Inc.
+                KM100 Enterprise Multi-Facility Management
               </p>
             </div>
           </div>
@@ -98,15 +127,55 @@ export const RoomModal: React.FC<Props> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+          {error && (
+            <div
+              role="alert"
+              className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-700 dark:text-rose-300"
+            >
+              {error}
+            </div>
+          )}
           <div>
-            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="room-facility-select"
+              className="block font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
+              Facility Branch <span className="text-rose-500">*</span>
+            </label>
+            <select
+              id="room-facility-select"
+              value={facility}
+              onChange={(e) => setFacility(e.target.value as FacilityId)}
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              required
+            >
+              {facilities.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              Assign this room to any registered institutional facility.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="room-name-input"
+              className="block font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Room Name <span className="text-rose-500">*</span>
             </label>
             <input
+              id="room-name-input"
               type="text"
-              placeholder="e.g. Computer Lab 2, Electrical Workshop"
+              placeholder="Enter room name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError("");
+              }}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/40"
               required
               autoFocus
@@ -119,7 +188,7 @@ export const RoomModal: React.FC<Props> = ({
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Dedicated practical lab for network certification courses"
+              placeholder="Enter room description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 resize-none"

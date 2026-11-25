@@ -1,5 +1,6 @@
 import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
 import { normalizeStatus } from "./status";
+import { sanitizeFormulaCell } from "./spreadsheetSafety";
 
 interface ExportColumn {
   id: string;
@@ -40,15 +41,17 @@ function cellValue(
 ): string {
   if (column.id === "_room") return roomName;
   if (column.id === "_status")
-    return normalizeStatus(item.status ?? item.condition);
+    return normalizeStatus(item.status || item.condition);
   if (column.id === "quantity") return String(Number(item.quantity) || 0);
   if (column.id === "units") return item.units || "pcs";
   const value = item[column.id];
   return value === undefined || value === null ? "" : String(value);
 }
 
-const escapeCsv = (value: string): string =>
-  /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+const escapeCsv = (value: string): string => {
+  const safe = sanitizeFormulaCell(value);
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+};
 
 export function buildInventoryCsv(
   items: InventoryItem[],
@@ -61,7 +64,7 @@ export function buildInventoryCsv(
   const lines = [exportColumns.map((col) => escapeCsv(col.label)).join(",")];
 
   items.forEach((item) => {
-    const roomName = item.room || roomNames.get(item.roomId) || "Unassigned";
+    const roomName = roomNames.get(item.roomId) || item.room || "Unassigned";
     const row = exportColumns.map((col) =>
       escapeCsv(cellValue(col, item, roomName)),
     );
@@ -86,5 +89,5 @@ export function downloadInventoryCsv(
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

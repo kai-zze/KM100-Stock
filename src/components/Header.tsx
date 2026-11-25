@@ -6,12 +6,18 @@ import {
   Layers,
   Building,
   Printer,
-  Menu,
+  Download,
   LogOut,
   Shield,
   User,
 } from "lucide-react";
-import { Room, AppUser } from "../types/inventory";
+import {
+  Room,
+  AppUser,
+  Facility,
+  DEFAULT_FACILITIES,
+  getFacility,
+} from "../types/inventory";
 
 // ── Sidebar / Panel Icons (Lucide-standard SVG) ──────────────────────
 const PanelLeftCloseIcon = ({
@@ -76,6 +82,8 @@ interface Props {
   isSidebarCollapsed?: boolean;
   onOpenProfile?: () => void;
   selectedRoomId: string;
+  selectedFacilityId?: string;
+  facilities?: Facility[];
   currentRoom?: Room;
   currentUser?: AppUser | null;
   onSignOut?: () => void;
@@ -91,6 +99,8 @@ export const Header: React.FC<Props> = ({
   isSidebarCollapsed,
   onOpenProfile,
   selectedRoomId,
+  selectedFacilityId = "ALL",
+  facilities = DEFAULT_FACILITIES,
   currentRoom,
   currentUser,
   onSignOut,
@@ -171,16 +181,20 @@ export const Header: React.FC<Props> = ({
             </picture>
 
             <div className="shrink-0">
-              <h1 className="text-sm sm:text-base md:text-lg font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap">
-                <span className="text-amber-700 dark:text-amber-500">KM</span>
-                100
-                <span className="hidden sm:inline">
-                  {" "}
-                  Skills and Training Center, Inc.
-                </span>
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-base md:text-lg font-heading font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap">
+                  <span className="text-amber-700 dark:text-amber-500">KM</span>
+                  100
+                  <span className="hidden sm:inline">
+                    {" "}
+                    Skills and Training Center, Inc.
+                  </span>
+                </h1>
+              </div>
               <p className="hidden sm:block text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium leading-none mt-1 truncate">
-                Inventory Management System
+                {selectedFacilityId && selectedFacilityId !== "ALL"
+                  ? `${getFacility(selectedFacilityId, facilities).name} Facility Inventory Register`
+                  : "Enterprise Multi-Facility Inventory System"}
               </p>
             </div>
           </div>
@@ -284,7 +298,7 @@ export const Header: React.FC<Props> = ({
                           {selectedRoomId === "ALL"
                             ? "Current View Catalog"
                             : `${currentRoom?.name || "Current Room"} Only`}
-                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:blue-950/60 px-1 rounded">
+                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1 rounded">
                             .xlsx
                           </span>
                         </div>
@@ -294,6 +308,34 @@ export const Header: React.FC<Props> = ({
                         </div>
                       </div>
                     </button>
+
+                    {/* CSV Export */}
+                    {onExportCsv && (
+                      <button
+                        onClick={() => {
+                          setIsExportDropdownOpen(false);
+                          onExportCsv();
+                        }}
+                        role="menuitem"
+                        className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer mt-0.5"
+                      >
+                        <Download
+                          size={15}
+                          className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"
+                        />
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            Export Current View CSV
+                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded">
+                              .csv
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Comma-separated table for active filters
+                          </div>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Mobile Admin Options: Import & Schema */}
                     {onTriggerUploadExcel && currentUser?.role === "admin" && (
@@ -393,7 +435,7 @@ export const Header: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onOpenProfile}
-                className="flex items-center gap-1 sm:gap-2 px-1.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs group shrink-0"
+                className="flex items-center gap-1 sm:gap-2 px-1.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm group shrink-0"
                 title="Account Settings - Click to change name or password"
                 aria-label="Account Settings"
               >
