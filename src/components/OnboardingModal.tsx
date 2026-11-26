@@ -18,7 +18,7 @@ interface Props {
 interface TourStep {
   id: string;
   targetId: string;
-  fallbackTargetId?: string;
+  fallbackTargetIds?: string[];
   section: string;
   title: string;
   description: string;
@@ -62,7 +62,7 @@ export const OnboardingModal: React.FC<Props> = ({
       {
         id: "facilities",
         targetId: "tour-sidebar",
-        fallbackTargetId: "tour-mobile-drawer",
+        fallbackTargetIds: ["tour-mobile-drawer", "tour-mobile-menu-btn"],
         section: "FACILITIES",
         title: "Multi-Facility & Room Navigation",
         description: isMobile
@@ -76,7 +76,7 @@ export const OnboardingModal: React.FC<Props> = ({
       {
         id: "add-item",
         targetId: "tour-add-item",
-        fallbackTargetId: "tour-add-item-overview",
+        fallbackTargetIds: ["tour-add-item-overview"],
         section: "ENROLLMENT",
         title: "Registering New Equipment",
         description:
@@ -107,7 +107,7 @@ export const OnboardingModal: React.FC<Props> = ({
       {
         id: "row-controls",
         targetId: "tour-table-row",
-        fallbackTargetId: "tour-quantity-stepper",
+        fallbackTargetIds: ["tour-quantity-stepper"],
         section: "STOCK CONTROLS",
         title: "High-Density Quantity Steppers",
         description:
@@ -131,7 +131,7 @@ export const OnboardingModal: React.FC<Props> = ({
       steps.push({
         id: "schema-columns",
         targetId: "tour-schema-columns-btn",
-        fallbackTargetId: "tour-header-tools",
+        fallbackTargetIds: ["tour-header-tools"],
         section: "CUSTOM FIELDS",
         title: "Customize Schema Columns",
         description:
@@ -207,16 +207,28 @@ export const OnboardingModal: React.FC<Props> = ({
     };
 
     let el = checkVisible(step.targetId);
-    if (!el && step.fallbackTargetId) {
-      el = checkVisible(step.fallbackTargetId);
+    if (!el && step.fallbackTargetIds) {
+      for (const fallbackId of step.fallbackTargetIds) {
+        el = checkVisible(fallbackId);
+        if (el) break;
+      }
     }
+
+    // Measure tooltip dimensions once for both anchored and fallback layouts
+    const tooltipEl = tooltipRef.current;
+    const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 360;
+    const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 280;
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+    const gap = 12;
+    const pad = 12;
 
     if (el) {
       try {
         el.scrollIntoView({
           behavior: "smooth",
-          block: "center",
-          inline: "nearest",
+          block: "nearest",
+          inline: "start",
         });
       } catch {
         // Fallback
@@ -224,16 +236,6 @@ export const OnboardingModal: React.FC<Props> = ({
 
       const rect = el.getBoundingClientRect();
       setTargetRect(rect);
-
-      // Measure tooltip dimensions
-      const tooltipEl = tooltipRef.current;
-      const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 360;
-      const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 210;
-
-      const vpW = window.innerWidth;
-      const vpH = window.innerHeight;
-      const gap = 12;
-      const pad = 12;
 
       // Mobile layout: dock cleanly at top or bottom
       if (vpW < 640) {
@@ -341,13 +343,10 @@ export const OnboardingModal: React.FC<Props> = ({
       });
     } else {
       setTargetRect(null);
-      // Fallback position safely clamped within viewport
+      // Fallback position: center within viewport using measured tooltip dimensions
       setPosition({
-        top: Math.max(16, window.innerHeight - 240),
-        left: Math.max(
-          16,
-          Math.min(window.innerWidth - 380, window.innerWidth - 376),
-        ),
+        top: Math.max(pad, Math.round((vpH - tooltipH) / 2)),
+        left: Math.max(pad, Math.round((vpW - tooltipW) / 2)),
         placement: "top",
       });
     }
@@ -356,6 +355,7 @@ export const OnboardingModal: React.FC<Props> = ({
   useEffect(() => {
     if (!isOpen) return;
 
+    updateHighlightAndPosition();
     const timer = setTimeout(updateHighlightAndPosition, 60);
 
     const handleResize = () => updateHighlightAndPosition();
@@ -364,12 +364,28 @@ export const OnboardingModal: React.FC<Props> = ({
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, true);
 
+    let resizeObserver: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined" && tooltipRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        updateHighlightAndPosition();
+      });
+      resizeObserver.observe(tooltipRef.current);
+    }
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll, true);
+      resizeObserver?.disconnect();
     };
   }, [isOpen, currentStep, updateHighlightAndPosition]);
+
+  // Route focus into the tour dialog when opened
+  useEffect(() => {
+    if (isOpen) {
+      tooltipRef.current?.focus({ preventScroll: true });
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -439,10 +455,11 @@ export const OnboardingModal: React.FC<Props> = ({
       {/* Anchored Floating Tooltip Card */}
       <div
         ref={tooltipRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="product-tour-title"
-        className="fixed z-50 w-[calc(100vw-24px)] sm:w-[360px] bg-white dark:bg-black text-black dark:text-white rounded-2xl shadow-2xl border border-neutral-300 dark:border-neutral-800 p-4 sm:p-5 space-y-3 transition-all duration-200 animate-modal"
+        className="fixed z-50 w-[calc(100vw-24px)] sm:w-[360px] max-h-[calc(100dvh-24px)] overflow-y-auto bg-white dark:bg-black text-black dark:text-white rounded-2xl shadow-2xl border border-neutral-300 dark:border-neutral-800 p-4 sm:p-5 space-y-3 transition-all duration-200 animate-modal focus:outline-none"
         style={{
           top: position.top,
           left: position.left,

@@ -318,13 +318,12 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
             <div className="min-w-0">
               <h3
                 id="schema-modal-title"
-                className="text-sm font-heading font-bold text-slate-900 dark:text-white truncate"
+                className="text-sm font-heading font-bold text-slate-900 dark:text-white leading-snug"
               >
-                Customize Inventory Columns &amp; Content (Schema Builder)
+                Customize Table Columns &amp; Content
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                Configure field labels, data types, dropdown content choices,
-                and validation
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                Configure field labels, data types, choices, and validation
               </p>
             </div>
           </div>
@@ -374,7 +373,8 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                     }`}
                   >
                     {/* Summary Row */}
-                    <div className="flex items-center justify-between p-2.5 sm:p-3 gap-2">
+                    <div className="p-2.5 sm:p-3 space-y-2.5 md:space-y-0 md:flex md:items-center md:justify-between md:gap-2">
+                      {/* Top Row on Mobile, Left Side on Desktop */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="w-5 text-center font-mono text-slate-400 font-bold shrink-0 text-xs">
                           {idx + 1}
@@ -392,84 +392,103 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                               (e.target as HTMLInputElement).blur();
                             }
                           }}
-                          className="px-2.5 py-1 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 flex-1 min-w-[120px]"
+                          className="px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 flex-1 min-w-0"
                         />
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0 ${
-                            col.type === "dropdown"
-                              ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800"
-                              : col.type === "number"
-                                ? "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800"
-                                : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                          }`}
-                        >
-                          {col.type}
-                        </span>
-                        {col.type === "dropdown" && (
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                            ({options.length} choices)
-                          </span>
-                        )}
-                        {col.isSystem && (
-                          <span className="hidden md:inline text-[10px] text-amber-700 dark:text-amber-400 font-semibold italic shrink-0 whitespace-nowrap">
-                            Core Field
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Controls */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedColId(isExpanded ? null : col.id)
-                          }
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                            isExpanded
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                          }`}
-                          title="Configure column options and settings"
-                        >
-                          <Sliders size={12} />
-                          <span>Configure</span>
-                          <ChevronDown
-                            size={12}
-                            className={`transition-transform duration-200 ${
-                              isExpanded ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => moveColumn(idx, -1)}
-                          disabled={idx === 0}
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
-                          title="Move Up"
-                        >
-                          <ChevronUp size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveColumn(idx, 1)}
-                          disabled={idx === localCols.length - 1}
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
-                          title="Move Down"
-                        >
-                          <ChevronDown size={13} />
-                        </button>
-
+                        {/* Mobile Delete Button */}
                         {!col.isSystem && (
                           <button
                             type="button"
                             onClick={() => deleteColumn(col.id)}
-                            className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 ml-0.5 transition-colors cursor-pointer"
+                            className="md:hidden p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
                             title="Delete Column"
+                            aria-label={`Delete ${col.label} column`}
                           >
                             <Trash2 size={13} />
                           </button>
                         )}
+                      </div>
+
+                      {/* Bottom Row on Mobile, Right Side on Desktop */}
+                      <div className="flex items-center justify-between md:justify-end gap-1.5 md:gap-1 shrink-0 pt-2 md:pt-0 border-t border-slate-100 md:border-t-0 dark:border-slate-800/80">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0 ${
+                              col.type === "dropdown"
+                                ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800"
+                                : col.type === "number"
+                                  ? "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800"
+                                  : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                            }`}
+                          >
+                            {col.type}
+                          </span>
+                          {col.type === "dropdown" && (
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                              ({options.length} choices)
+                            </span>
+                          )}
+                          {col.isSystem && (
+                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold italic shrink-0 whitespace-nowrap">
+                              Core
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-1 shrink-0 ml-auto md:ml-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedColId(isExpanded ? null : col.id)
+                            }
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                              isExpanded
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            }`}
+                            title="Configure column options and settings"
+                          >
+                            <Sliders size={12} />
+                            <span>Configure</span>
+                            <ChevronDown
+                              size={12}
+                              className={`transition-transform duration-200 ${
+                                isExpanded ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => moveColumn(idx, -1)}
+                            disabled={idx === 0}
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                            title="Move Up"
+                          >
+                            <ChevronUp size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveColumn(idx, 1)}
+                            disabled={idx === localCols.length - 1}
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                            title="Move Down"
+                          >
+                            <ChevronDown size={13} />
+                          </button>
+
+                          {!col.isSystem && (
+                            <button
+                              type="button"
+                              onClick={() => deleteColumn(col.id)}
+                              className="hidden md:inline-flex p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 ml-0.5 transition-colors cursor-pointer"
+                              title="Delete Column"
+                              aria-label={`Delete ${col.label} column`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -726,13 +745,13 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={newColRequired}
                   onChange={(e) => setNewColRequired(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-amber-700 focus:ring-amber-500 cursor-pointer"
+                  className="h-4 w-4 rounded border-slate-300 text-amber-700 focus:ring-amber-500 cursor-pointer shrink-0"
                 />
                 <span>Required field during item entry</span>
               </label>
@@ -740,7 +759,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
               <button
                 type="submit"
                 disabled={!newColLabel.trim()}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white disabled:opacity-40 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white disabled:opacity-40 transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
               >
                 <Plus size={13} />
                 <span>Insert Column to Schema</span>
@@ -750,25 +769,25 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 sm:p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 bg-slate-50/70 dark:bg-slate-800/40">
+        <div className="p-3.5 sm:p-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0 bg-slate-50/70 dark:bg-slate-800/40">
           <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
             Changes will update item forms, excel workbooks, and table views
           </span>
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-center"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5"
+              className="flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-bold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Check size={14} />
-              <span>Save Column Layout &amp; Content</span>
+              <span>Save Column Layout</span>
             </button>
           </div>
         </div>

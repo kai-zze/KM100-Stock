@@ -138,29 +138,35 @@ export function setStoredUser(user: AppUser | null): void {
   }
 }
 
-// Authorized KM100 Institutional Security Passkeys (Blocks unauthorized random public access)
-export const DEFAULT_STAFF_PASSKEY = "KM100-STAFF-2026";
-export const DEFAULT_ADMIN_PASSKEY = "KM100-ADMIN-2026";
+// Authorized KM100 Institutional Security Passkey (Single unified passkey for all authorized registrations)
+export const DEFAULT_PASSKEY = "KM100-2026";
+export const DEFAULT_STAFF_PASSKEY = DEFAULT_PASSKEY;
+export const DEFAULT_ADMIN_PASSKEY = DEFAULT_PASSKEY;
 export const PASSKEYS_STORAGE_KEY = "km100_institutional_passkeys_v1";
 
-export const VALID_STAFF_PASSKEYS = [
-  DEFAULT_STAFF_PASSKEY,
-  "KM100-STAFF-2025",
-  "km100staff2026",
-  "km100staff2025",
-  "km100staff",
-];
-
-export const VALID_ADMIN_PASSKEYS = [
-  DEFAULT_ADMIN_PASSKEY,
+export const VALID_INSTITUTIONAL_PASSKEYS = [
+  DEFAULT_PASSKEY,
+  "KM100-ADMIN-2026",
+  "KM100-STAFF-2026",
+  "KM100-2025",
   "KM100-ADMIN-2025",
+  "KM100-STAFF-2025",
+  "km1002026",
+  "km100staff2026",
   "km100admin2026",
+  "km100staff2025",
   "km100admin2025",
+  "km100staff",
   "km100admin",
   "KM100ADMIN",
+  "KM100",
 ];
 
+export const VALID_STAFF_PASSKEYS = VALID_INSTITUTIONAL_PASSKEYS;
+export const VALID_ADMIN_PASSKEYS = VALID_INSTITUTIONAL_PASSKEYS;
+
 export interface InstitutionalPasskeys {
+  passkey: string;
   adminPasskey: string;
   staffPasskey: string;
 }
@@ -168,25 +174,33 @@ export interface InstitutionalPasskeys {
 export function getInstitutionalPasskeys(): InstitutionalPasskeys {
   if (typeof window === "undefined" || !window.localStorage) {
     return {
-      adminPasskey: DEFAULT_ADMIN_PASSKEY,
-      staffPasskey: DEFAULT_STAFF_PASSKEY,
+      passkey: DEFAULT_PASSKEY,
+      adminPasskey: DEFAULT_PASSKEY,
+      staffPasskey: DEFAULT_PASSKEY,
     };
   }
   try {
     const raw = localStorage.getItem(PASSKEYS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      const unifiedKey =
+        parsed.passkey ||
+        parsed.adminPasskey ||
+        parsed.staffPasskey ||
+        DEFAULT_PASSKEY;
       return {
-        adminPasskey: parsed.adminPasskey || DEFAULT_ADMIN_PASSKEY,
-        staffPasskey: parsed.staffPasskey || DEFAULT_STAFF_PASSKEY,
+        passkey: unifiedKey,
+        adminPasskey: unifiedKey,
+        staffPasskey: unifiedKey,
       };
     }
   } catch (e) {
     console.warn("Failed to read passkeys from localStorage", e);
   }
   return {
-    adminPasskey: DEFAULT_ADMIN_PASSKEY,
-    staffPasskey: DEFAULT_STAFF_PASSKEY,
+    passkey: DEFAULT_PASSKEY,
+    adminPasskey: DEFAULT_PASSKEY,
+    staffPasskey: DEFAULT_PASSKEY,
   };
 }
 
@@ -194,28 +208,25 @@ export function updateInstitutionalPasskeys(
   newPasskeys: Partial<InstitutionalPasskeys>,
 ): { success: boolean; passkeys: InstitutionalPasskeys; error?: string } {
   const current = getInstitutionalPasskeys();
-  const nextAdmin = (newPasskeys.adminPasskey ?? current.adminPasskey).trim();
-  const nextStaff = (newPasskeys.staffPasskey ?? current.staffPasskey).trim();
+  const nextPasskey = (
+    newPasskeys.passkey ??
+    newPasskeys.adminPasskey ??
+    newPasskeys.staffPasskey ??
+    current.passkey
+  ).trim();
 
-  if (nextAdmin.length < 6) {
+  if (nextPasskey.length < 6) {
     return {
       success: false,
       passkeys: current,
-      error: "Custodian passkey must be at least 6 characters long.",
-    };
-  }
-
-  if (nextStaff.length < 6) {
-    return {
-      success: false,
-      passkeys: current,
-      error: "Staff passkey must be at least 6 characters long.",
+      error: "Institutional passkey must be at least 6 characters long.",
     };
   }
 
   const updated: InstitutionalPasskeys = {
-    adminPasskey: nextAdmin,
-    staffPasskey: nextStaff,
+    passkey: nextPasskey,
+    adminPasskey: nextPasskey,
+    staffPasskey: nextPasskey,
   };
 
   try {
@@ -236,8 +247,9 @@ export function updateInstitutionalPasskeys(
 
 export function resetInstitutionalPasskeys(): InstitutionalPasskeys {
   const defaults: InstitutionalPasskeys = {
-    adminPasskey: DEFAULT_ADMIN_PASSKEY,
-    staffPasskey: DEFAULT_STAFF_PASSKEY,
+    passkey: DEFAULT_PASSKEY,
+    adminPasskey: DEFAULT_PASSKEY,
+    staffPasskey: DEFAULT_PASSKEY,
   };
   try {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -260,36 +272,26 @@ function hasCustomPasskeys(): boolean {
   }
 }
 
-export function isAuthorizedStaffPasskey(key: string): boolean {
+export function isAuthorizedPasskey(key: string): boolean {
   const clean = (key || "").trim().replace(/[-\s]/g, "").toLowerCase();
   if (!clean) return false;
   const current = getInstitutionalPasskeys();
-  const activeStaffClean = current.staffPasskey
-    .replace(/[-\s]/g, "")
-    .toLowerCase();
+  const activeClean = current.passkey.replace(/[-\s]/g, "").toLowerCase();
 
-  if (clean === activeStaffClean) return true;
+  if (clean === activeClean) return true;
   if (hasCustomPasskeys()) return false;
 
-  return VALID_STAFF_PASSKEYS.some(
+  return VALID_INSTITUTIONAL_PASSKEYS.some(
     (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
   );
 }
 
+export function isAuthorizedStaffPasskey(key: string): boolean {
+  return isAuthorizedPasskey(key);
+}
+
 export function isAuthorizedAdminPasskey(key: string): boolean {
-  const clean = (key || "").trim().replace(/[-\s]/g, "").toLowerCase();
-  if (!clean) return false;
-  const current = getInstitutionalPasskeys();
-  const activeAdminClean = current.adminPasskey
-    .replace(/[-\s]/g, "")
-    .toLowerCase();
-
-  if (clean === activeAdminClean) return true;
-  if (hasCustomPasskeys()) return false;
-
-  return VALID_ADMIN_PASSKEYS.some(
-    (k) => k.replace(/[-\s]/g, "").toLowerCase() === clean,
-  );
+  return isAuthorizedPasskey(key);
 }
 
 export function hasLocalAdminAccount(): boolean {
@@ -437,19 +439,19 @@ export async function registerAccount(input: {
           "A Property Custodian account has already been registered. Additional accounts must be registered as Staff.",
       };
     }
-    if (passkey && !isAuthorizedAdminPasskey(passkey)) {
+    if (passkey && !isAuthorizedPasskey(passkey)) {
       return {
         success: false,
         error:
-          "Invalid Custodian Passkey. Administrator registration requires the official KM100 Admin passkey (e.g. KM100-ADMIN-2026).",
+          "Invalid Institutional Passkey. Administrator registration requires the official KM100 passkey (e.g. KM100-2026).",
       };
     }
   } else {
-    if (passkey && !isAuthorizedStaffPasskey(passkey)) {
+    if (passkey && !isAuthorizedPasskey(passkey)) {
       return {
         success: false,
         error:
-          "Invalid Staff Passkey. Staff registration requires the official KM100 Staff passkey (e.g. KM100-STAFF-2026).",
+          "Invalid Institutional Passkey. Staff registration requires the official KM100 passkey (e.g. KM100-2026).",
       };
     }
   }
@@ -543,10 +545,7 @@ export async function loginWithCredentials(
   if (registeredAccount) {
     const passwordHash = await hashPassword(cleanPass, registeredAccount.salt);
     const passMatches = passwordHash === registeredAccount.passwordHash;
-    const passkeyMatches =
-      registeredAccount.role === "admin"
-        ? isAuthorizedAdminPasskey(cleanPass)
-        : isAuthorizedStaffPasskey(cleanPass);
+    const passkeyMatches = isAuthorizedPasskey(cleanPass);
 
     if (!passMatches && !passkeyMatches) {
       return {
@@ -594,31 +593,19 @@ export async function loginWithCredentials(
     cleanInput.includes("@") &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanInput)
   ) {
-    if (isAuthorizedAdminPasskey(cleanPass)) {
+    if (isAuthorizedPasskey(cleanPass)) {
+      const isAdminAccount =
+        cleanInput.includes("admin") || cleanInput.includes("custodian");
       const appUser: AppUser = {
-        id: `usr-admin-${Date.now().toString(36)}`,
+        id: `usr-${isAdminAccount ? "admin" : "staff"}-${Date.now().toString(36)}`,
         email: cleanInput,
-        role: "admin",
+        role: isAdminAccount ? "admin" : "staff",
         fullName:
           cleanInput
             .split("@")[0]
             .replace(/[._-]/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase()) || "Property Custodian",
-      };
-      setStoredUser(appUser);
-      return { success: true, user: appUser };
-    }
-
-    if (isAuthorizedStaffPasskey(cleanPass)) {
-      const appUser: AppUser = {
-        id: `usr-staff-${Date.now().toString(36)}`,
-        email: cleanInput,
-        role: "staff",
-        fullName:
-          cleanInput
-            .split("@")[0]
-            .replace(/[._-]/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase()) || "Staff",
+            .replace(/\b\w/g, (c) => c.toUpperCase()) ||
+          (isAdminAccount ? "Property Custodian" : "Staff"),
       };
       setStoredUser(appUser);
       return { success: true, user: appUser };

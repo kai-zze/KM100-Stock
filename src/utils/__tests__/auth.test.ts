@@ -235,18 +235,19 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
   describe("Custom Institutional Passkey Management", () => {
     it("returns default passkeys when none are configured", () => {
       const keys = getInstitutionalPasskeys();
-      expect(keys.adminPasskey).toBe("KM100-ADMIN-2026");
-      expect(keys.staffPasskey).toBe("KM100-STAFF-2026");
+      expect(keys.passkey).toBe("KM100-2026");
+      expect(keys.adminPasskey).toBe("KM100-2026");
+      expect(keys.staffPasskey).toBe("KM100-2026");
     });
 
     it("allows the admin to update institutional passkeys and authorizes registration with the new passkeys", async () => {
       const updateRes = updateInstitutionalPasskeys({
-        adminPasskey: "CUSTOM-CUSTODIAN-9999",
-        staffPasskey: "CUSTOM-STAFF-8888",
+        passkey: "CUSTOM-UNIFIED-9999",
       });
       expect(updateRes.success).toBe(true);
-      expect(updateRes.passkeys.adminPasskey).toBe("CUSTOM-CUSTODIAN-9999");
-      expect(updateRes.passkeys.staffPasskey).toBe("CUSTOM-STAFF-8888");
+      expect(updateRes.passkeys.passkey).toBe("CUSTOM-UNIFIED-9999");
+      expect(updateRes.passkeys.adminPasskey).toBe("CUSTOM-UNIFIED-9999");
+      expect(updateRes.passkeys.staffPasskey).toBe("CUSTOM-UNIFIED-9999");
 
       // Register staff with new custom passkey
       const staffReg = await registerAccount({
@@ -254,7 +255,7 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
         email: "newstaff@km100.edu.ph",
         password: "Password123",
         role: "staff",
-        passkey: "CUSTOM-STAFF-8888",
+        passkey: "CUSTOM-UNIFIED-9999",
       });
       expect(staffReg.success).toBe(true);
 
@@ -264,14 +265,14 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
         email: "newadmin@km100.edu.ph",
         password: "Password123",
         role: "admin",
-        passkey: "CUSTOM-CUSTODIAN-9999",
+        passkey: "CUSTOM-UNIFIED-9999",
       });
       expect(adminReg.success).toBe(true);
     });
 
     it("rejects passkeys that are too short (<6 characters)", () => {
       const shortRes = updateInstitutionalPasskeys({
-        adminPasskey: "123",
+        passkey: "123",
       });
       expect(shortRes.success).toBe(false);
       expect(shortRes.error).toContain("at least 6 characters");
@@ -279,14 +280,13 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
 
     it("restores default passkeys when resetInstitutionalPasskeys is called", () => {
       updateInstitutionalPasskeys({
-        adminPasskey: "CUSTOM-ADMIN-XYZ",
-        staffPasskey: "CUSTOM-STAFF-XYZ",
+        passkey: "CUSTOM-PASS-XYZ",
       });
-      expect(getInstitutionalPasskeys().adminPasskey).toBe("CUSTOM-ADMIN-XYZ");
+      expect(getInstitutionalPasskeys().passkey).toBe("CUSTOM-PASS-XYZ");
 
       const defaults = resetInstitutionalPasskeys();
-      expect(defaults.adminPasskey).toBe("KM100-ADMIN-2026");
-      expect(getInstitutionalPasskeys().adminPasskey).toBe("KM100-ADMIN-2026");
+      expect(defaults.passkey).toBe("KM100-2026");
+      expect(getInstitutionalPasskeys().passkey).toBe("KM100-2026");
     });
   });
 });

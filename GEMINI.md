@@ -54,11 +54,11 @@ The application employs a **Local-First, Cloud-Synchronized Architecture**:
 
 ## 3. Institutional Passkey Governance
 
-Access control enforces role-based permissions via official passkeys:
+Access control enforces role-based registration and protection via a unified official passkey:
 
-- **Property Custodian (Admin)**: Authorized via Admin Passkey (default: `KM100-ADMIN-2025`). Admins have schema control, room management, and passkey configuration rights.
-- **Staff**: Authorized via Staff Passkey (default: `KM100-STAFF-2025`). Staff can update item quantities, change conditions, and conduct physical audits.
-- **Passkey Modification**: Admins can update institutional passkeys via the Profile Management modal, saving to `localStorage` (`km100_custom_passkeys_v1`).
+- **Institutional Passkey Authority**: A single unified passkey (default: `KM100-2026`) is shared across the institution for authorized employee registration (Staff and Custodian).
+- **Custodian Exclusivity**: Only the Property Custodian (Admin) has authority to view, update, or reset this passkey via the Profile Management modal, saving to `localStorage` (`km100_institutional_passkeys_v1`).
+- **Staff Restrictions**: Staff can conduct audits, adjust counts, and update inventory but cannot view or modify the institutional passkey.
 
 ---
 

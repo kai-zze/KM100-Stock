@@ -155,7 +155,11 @@ export const InventoryTable: React.FC<Props> = ({
             <tr>
               <th
                 scope="col"
-                className="py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap"
+                className={`py-3.5 pl-3 sm:pl-4 pr-1 w-9 whitespace-nowrap ${
+                  selectedRoomId !== "ALL"
+                    ? "sticky left-0 sm:static z-20 sm:z-auto bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur"
+                    : ""
+                }`}
               >
                 <input
                   ref={setHeaderCheckbox}
@@ -173,36 +177,45 @@ export const InventoryTable: React.FC<Props> = ({
                 </th>
               )}
 
-              {columns.map((col) => (
-                <th
-                  key={col.id}
-                  scope="col"
-                  aria-sort={
-                    sortField === col.id
-                      ? sortDirection === "asc"
-                        ? "ascending"
-                        : "descending"
-                      : "none"
-                  }
-                  className="py-3.5 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs select-none whitespace-nowrap"
-                >
-                  <button
-                    type="button"
-                    onClick={() => onSort(col.id)}
-                    className="flex items-center gap-1.5 w-full text-left rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 hover:text-slate-900 dark:hover:text-white transition-colors"
+              {columns.map((col) => {
+                const isStickyName =
+                  col.id === "name" && selectedRoomId !== "ALL";
+
+                return (
+                  <th
+                    key={col.id}
+                    scope="col"
+                    aria-sort={
+                      sortField === col.id
+                        ? sortDirection === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    className={`py-3.5 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs select-none whitespace-nowrap ${
+                      isStickyName
+                        ? "sticky left-9 sm:static z-20 sm:z-auto bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                        : ""
+                    }`}
                   >
-                    <span>{col.label}</span>
-                    {sortField === col.id && (
-                      <span
-                        className="text-amber-700 dark:text-amber-400 font-bold text-xs"
-                        aria-hidden="true"
-                      >
-                        {sortDirection === "asc" ? "▲" : "▼"}
-                      </span>
-                    )}
-                  </button>
-                </th>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => onSort(col.id)}
+                      className="flex items-center gap-1.5 w-full text-left rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
+                      <span>{col.label}</span>
+                      {sortField === col.id && (
+                        <span
+                          className="text-amber-700 dark:text-amber-400 font-bold text-xs"
+                          aria-hidden="true"
+                        >
+                          {sortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                );
+              })}
 
               <th className="py-3.5 px-3 sm:px-4 font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs text-right whitespace-nowrap">
                 Actions
@@ -225,7 +238,13 @@ export const InventoryTable: React.FC<Props> = ({
                       : "hover:bg-amber-50/40 dark:hover:bg-slate-800/50"
                   }`}
                 >
-                  <td className="py-2.5 sm:py-3.5 pl-3 sm:pl-4 pr-1">
+                  <td
+                    className={`py-2.5 sm:py-3.5 pl-3 sm:pl-4 pr-1 ${
+                      selectedRoomId !== "ALL"
+                        ? "sticky left-0 sm:static z-10 sm:z-auto bg-white dark:bg-slate-900 group-hover:bg-amber-50/40 dark:group-hover:bg-slate-800/50"
+                        : ""
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       checked={isSelected}
@@ -322,14 +341,18 @@ export const InventoryTable: React.FC<Props> = ({
                     return (
                       <td
                         key={col.id}
-                        className="py-2.5 sm:py-3.5 px-3 sm:px-4"
+                        className={`py-2.5 sm:py-3.5 px-3 sm:px-4 ${
+                          col.id === "name" && selectedRoomId !== "ALL"
+                            ? "sticky left-9 sm:static z-10 sm:z-auto bg-white dark:bg-slate-900 group-hover:bg-amber-50/40 dark:group-hover:bg-slate-800/50 max-w-[140px] sm:max-w-none shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                            : ""
+                        }`}
                       >
                         {col.id === "name" ? (
                           <button
                             type="button"
                             onClick={() => onEditItem(item)}
-                            className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm text-left hover:text-amber-700 dark:hover:text-amber-400 hover:underline transition-colors cursor-pointer"
-                            title="Click to edit item"
+                            className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm text-left hover:text-amber-700 dark:hover:text-amber-400 hover:underline transition-colors cursor-pointer truncate block max-w-full"
+                            title={val || "—"}
                           >
                             {val || "—"}
                           </button>

@@ -31,6 +31,7 @@ import {
   logoutCurrentSession,
   hasLocalAdminAccount,
   checkAdminAccountExists,
+  isAuthorizedPasskey,
   isAuthorizedAdminPasskey,
   isAuthorizedStaffPasskey,
 } from "../utils/auth";
@@ -518,21 +519,13 @@ export const LoginScreen: React.FC<Props> = ({
     }
     if (!passkey.trim()) {
       setErrorMessage(
-        role === "admin"
-          ? "Please enter the official Custodian Authorization Passkey."
-          : "Please enter the official Staff Authorization Passkey.",
+        "Please enter the official Institutional Authorization Passkey.",
       );
       return;
     }
-    if (role === "admin" && !isAuthorizedAdminPasskey(passkey.trim())) {
+    if (!isAuthorizedPasskey(passkey.trim())) {
       setErrorMessage(
-        "Invalid Custodian Passkey. Custodian registration requires the authorized KM100 Admin passkey.",
-      );
-      return;
-    }
-    if (role === "staff" && !isAuthorizedStaffPasskey(passkey.trim())) {
-      setErrorMessage(
-        "Invalid Staff Passkey. Staff registration requires the authorized KM100 Staff passkey.",
+        "Invalid Institutional Passkey. Registration requires the authorized KM100 passkey.",
       );
       return;
     }
@@ -1039,9 +1032,7 @@ export const LoginScreen: React.FC<Props> = ({
                           size={13}
                           className="text-amber-700 dark:text-amber-400"
                         />
-                        {role === "admin"
-                          ? "Custodian Authorization Passkey"
-                          : "Staff Authorization Passkey"}
+                        Institutional Authorization Passkey
                       </label>
                     </div>
                     <div className="relative">
@@ -1054,11 +1045,7 @@ export const LoginScreen: React.FC<Props> = ({
                         type={showPasskey ? "text" : "password"}
                         required
                         autoComplete="off"
-                        placeholder={
-                          role === "admin"
-                            ? "Enter Custodian Authorization Passkey"
-                            : "Enter Staff Authorization Passkey"
-                        }
+                        placeholder="Enter Institutional Authorization Passkey"
                         value={passkey}
                         onChange={(e) => setPasskey(e.target.value)}
                         className={`${inputWithAction} font-sans font-medium tracking-wide`}

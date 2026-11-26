@@ -1854,11 +1854,11 @@ export function App() {
                     )}
                   </div>
 
-                  {/* Filter Dropdowns & Column Visibility: Adaptive Grid on Mobile, Inline on Desktop */}
-                  <div className="w-full md:w-auto flex flex-col sm:flex-row md:items-center gap-2">
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full md:w-auto md:flex md:items-center">
+                  {/* Filter Dropdowns & Column Visibility: Responsive Flex on Mobile, Inline on Desktop */}
+                  <div className="w-full md:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full md:w-auto">
                       {/* Category Filter */}
-                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
+                      <div className="flex-1 min-w-[135px] flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 sm:px-3 py-2">
                         <Filter size={14} className="text-slate-400 shrink-0" />
                         <select
                           value={categoryFilter}
@@ -1877,7 +1877,7 @@ export function App() {
                       </div>
 
                       {/* Condition / Status Filter */}
-                      <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2 sm:px-3 py-2 min-w-0">
+                      <div className="flex-1 min-w-[115px] flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 sm:px-3 py-2">
                         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                           Status:
                         </span>
@@ -1898,7 +1898,7 @@ export function App() {
                       </div>
 
                       {/* Column Visibility Menu */}
-                      <div className="min-w-0 w-full md:w-auto">
+                      <div className="w-full sm:w-auto shrink-0">
                         <ColumnsVisibilityMenu
                           columns={columns}
                           hiddenColumnIds={hiddenColumnIds}

@@ -45,11 +45,9 @@ export const UserProfileModal: React.FC<Props> = ({
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Institutional Passkeys state (Admin only) - keep inputs empty by default
-  const [adminPasskey, setAdminPasskey] = useState("");
-  const [staffPasskey, setStaffPasskey] = useState("");
-  const [showAdminPasskey, setShowAdminPasskey] = useState(false);
-  const [showStaffPasskey, setShowStaffPasskey] = useState(false);
+  // Institutional Passkey state (Admin only) - keep input empty by default
+  const [passkey, setPasskey] = useState("");
+  const [showPasskey, setShowPasskey] = useState(false);
   const [passkeyErrorMsg, setPasskeyErrorMsg] = useState("");
   const [passkeySuccessMsg, setPasskeySuccessMsg] = useState("");
 
@@ -64,10 +62,8 @@ export const UserProfileModal: React.FC<Props> = ({
       setShowConfirmPassword(false);
       setErrorMsg("");
       setSuccessMsg("");
-      setAdminPasskey("");
-      setStaffPasskey("");
-      setShowAdminPasskey(false);
-      setShowStaffPasskey(false);
+      setPasskey("");
+      setShowPasskey(false);
       setPasskeyErrorMsg("");
       setPasskeySuccessMsg("");
     }
@@ -169,46 +165,40 @@ export const UserProfileModal: React.FC<Props> = ({
     setPasskeySuccessMsg("");
 
     const current = getInstitutionalPasskeys();
-    const newAdmin = adminPasskey.trim() || current.adminPasskey;
-    const newStaff = staffPasskey.trim() || current.staffPasskey;
+    const newPasskey = passkey.trim() || current.passkey;
 
-    if (!adminPasskey.trim() && !staffPasskey.trim()) {
+    if (!passkey.trim()) {
       setPasskeyErrorMsg("Please enter a new passkey to update.");
       return;
     }
 
-    if (adminPasskey.trim() && adminPasskey.trim().length < 6) {
-      setPasskeyErrorMsg("Admin passkey must be at least 6 characters.");
-      return;
-    }
-    if (staffPasskey.trim() && staffPasskey.trim().length < 6) {
-      setPasskeyErrorMsg("Staff passkey must be at least 6 characters.");
+    if (passkey.trim().length < 6) {
+      setPasskeyErrorMsg(
+        "Institutional passkey must be at least 6 characters.",
+      );
       return;
     }
 
     const res = updateInstitutionalPasskeys({
-      adminPasskey: newAdmin,
-      staffPasskey: newStaff,
+      passkey: newPasskey,
     });
 
     if (res.success) {
-      setAdminPasskey("");
-      setStaffPasskey("");
+      setPasskey("");
       setPasskeySuccessMsg(
-        "Institutional passkeys updated successfully! New registrations will require these credentials.",
+        "Institutional passkey updated successfully! New registrations will require this passkey.",
       );
     } else {
-      setPasskeyErrorMsg(res.error || "Failed to update passkeys.");
+      setPasskeyErrorMsg(res.error || "Failed to update passkey.");
     }
   };
 
   const handleResetPasskeys = () => {
     resetInstitutionalPasskeys();
-    setAdminPasskey("");
-    setStaffPasskey("");
+    setPasskey("");
     setPasskeyErrorMsg("");
     setPasskeySuccessMsg(
-      "Passkeys restored to institutional defaults (KM100-ADMIN-2026 / KM100-STAFF-2026).",
+      "Passkey restored to institutional default (KM100-2026).",
     );
   };
 
@@ -236,12 +226,12 @@ export const UserProfileModal: React.FC<Props> = ({
                 className="text-base font-heading font-bold text-slate-900 dark:text-white leading-tight"
               >
                 {activeTab === "passkeys"
-                  ? "Security Passkeys"
+                  ? "Security Passkey"
                   : "Account Settings"}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {activeTab === "passkeys"
-                  ? "Manage institutional authorization passkeys for registration"
+                  ? "Manage the institutional authorization passkey for registration"
                   : "Update your display name and security credentials"}
               </p>
             </div>
@@ -332,7 +322,7 @@ export const UserProfileModal: React.FC<Props> = ({
                     : "text-slate-400"
                 }
               />
-              <span>Change Passkeys</span>
+              <span>Institutional Passkey</span>
             </button>
           </div>
         )}
@@ -544,7 +534,7 @@ export const UserProfileModal: React.FC<Props> = ({
           </>
         )}
 
-        {/* Tab 2: Institutional Security Passkeys (Admin Only) */}
+        {/* Tab 2: Institutional Security Passkey (Admin Only) */}
         {activeTab === "passkeys" && currentUser.role === "admin" && (
           <form
             onSubmit={handleSavePasskeys}
@@ -559,9 +549,9 @@ export const UserProfileModal: React.FC<Props> = ({
               <div className="leading-relaxed">
                 <p className="font-semibold">Institutional Passkey Authority</p>
                 <p className="text-[11px] text-amber-800/90 dark:text-amber-300/90 mt-0.5">
-                  As Property Custodian, you control the authorization passkeys
-                  required for new personnel to register accounts on this
-                  system.
+                  As Property Custodian, only you have authority to view and
+                  change the single institutional authorization passkey required
+                  for personnel to register accounts on this system.
                 </p>
               </div>
             </div>
@@ -579,85 +569,40 @@ export const UserProfileModal: React.FC<Props> = ({
               </div>
             )}
 
-            {/* Custodian Passkey */}
+            {/* Institutional Passkey Field */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Shield
+                  <KeyRound
                     size={14}
                     className="text-amber-700 dark:text-amber-400"
                   />
-                  <span>Custodian (Admin) Passkey</span>
+                  <span>Institutional Passkey</span>
                 </label>
                 <span className="text-[10px] text-amber-700 dark:text-amber-400 font-sans font-semibold">
-                  Full Authority
+                  Custodian Controlled
                 </span>
               </div>
               <div className="relative">
                 <input
-                  type={showAdminPasskey ? "text" : "password"}
-                  value={adminPasskey}
-                  onChange={(e) => setAdminPasskey(e.target.value)}
-                  placeholder="Enter new Custodian passkey (leave blank to keep current)"
+                  type={showPasskey ? "text" : "password"}
+                  value={passkey}
+                  onChange={(e) => setPasskey(e.target.value)}
+                  placeholder="Enter new Institutional passkey (leave blank to keep current)"
                   className="w-full pl-3 pr-10 py-2 font-sans font-medium tracking-wide text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowAdminPasskey((p) => !p)}
+                  onClick={() => setShowPasskey((p) => !p)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                  title={
-                    showAdminPasskey
-                      ? "Hide admin passkey"
-                      : "Show admin passkey"
-                  }
+                  title={showPasskey ? "Hide passkey" : "Show passkey"}
                 >
-                  {showAdminPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
+                  {showPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                Required whenever a new administrator or custodian registers an
-                account.
-              </p>
-            </div>
-
-            {/* Staff Passkey */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <User
-                    size={14}
-                    className="text-slate-500 dark:text-slate-400"
-                  />
-                  <span>Staff Passkey</span>
-                </label>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans font-semibold">
-                  Operational
-                </span>
-              </div>
-              <div className="relative">
-                <input
-                  type={showStaffPasskey ? "text" : "password"}
-                  value={staffPasskey}
-                  onChange={(e) => setStaffPasskey(e.target.value)}
-                  placeholder="Enter new Staff passkey (leave blank to keep current)"
-                  className="w-full pl-3 pr-10 py-2 font-sans font-medium tracking-wide text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-slate-100 transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowStaffPasskey((p) => !p)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                  title={
-                    showStaffPasskey
-                      ? "Hide staff passkey"
-                      : "Show staff passkey"
-                  }
-                >
-                  {showStaffPasskey ? <Eye size={16} /> : <EyeOff size={16} />}
-                </button>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                Required for authorized staff to register for inventory
-                counting.
+                This single passkey is provided to authorized staff and
+                personnel to register. Only the Custodian can modify it.
               </p>
             </div>
 
@@ -667,10 +612,10 @@ export const UserProfileModal: React.FC<Props> = ({
                 type="button"
                 onClick={handleResetPasskeys}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Restore default factory passkeys"
+                title="Restore default factory passkey"
               >
                 <RotateCcw size={13} />
-                <span>Reset to Defaults</span>
+                <span>Reset to Default</span>
               </button>
 
               <div className="flex items-center gap-2">
@@ -683,17 +628,11 @@ export const UserProfileModal: React.FC<Props> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={
-                    (!adminPasskey.trim() && !staffPasskey.trim()) ||
-                    (adminPasskey.trim().length > 0 &&
-                      adminPasskey.trim().length < 6) ||
-                    (staffPasskey.trim().length > 0 &&
-                      staffPasskey.trim().length < 6)
-                  }
+                  disabled={!passkey.trim() || passkey.trim().length < 6}
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <KeyRound size={14} />
-                  <span>Update Passkeys</span>
+                  <span>Update Passkey</span>
                 </button>
               </div>
             </div>
