@@ -44,7 +44,7 @@ const diagramsMeta = [
     filename: "02-authentication-onboarding-flow.png",
     title: "Authentication & Onboarding Flow",
     docRef: "KM100-FLW-02-AUTH",
-    desc: "Shared Institutional Passkey Verification, Role Assignment (Custodian vs Instructor) & Interactive Tour Trigger",
+    desc: "Shared Institutional Passkey Verification, Role Assignment (Custodian vs Staff) & Interactive Tour Trigger",
   },
   {
     filename: "03-inventory-lifecycle-flow.png",

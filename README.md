@@ -10,7 +10,7 @@
 The **KM100 Inventory Management System** streamlines property custody, equipment tracking, and compliance audits across vocational training programs (Computer Systems Servicing, Bread & Pastry, Welding, Electrical Installation, etc.).
 
 - **Local-First & Cloud-Synchronized**: Boots instantly from `localStorage` (0 ms paint) and asynchronously reconciles with **Supabase PostgreSQL** in the background (<200 ms).
-- **Institutional Passkey Governance**: Strict role-based registration requiring authorized institutional passkeys for Administrators and Instructors.
+- **Institutional Passkey Governance**: Strict role-based registration requiring authorized institutional passkeys for Administrators and Staff.
 - **High-Density Auditing**: Instant `+` and `−` quantity steppers, live search-as-you-type, one-click KPI filters, and bulk inventory actions.
 - **Physical Sign-Off & Excel Reports**: Generates formal print-ready custody audit sheets with verified 3-signature sign-off blocks and multi-sheet styled Excel workbooks.
 - **Always-On Cloud**: Automated GitHub Actions scheduled ping prevents Supabase Free Tier inactivity pausing.
@@ -114,10 +114,10 @@ KM100-Stock/
 
 Registration is strictly protected to prevent unauthorized public account creation. The application supports two institutional roles:
 
-| Role                            | Default Passkey    | Alternate / Legacy | Permissions                                                                                                                                |
-| :------------------------------ | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Property Custodian (Admin)**  | `KM100-ADMIN-2026` | `KM100-ADMIN-2025` | Full administrative control: schema configuration, room creation/deletion, passkey updates, equipment management, and multi-sheet exports. |
-| **Training Instructor (Staff)** | `KM100-STAFF-2026` | `KM100-STAFF-2025` | Operational custody: inline stock counts (`+` / `−`), condition tagging, physical audits, asset tag printing, and individual room reports. |
+| Role                           | Default Passkey    | Alternate / Legacy | Permissions                                                                                                                                |
+| :----------------------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Property Custodian (Admin)** | `KM100-ADMIN-2026` | `KM100-ADMIN-2025` | Full administrative control: schema configuration, room creation/deletion, passkey updates, equipment management, and multi-sheet exports. |
+| **Staff**                      | `KM100-STAFF-2026` | `KM100-STAFF-2025` | Operational custody: inline stock counts (`+` / `−`), condition tagging, physical audits, asset tag printing, and individual room reports. |
 
 > Passkeys are case-insensitive and can be entered with or without hyphens (`km100admin2026`). Authorized Custodians can update passkeys anytime in **User Profile** → **Manage Passkeys**.
 

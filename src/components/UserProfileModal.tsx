@@ -280,9 +280,7 @@ export const UserProfileModal: React.FC<Props> = ({
             ) : (
               <User size={13} />
             )}
-            {currentUser.role === "admin"
-              ? "Admin / Custodian"
-              : "Staff / Instructor"}
+            {currentUser.role === "admin" ? "Admin / Custodian" : "Staff"}
           </span>
         </div>
 
@@ -630,7 +628,7 @@ export const UserProfileModal: React.FC<Props> = ({
                     size={14}
                     className="text-slate-500 dark:text-slate-400"
                   />
-                  <span>Staff (Instructor) Passkey</span>
+                  <span>Staff Passkey</span>
                 </label>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-sans font-semibold">
                   Operational
@@ -658,8 +656,8 @@ export const UserProfileModal: React.FC<Props> = ({
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                Required for training instructors and workshop staff to register
-                for inventory counting.
+                Required for authorized staff to register for inventory
+                counting.
               </p>
             </div>
 

@@ -57,7 +57,7 @@ The application employs a **Local-First, Cloud-Synchronized Architecture**:
 Access control enforces role-based permissions via official passkeys:
 
 - **Property Custodian (Admin)**: Authorized via Admin Passkey (default: `KM100-ADMIN-2025`). Admins have schema control, room management, and passkey configuration rights.
-- **Training Instructor (Staff)**: Authorized via Staff Passkey (default: `KM100-STAFF-2025`). Staff can update item quantities, change conditions, and conduct physical audits.
+- **Staff**: Authorized via Staff Passkey (default: `KM100-STAFF-2025`). Staff can update item quantities, change conditions, and conduct physical audits.
 - **Passkey Modification**: Admins can update institutional passkeys via the Profile Management modal, saving to `localStorage` (`km100_custom_passkeys_v1`).
 
 ---

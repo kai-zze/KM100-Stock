@@ -618,7 +618,7 @@ export async function loginWithCredentials(
           cleanInput
             .split("@")[0]
             .replace(/[._-]/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase()) || "Training Staff",
+            .replace(/\b\w/g, (c) => c.toUpperCase()) || "Staff",
       };
       setStoredUser(appUser);
       return { success: true, user: appUser };

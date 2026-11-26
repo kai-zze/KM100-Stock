@@ -14,7 +14,7 @@ A modern, responsive, high-reliability inventory tracking application designed t
 - Training Center Administrators
 - Laboratory Custodians and Technical Assistants
 - Facility and Property Officers
-- Department Heads and Instructors
+- Department Heads and Staff
 
 ## Key Value Drivers
 

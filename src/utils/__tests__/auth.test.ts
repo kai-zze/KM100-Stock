@@ -203,7 +203,7 @@ describe("KM100 Authentication System with Institutional Passkeys", () => {
 
     it("allows instant direct login using authorized institutional passkey", async () => {
       const passkeyLogin = await loginWithCredentials(
-        "instructor@km100.edu.ph",
+        "staff@km100.edu.ph",
         "KM100-STAFF-2026",
       );
       expect(passkeyLogin.success).toBe(true);

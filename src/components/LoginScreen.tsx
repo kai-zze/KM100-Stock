@@ -67,7 +67,7 @@ const FEATURES = [
     icon: Shield,
     title: "Role-Based Custodian Governance",
     detail:
-      "Passkey-authorized schema controls for Custodians and fast auditing tools for Instructors.",
+      "Passkey-authorized schema controls for Custodians and fast auditing tools for Staff.",
   },
 ];
 
@@ -1675,8 +1675,8 @@ export const LoginScreen: React.FC<Props> = ({
               <div className="rounded-xl border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-[11px] text-amber-900 dark:text-amber-200">
                 <span className="font-semibold">Notice to All Staff:</span>{" "}
                 Access to this system is restricted to certified property
-                custodians, authorized vocational instructors, and
-                administration personnel.
+                custodians, authorized staff members, and administration
+                personnel.
               </div>
 
               <div className="space-y-3.5">

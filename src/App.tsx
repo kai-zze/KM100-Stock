@@ -56,10 +56,6 @@ const FacilityModal = lazyNamed(
   () => import("./components/FacilityModal"),
   "FacilityModal",
 );
-const AssetTagModal = lazyNamed(
-  () => import("./components/AssetTagModal"),
-  "AssetTagModal",
-);
 const ImportPreviewModal = lazyNamed(
   () => import("./components/ImportPreviewModal"),
   "ImportPreviewModal",
@@ -359,7 +355,6 @@ export function App() {
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [assetTagItem, setAssetTagItem] = useState<InventoryItem | null>(null);
   const [importAnalysis, setImportAnalysis] = useState<ImportAnalysis | null>(
     null,
   );
@@ -1209,10 +1204,6 @@ export function App() {
     setIsItemModalOpen(true);
   }, []);
 
-  const handlePrintAssetTag = useCallback((item: InventoryItem) => {
-    setAssetTagItem(item);
-  }, []);
-
   const handleAddItem = useCallback(
     (preselectedRoomId?: string) => {
       if (facilityScopedRooms.length === 0) {
@@ -1370,7 +1361,6 @@ export function App() {
     setIsRoomModalOpen(false);
     setIsFacilityModalOpen(false);
     setIsProfileModalOpen(false);
-    setAssetTagItem(null);
     setImportAnalysis(null);
     setIsMobileNavOpen(false);
     setIsOnboardingOpen(false);
@@ -1465,8 +1455,6 @@ export function App() {
           handleCloseOnboarding();
         } else if (isProfileModalOpen) {
           setIsProfileModalOpen(false);
-        } else if (assetTagItem) {
-          setAssetTagItem(null);
         } else if (importAnalysis) {
           setImportAnalysis(null);
         } else if (isItemModalOpen) {
@@ -1492,7 +1480,6 @@ export function App() {
     isOnboardingOpen,
     handleCloseOnboarding,
     isProfileModalOpen,
-    assetTagItem,
     importAnalysis,
     isItemModalOpen,
     isColumnsModalOpen,
@@ -1978,7 +1965,6 @@ export function App() {
                     onSetQuantity={handleSetQuantity}
                     onEditItem={handleEditItem}
                     onDeleteItem={confirmDeleteItem}
-                    onPrintAssetTag={handlePrintAssetTag}
                     onAddItem={handleAddItem}
                     onResetFilters={handleResetFilters}
                     isFiltered={isFiltered}
@@ -2192,17 +2178,6 @@ export function App() {
             editingFacility={editingFacility}
             onSave={handleSaveFacility}
             onDelete={confirmDeleteFacility}
-          />
-        </Suspense>
-      )}
-
-      {/* ── Equipment Asset Tag Printable Sticker Modal ─────────────── */}
-      {assetTagItem && (
-        <Suspense fallback={<ModalSkeleton size="sm" />}>
-          <AssetTagModal
-            item={assetTagItem}
-            rooms={rooms}
-            onClose={() => setAssetTagItem(null)}
           />
         </Suspense>
       )}

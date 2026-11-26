@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Tag } from "lucide-react";
 import { ColumnDefinition, InventoryItem, Room } from "../types/inventory";
 import { ConditionBadge } from "./ConditionBadge";
 import { TableSkeleton } from "./SkeletonLoader";
@@ -93,7 +92,6 @@ interface Props {
   onSetQuantity?: (itemId: string, qty: number) => void;
   onEditItem: (item: InventoryItem) => void;
   onDeleteItem: (item: InventoryItem) => void;
-  onPrintAssetTag?: (item: InventoryItem) => void;
   onAddItem: () => void;
   onResetFilters: () => void;
   isFiltered: boolean;
@@ -116,7 +114,6 @@ export const InventoryTable: React.FC<Props> = ({
   onSetQuantity,
   onEditItem,
   onDeleteItem,
-  onPrintAssetTag,
   onAddItem,
   onResetFilters,
   isFiltered,
@@ -364,17 +361,6 @@ export const InventoryTable: React.FC<Props> = ({
                       id={itemIdx === 0 ? "tour-row-actions" : undefined}
                       className="flex items-center justify-end gap-1 sm:gap-1.5 text-xs sm:text-sm font-semibold"
                     >
-                      {onPrintAssetTag && (
-                        <button
-                          type="button"
-                          onClick={() => onPrintAssetTag(item)}
-                          aria-label={`Print asset tag for ${item.name}`}
-                          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
-                          title="Print Asset Tag Sticker"
-                        >
-                          <Tag size={14} />
-                        </button>
-                      )}
                       <button
                         type="button"
                         onClick={() => onEditItem(item)}
