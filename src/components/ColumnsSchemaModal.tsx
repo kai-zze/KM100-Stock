@@ -373,9 +373,119 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                     }`}
                   >
                     {/* Summary Row */}
-                    <div className="p-2.5 sm:p-3 space-y-2.5 md:space-y-0 md:flex md:items-center md:justify-between md:gap-2">
-                      {/* Top Row on Mobile, Left Side on Desktop */}
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="p-2.5 sm:p-3 space-y-2 md:space-y-0 md:flex md:items-center md:justify-between md:gap-2">
+                      {/* Mobile Layout (<md): 3 distinct, non-overlapping rows */}
+                      <div className="md:hidden space-y-2">
+                        {/* Mobile Row 1: Index Number + Type Badge + Options Count + Core Tag + Delete Button */}
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="w-5 text-center font-mono text-slate-400 font-bold text-xs shrink-0">
+                              {idx + 1}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0 ${
+                                col.type === "dropdown"
+                                  ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800"
+                                  : col.type === "number"
+                                    ? "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800"
+                                    : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                              }`}
+                            >
+                              {col.type}
+                            </span>
+                            {col.type === "dropdown" && (
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                                ({options.length} choices)
+                              </span>
+                            )}
+                            {col.isSystem && (
+                              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold italic shrink-0 whitespace-nowrap">
+                                Core
+                              </span>
+                            )}
+                          </div>
+
+                          {!col.isSystem && (
+                            <button
+                              type="button"
+                              onClick={() => deleteColumn(col.id)}
+                              className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
+                              title="Delete Column"
+                              aria-label={`Delete ${col.label} column`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Mobile Row 2: Full-width Label Input */}
+                        <div>
+                          <input
+                            type="text"
+                            value={col.label}
+                            aria-label={`Column ${idx + 1} label (mobile)`}
+                            onChange={(e) =>
+                              updateColumnLabel(col.id, e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                          />
+                        </div>
+
+                        {/* Mobile Row 3: Dedicated Action Buttons Toolbar */}
+                        <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800/80">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedColId(isExpanded ? null : col.id)
+                            }
+                            className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                              isExpanded
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            }`}
+                            title="Configure column options and settings"
+                          >
+                            <Sliders size={12} />
+                            <span>Configure</span>
+                            <ChevronDown
+                              size={12}
+                              className={`transition-transform duration-200 ${
+                                isExpanded ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => moveColumn(idx, -1)}
+                            disabled={idx === 0}
+                            className="p-1.5 px-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer shrink-0"
+                            title="Move Up"
+                            aria-label={`Move ${col.label} up`}
+                          >
+                            <ChevronUp size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveColumn(idx, 1)}
+                            disabled={idx === localCols.length - 1}
+                            className="p-1.5 px-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer shrink-0"
+                            title="Move Down"
+                            aria-label={`Move ${col.label} down`}
+                          >
+                            <ChevronDown size={13} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Desktop Layout (hidden md:flex): Single clean horizontal row */}
+                      <div className="hidden md:flex md:items-center md:gap-2 md:flex-1 md:min-w-0">
                         <span className="w-5 text-center font-mono text-slate-400 font-bold shrink-0 text-xs">
                           {idx + 1}
                         </span>
@@ -394,23 +504,10 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                           }}
                           className="px-2.5 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 flex-1 min-w-0"
                         />
-                        {/* Mobile Delete Button */}
-                        {!col.isSystem && (
-                          <button
-                            type="button"
-                            onClick={() => deleteColumn(col.id)}
-                            className="md:hidden p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
-                            title="Delete Column"
-                            aria-label={`Delete ${col.label} column`}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        )}
                       </div>
 
-                      {/* Bottom Row on Mobile, Right Side on Desktop */}
-                      <div className="flex items-center justify-between md:justify-end gap-1.5 md:gap-1 shrink-0 pt-2 md:pt-0 border-t border-slate-100 md:border-t-0 dark:border-slate-800/80">
-                        <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="hidden md:flex md:items-center md:gap-2 md:shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0 ${
                               col.type === "dropdown"
@@ -434,8 +531,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                           )}
                         </div>
 
-                        {/* Controls */}
-                        <div className="flex items-center gap-1 shrink-0 ml-auto md:ml-2">
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
                           <button
                             type="button"
                             onClick={() =>
@@ -464,6 +560,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                             disabled={idx === 0}
                             className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
                             title="Move Up"
+                            aria-label={`Move ${col.label} up`}
                           >
                             <ChevronUp size={13} />
                           </button>
@@ -473,6 +570,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                             disabled={idx === localCols.length - 1}
                             className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
                             title="Move Down"
+                            aria-label={`Move ${col.label} down`}
                           >
                             <ChevronDown size={13} />
                           </button>
@@ -481,7 +579,7 @@ export const ColumnsSchemaModal: React.FC<Props> = ({
                             <button
                               type="button"
                               onClick={() => deleteColumn(col.id)}
-                              className="hidden md:inline-flex p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 ml-0.5 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 ml-0.5 transition-colors cursor-pointer"
                               title="Delete Column"
                               aria-label={`Delete ${col.label} column`}
                             >
